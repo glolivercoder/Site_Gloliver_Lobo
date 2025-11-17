@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { saveMediaFile, cleanupOldFilesByAge, listMediaFilesMeta, getMediaUrl } from "@/utils/storage";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AudioVisualizer } from "./AudioVisualizer";
 
 // Define the genre options
 const genreOptions = [
@@ -461,6 +462,9 @@ export const UploadSection = () => {
           <DialogContent className="max-w-3xl bg-card/90 border-border/50">
             <DialogHeader>
               <DialogTitle>Biblioteca de Músicas Salvas</DialogTitle>
+              <DialogDescription>
+                Selecione uma música para reproduzir ou filtre por gênero.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
@@ -494,13 +498,15 @@ export const UploadSection = () => {
           <DialogContent className="max-w-3xl bg-card/90 border-border/50">
             <DialogHeader>
               <DialogTitle>{selectedLibraryItem?.title}</DialogTitle>
+              <DialogDescription>
+                Clique na forma de onda para reproduzir ou pausar.
+              </DialogDescription>
             </DialogHeader>
             <div className="p-2">
               {selectedLibraryItem?.url && (
                 <div className="aspect-video">
-                  {/* Reutiliza o AudioVisualizer via FeaturedSection player simples */}
                   <div className="p-2">
-                    <audio src={selectedLibraryItem.url} controls autoPlay className="w-full" />
+                    <AudioVisualizer url={selectedLibraryItem.url} autoPlay waveformStyle="animatedBars" />
                   </div>
                 </div>
               )}

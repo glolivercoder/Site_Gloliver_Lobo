@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { toast } from "sonner";
+import { LiveAudioVisualizer } from "./LiveAudioVisualizer";
 
 interface AudioVisualizerProps {
   url: string;
   autoPlay?: boolean;
-  waveformStyle?: "bars" | "wave" | "mirror";
+  waveformStyle?: "bars" | "wave" | "mirror" | "animatedBars";
 }
 
 export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" }: AudioVisualizerProps) => {
@@ -14,16 +15,24 @@ export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" 
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    // If animated bars are requested, render the LiveAudioVisualizer directly
+    if (waveformStyle === "animatedBars") {
+      setLoadError(true);
+      return;
+    }
+
     if (!waveformRef.current || loadError) return;
 
     // Configure waveform based on style
     const waveConfig: any = {
       container: waveformRef.current,
-      waveColor: "hsl(var(--golden))",
-      progressColor: "hsl(var(--golden) / 0.5)",
-      cursorColor: "hsl(var(--golden))",
+      // Use explicit HSL values for high contrast instead of CSS vars (var())
+      waveColor: "hsl(40 20% 30%)",      // darker amber base for background waveform
+      progressColor: "hsl(40 90% 55%)",   // bright amber for played portion (high contrast)
+      cursorColor: "hsl(0 0% 98%)",       // near-white cursor
       height: 128,
       normalize: true,
+      responsive: true,
     };
 
     // Apply style-specific configurations
@@ -96,23 +105,10 @@ export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" 
     wavesurferRef.current?.playPause();
   };
 
-  // Fallback to native HTML5 audio player if WaveSurfer fails
+  // Fallback to a live animated bars visualizer if WaveSurfer fails
   if (loadError) {
     return (
-      <div className="space-y-4">
-        <audio
-          src={url}
-          controls
-          autoPlay={autoPlay}
-          className="w-full"
-          style={{
-            filter: "hue-rotate(45deg) saturate(1.5)",
-          }}
-        />
-        <div className="text-center text-muted-foreground text-sm">
-          Player de áudio padrão
-        </div>
-      </div>
+      <LiveAudioVisualizer url={url} autoPlay={autoPlay} />
     );
   }
 
