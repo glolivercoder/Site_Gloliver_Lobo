@@ -1,4 +1,4 @@
-import { Music2, Guitar, Disc3, Radio, Flame, Church, MessageSquare } from "lucide-react";
+import { Music2, Guitar, Disc3, Radio, Flame, Church, MessageSquare, Piano } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { GenreLibraryDialog } from "@/components/GenreLibraryDialog";
@@ -10,6 +10,7 @@ const genres = [
   { name: "Reggae", value: "reggae", icon: Flame, color: "from-green-500 to-emerald-500" },
   { name: "Gospel", value: "gospel", icon: Church, color: "from-indigo-500 to-violet-500" },
   { name: "Polêmicas", value: "polemicas", icon: MessageSquare, color: "from-rose-500 to-red-500" },
+  { name: "Instrumental", value: "instrumental", icon: Piano, color: "from-slate-500 to-zinc-500" },
 ];
 export const GenreSection = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
