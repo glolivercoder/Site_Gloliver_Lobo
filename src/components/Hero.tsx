@@ -13,10 +13,10 @@ export const Hero = () => {
       
       {/* Content */}
       <div className="relative z-30 container mx-auto px-6 text-center pt-32">
-        <div className="max-w-4xl mx-[100px] px-px my-0 py-[6px]">
+        <div className="max-w-4xl mx-[100px] px-px my-0 py-[6px] mt-[20px]">
           {/* Neon Logo with Roman Numerals Style - Moved Down */}
-          <h1 className="text-7xl md:text-9xl font-bold mb-8 tracking-wider animate-glow-pulse mt-32">
-            <span className="neon-text text-[#f8f8f8] text-5xl">GLOLIVER    LOBO</span>
+          <h1 className="text-7xl md:text-9xl font-bold mb-8 tracking-wider mt-32">
+            <span className="bonheur-royale-regular text-5xl">Gloliver Lobo</span>
           </h1>
           
           <p className="text-xl text-foreground/80 mb-12 font-light md:text-xl">

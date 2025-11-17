@@ -71,3 +71,18 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Fonte Bonheur Royale com efeito neon ciano */
+.bonheur-royale-regular {
+  font-family: "Bonheur Royale", cursive;
+  font-weight: 400;
+  font-style: normal;
+  color: hsl(var(--golden-light));
+  text-shadow:
+    0 0 4px hsl(var(--golden-light) / 0.9),
+    0 0 8px hsl(var(--golden-light) / 0.7),
+    0 0 16px hsl(var(--golden) / 0.6),
+    0 0 32px hsl(var(--golden) / 0.5),
+    0 0 64px hsl(var(--golden-dark) / 0.4);
+  letter-spacing: 0.08em;
+}
