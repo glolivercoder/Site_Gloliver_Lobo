@@ -28,6 +28,7 @@ const Settings = () => {
     spotify: "",
     youtubeMusic: "",
     amazonMusic: "",
+    whatsapp: "",
   });
 
   const [audioSettings, setAudioSettings] = useState({
@@ -47,12 +48,26 @@ const Settings = () => {
     }
 
     const storedSocial = localStorage.getItem("socialLinks");
+    const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
     if (storedSocial) {
       try {
-        setSocialLinks(JSON.parse(storedSocial));
+        const parsed = JSON.parse(storedSocial);
+        setSocialLinks({
+          instagram: parsed.instagram || "",
+          tiktok: parsed.tiktok || "",
+          youtube: parsed.youtube || "",
+          spotify: parsed.spotify || "",
+          youtubeMusic: parsed.youtubeMusic || "",
+          amazonMusic: parsed.amazonMusic || "",
+          whatsapp: parsed.whatsapp ?? envWhatsapp,
+        });
       } catch (e) {
         console.error("Error loading social links:", e);
+        setSocialLinks((prev) => ({ ...prev, whatsapp: envWhatsapp }));
       }
+    } else {
+      // Sem dados salvos: inicializa WhatsApp com valor de ambiente
+      setSocialLinks((prev) => ({ ...prev, whatsapp: envWhatsapp }));
     }
 
     const storedAudioSettings = localStorage.getItem("audioSettings");
@@ -281,6 +296,18 @@ const Settings = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp" className="text-foreground flex items-center gap-2">
+                    <img src="/favicon-whatsapp.svg" alt="WhatsApp" className="w-4 h-4" /> WhatsApp
+                  </Label>
+                  <Input
+                    id="whatsapp"
+                    value={socialLinks.whatsapp}
+                    onChange={(e) => handleSocialChange("whatsapp", e.target.value)}
+                    placeholder="https://wa.me/message/SEU_CODIGO"
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="instagram" className="text-foreground flex items-center gap-2">
                     <Instagram className="w-4 h-4" /> Instagram

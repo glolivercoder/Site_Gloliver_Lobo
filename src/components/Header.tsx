@@ -1,9 +1,16 @@
-import { Music, Settings, MessageCircle } from "lucide-react";
+import { Music, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const navigate = useNavigate();
+  const social = typeof window !== "undefined" ? localStorage.getItem("socialLinks") : null;
+  const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
+  let whatsappLink = envWhatsapp || "https://wa.me/";
+  try {
+    const parsed = social ? JSON.parse(social) : {};
+    if (parsed && parsed.whatsapp) whatsappLink = parsed.whatsapp;
+  } catch {}
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-background/80 border-b border-border/50">
@@ -28,10 +35,10 @@ export const Header = () => {
             variant="ghost" 
             size="icon" 
             className="text-foreground/80 hover:text-primary"
-            onClick={() => window.open('https://wa.me/5511999999999', '_blank')}
+            onClick={() => window.open(whatsappLink, '_blank')}
             title="Contato WhatsApp"
           >
-            <MessageCircle className="w-5 h-5" />
+            <img src="/favicon-whatsapp.svg" alt="WhatsApp" className="w-5 h-5" />
           </Button>
           <Button 
             variant="ghost" 
