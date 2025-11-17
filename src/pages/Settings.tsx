@@ -5,20 +5,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { Instagram, Music, Youtube, Radio, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  Instagram,
+  Music,
+  Youtube,
+  Radio,
+  Upload,
+  Image as ImageIcon,
+} from "lucide-react";
 
 const Settings = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [allPages, setAllPages] = useState<any[][]>([
-    Array(8).fill(null).map((_, i) => ({ 
-      id: i + 1, 
-      title: `Destaque ${i + 1}`, 
-      url: "", 
-      type: "video" 
-    }))
+    Array(8)
+      .fill(null)
+      .map((_, i) => ({
+        id: i + 1,
+        title: `Destaque ${i + 1}`,
+        url: "",
+        type: "video",
+      })),
   ]);
 
   const [socialLinks, setSocialLinks] = useState({
@@ -80,10 +95,18 @@ const Settings = () => {
     }
   }, []);
 
-  const handleFeaturedChange = (pageIndex: number, itemIndex: number, field: string, value: string) => {
+  const handleFeaturedChange = (
+    pageIndex: number,
+    itemIndex: number,
+    field: string,
+    value: string,
+  ) => {
     const updated = [...allPages];
     updated[pageIndex] = [...updated[pageIndex]];
-    updated[pageIndex][itemIndex] = { ...updated[pageIndex][itemIndex], [field]: value };
+    updated[pageIndex][itemIndex] = {
+      ...updated[pageIndex][itemIndex],
+      [field]: value,
+    };
     setAllPages(updated);
   };
 
@@ -94,12 +117,14 @@ const Settings = () => {
   };
 
   const addNewPage = () => {
-    const newPage = Array(8).fill(null).map((_, i) => ({ 
-      id: allPages.length * 8 + i + 1, 
-      title: `Destaque ${allPages.length * 8 + i + 1}`, 
-      url: "", 
-      type: "video" 
-    }));
+    const newPage = Array(8)
+      .fill(null)
+      .map((_, i) => ({
+        id: allPages.length * 8 + i + 1,
+        title: `Destaque ${allPages.length * 8 + i + 1}`,
+        url: "",
+        type: "video",
+      }));
     setAllPages([...allPages, newPage]);
     setCurrentPage(allPages.length);
     toast.success("Nova página adicionada!");
@@ -127,7 +152,11 @@ const Settings = () => {
     toast.success("Links das redes sociais atualizados com sucesso!");
   };
 
-  const handleThumbnailUpload = (pageIndex: number, itemIndex: number, file: File) => {
+  const handleThumbnailUpload = (
+    pageIndex: number,
+    itemIndex: number,
+    file: File,
+  ) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result as string;
@@ -156,16 +185,21 @@ const Settings = () => {
           {/* Featured Section Editor */}
           <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-2xl text-golden">Editar Destaques</CardTitle>
+              <CardTitle className="text-2xl text-golden">
+                Editar Destaques
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2 mb-4">
-                <Button onClick={addNewPage} className="bg-golden text-deep-black hover:bg-golden/90">
+                <Button
+                  onClick={addNewPage}
+                  className="bg-golden text-deep-black hover:bg-golden/90"
+                >
                   Adicionar Página
                 </Button>
                 {allPages.length > 1 && (
-                  <Button 
-                    onClick={() => removePage(currentPage)} 
+                  <Button
+                    onClick={() => removePage(currentPage)}
                     variant="destructive"
                   >
                     Remover Página Atual
@@ -179,7 +213,11 @@ const Settings = () => {
                     key={index}
                     onClick={() => setCurrentPage(index)}
                     variant={currentPage === index ? "default" : "outline"}
-                    className={currentPage === index ? "bg-golden text-deep-black hover:bg-golden/90" : ""}
+                    className={
+                      currentPage === index
+                        ? "bg-golden text-deep-black hover:bg-golden/90"
+                        : ""
+                    }
                   >
                     Página {index + 1}
                   </Button>
@@ -188,39 +226,77 @@ const Settings = () => {
 
               <div className="space-y-4">
                 {allPages[currentPage]?.map((item, index) => (
-                  <div key={item.id} className="space-y-2 p-4 border border-golden/20 rounded-lg">
-                    <Label className="text-sm font-medium text-golden">Destaque {index + 1}</Label>
+                  <div
+                    key={item.id}
+                    className="space-y-2 p-4 border border-golden/20 rounded-lg"
+                  >
+                    <Label className="text-sm font-medium text-golden">
+                      Destaque {index + 1}
+                    </Label>
                     <Input
                       placeholder="Título"
                       value={item.title}
-                      onChange={(e) => handleFeaturedChange(currentPage, index, "title", e.target.value)}
+                      onChange={(e) =>
+                        handleFeaturedChange(
+                          currentPage,
+                          index,
+                          "title",
+                          e.target.value,
+                        )
+                      }
                       className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
                     />
+
                     <Input
                       placeholder="URL da mídia (YouTube, Spotify, etc.)"
                       value={item.url}
-                      onChange={(e) => handleFeaturedChange(currentPage, index, "url", e.target.value)}
+                      onChange={(e) =>
+                        handleFeaturedChange(
+                          currentPage,
+                          index,
+                          "url",
+                          e.target.value,
+                        )
+                      }
                       className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
                     />
+
                     <select
                       value={item.type}
-                      onChange={(e) => handleFeaturedChange(currentPage, index, "type", e.target.value)}
+                      onChange={(e) =>
+                        handleFeaturedChange(
+                          currentPage,
+                          index,
+                          "type",
+                          e.target.value,
+                        )
+                      }
                       className="flex h-10 w-full rounded-md border border-golden/20 bg-background/50 px-3 py-2 text-sm text-foreground focus:border-golden"
                     >
                       <option value="video">Vídeo</option>
                       <option value="audio">Áudio</option>
                       <option value="image">Imagem</option>
                     </select>
-                    
+
                     <div className="mt-2 space-y-2">
-                      <Label className="text-xs text-muted-foreground">Imagem Thumbnail</Label>
+                      <Label className="text-xs text-muted-foreground">
+                        Imagem Thumbnail
+                      </Label>
                       <div className="flex gap-2">
                         <Input
                           placeholder="URL da imagem thumbnail"
                           value={item.thumbnail || ""}
-                          onChange={(e) => handleFeaturedChange(currentPage, index, "thumbnail", e.target.value)}
+                          onChange={(e) =>
+                            handleFeaturedChange(
+                              currentPage,
+                              index,
+                              "thumbnail",
+                              e.target.value,
+                            )
+                          }
                           className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
                         />
+
                         <Button
                           type="button"
                           size="icon"
@@ -230,8 +306,10 @@ const Settings = () => {
                             input.type = "file";
                             input.accept = "image/*";
                             input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement).files?.[0];
-                              if (file) handleThumbnailUpload(currentPage, index, file);
+                              const file = (e.target as HTMLInputElement)
+                                .files?.[0];
+                              if (file)
+                                handleThumbnailUpload(currentPage, index, file);
                             };
                             input.click();
                           }}
@@ -242,7 +320,11 @@ const Settings = () => {
                       </div>
                       {item.thumbnail && (
                         <div className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden">
-                          <img src={item.thumbnail} alt="Thumbnail" className="w-full h-full object-cover" />
+                          <img
+                            src={item.thumbnail}
+                            alt="Thumbnail"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       )}
                     </div>
@@ -261,14 +343,20 @@ const Settings = () => {
           {/* Audio Visualizer Settings */}
           <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-2xl text-golden">Configurações do Visualizador de Áudio</CardTitle>
+              <CardTitle className="text-2xl text-golden">
+                Configurações do Visualizador de Áudio
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="waveformStyle" className="text-foreground">Estilo do Waveform</Label>
+                <Label htmlFor="waveformStyle" className="text-foreground">
+                  Estilo do Waveform
+                </Label>
                 <Select
                   value={audioSettings.waveformStyle}
-                  onValueChange={(value) => setAudioSettings({ ...audioSettings, waveformStyle: value })}
+                  onValueChange={(value) =>
+                    setAudioSettings({ ...audioSettings, waveformStyle: value })
+                  }
                 >
                   <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
                     <SelectValue placeholder="Selecione o estilo" />
@@ -292,95 +380,137 @@ const Settings = () => {
           {/* Social Links Editor */}
           <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-2xl text-golden">Redes Sociais</CardTitle>
+              <CardTitle className="text-2xl text-golden">
+                Redes Sociais
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="whatsapp" className="text-foreground flex items-center gap-2">
-                    <img src="/favicon-whatsapp.svg" alt="WhatsApp" className="w-4 h-4" /> WhatsApp
+                  <Label
+                    htmlFor="whatsapp"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <img
+                      src="/favicon-whatsapp.svg"
+                      alt="WhatsApp"
+                      className="w-4 h-4"
+                    />{" "}
+                    WhatsApp
                   </Label>
                   <Input
                     id="whatsapp"
                     value={socialLinks.whatsapp}
-                    onChange={(e) => handleSocialChange("whatsapp", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("whatsapp", e.target.value)
+                    }
                     placeholder="https://wa.me/message/SEU_CODIGO"
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="instagram" className="text-foreground flex items-center gap-2">
+                  <Label
+                    htmlFor="instagram"
+                    className="text-foreground flex items-center gap-2"
+                  >
                     <Instagram className="w-4 h-4" /> Instagram
                   </Label>
                   <Input
                     id="instagram"
                     value={socialLinks.instagram}
-                    onChange={(e) => handleSocialChange("instagram", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("instagram", e.target.value)
+                    }
                     placeholder="https://instagram.com/seu_perfil"
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="tiktok" className="text-foreground flex items-center gap-2">
+                  <Label
+                    htmlFor="tiktok"
+                    className="text-foreground flex items-center gap-2"
+                  >
                     <Music className="w-4 h-4" /> TikTok
                   </Label>
                   <Input
                     id="tiktok"
                     value={socialLinks.tiktok}
-                    onChange={(e) => handleSocialChange("tiktok", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("tiktok", e.target.value)
+                    }
                     placeholder="https://tiktok.com/@seu_perfil"
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="youtube" className="text-foreground flex items-center gap-2">
+                  <Label
+                    htmlFor="youtube"
+                    className="text-foreground flex items-center gap-2"
+                  >
                     <Youtube className="w-4 h-4" /> YouTube
                   </Label>
                   <Input
                     id="youtube"
                     value={socialLinks.youtube}
-                    onChange={(e) => handleSocialChange("youtube", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("youtube", e.target.value)
+                    }
                     placeholder="https://youtube.com/@seu_canal"
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="spotify" className="text-foreground flex items-center gap-2">
+                  <Label
+                    htmlFor="spotify"
+                    className="text-foreground flex items-center gap-2"
+                  >
                     <Radio className="w-4 h-4" /> Spotify
                   </Label>
                   <Input
                     id="spotify"
                     value={socialLinks.spotify}
-                    onChange={(e) => handleSocialChange("spotify", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("spotify", e.target.value)
+                    }
                     placeholder="https://open.spotify.com/artist/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="youtubeMusic" className="text-foreground flex items-center gap-2">
+                  <Label
+                    htmlFor="youtubeMusic"
+                    className="text-foreground flex items-center gap-2"
+                  >
                     <Music className="w-4 h-4" /> YouTube Music
                   </Label>
                   <Input
                     id="youtubeMusic"
                     value={socialLinks.youtubeMusic}
-                    onChange={(e) => handleSocialChange("youtubeMusic", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("youtubeMusic", e.target.value)
+                    }
                     placeholder="https://music.youtube.com/channel/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="amazonMusic" className="text-foreground flex items-center gap-2">
+                  <Label
+                    htmlFor="amazonMusic"
+                    className="text-foreground flex items-center gap-2"
+                  >
                     <Radio className="w-4 h-4" /> Amazon Music
                   </Label>
                   <Input
                     id="amazonMusic"
                     value={socialLinks.amazonMusic}
-                    onChange={(e) => handleSocialChange("amazonMusic", e.target.value)}
+                    onChange={(e) =>
+                      handleSocialChange("amazonMusic", e.target.value)
+                    }
                     placeholder="https://music.amazon.com/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
                   />

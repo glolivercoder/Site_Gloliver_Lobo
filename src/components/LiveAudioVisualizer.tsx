@@ -5,7 +5,10 @@ interface LiveAudioVisualizerProps {
   autoPlay?: boolean;
 }
 
-export const LiveAudioVisualizer = ({ url, autoPlay = false }: LiveAudioVisualizerProps) => {
+export const LiveAudioVisualizer = ({
+  url,
+  autoPlay = false,
+}: LiveAudioVisualizerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number | null>(null);
@@ -23,7 +26,8 @@ export const LiveAudioVisualizer = ({ url, autoPlay = false }: LiveAudioVisualiz
 
     const setup = async () => {
       try {
-        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioCtx = new (window.AudioContext ||
+          (window as any).webkitAudioContext)();
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
         const bufferLength = analyser.frequencyBinCount; // 128
@@ -33,7 +37,7 @@ export const LiveAudioVisualizer = ({ url, autoPlay = false }: LiveAudioVisualiz
         sourceNode.connect(analyser);
         analyser.connect(audioCtx.destination);
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (!ctx) return;
         const render = () => {
           if (!analyser || !dataArray) return;
@@ -49,18 +53,25 @@ export const LiveAudioVisualizer = ({ url, autoPlay = false }: LiveAudioVisualiz
             const barHeight = (value / 255) * height;
             // Neon amber color
             ctx.fillStyle = `hsl(var(--golden))`;
-            ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+            ctx.fillRect(
+              i * barWidth,
+              height - barHeight,
+              barWidth - 1,
+              barHeight,
+            );
           }
           animationRef.current = requestAnimationFrame(render);
         };
         render();
 
         if (autoPlay) {
-          try { await audioEl.play(); } catch {}
+          try {
+            await audioEl.play();
+          } catch {}
         }
       } catch (e) {
-        console.error('LiveAudioVisualizer error:', e);
-        setError('Falha ao inicializar visualização ao vivo.');
+        console.error("LiveAudioVisualizer error:", e);
+        setError("Falha ao inicializar visualização ao vivo.");
       }
     };
 
@@ -68,17 +79,35 @@ export const LiveAudioVisualizer = ({ url, autoPlay = false }: LiveAudioVisualiz
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      try { sourceNode?.disconnect(); } catch {}
-      try { analyser?.disconnect(); } catch {}
-      try { audioCtx?.close(); } catch {}
+      try {
+        sourceNode?.disconnect();
+      } catch {}
+      try {
+        analyser?.disconnect();
+      } catch {}
+      try {
+        audioCtx?.close();
+      } catch {}
     };
   }, [url, autoPlay]);
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <audio src={url} controls autoPlay={autoPlay} className="w-full" />
-        <div className="text-center text-muted-foreground text-sm">{error}</div>
+      <div className="space-y-4" data-oid="zj8svt5">
+        <audio
+          src={url}
+          controls
+          autoPlay={autoPlay}
+          className="w-full"
+          data-oid="x4eh3:x"
+        />
+
+        <div
+          className="text-center text-muted-foreground text-sm"
+          data-oid=".31ihg2"
+        >
+          {error}
+        </div>
       </div>
     );
   }
@@ -91,19 +120,23 @@ export const LiveAudioVisualizer = ({ url, autoPlay = false }: LiveAudioVisualiz
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-oid="jl.:5nt">
       <canvas
         ref={canvasRef}
         width={800}
         height={128}
         className="w-full bg-deep-black/30 rounded-lg border border-golden/20 cursor-pointer"
         onClick={handleToggle}
+        data-oid="06q6pyz"
       />
-      <audio ref={audioRef} src={url} className="hidden" />
-      <div className="text-center text-muted-foreground text-sm">
+
+      <audio ref={audioRef} src={url} className="hidden" data-oid="xigyhra" />
+      <div
+        className="text-center text-muted-foreground text-sm"
+        data-oid="3mlz60a"
+      >
         Clique nas barras para reproduzir/pausar
       </div>
     </div>
   );
 };
-

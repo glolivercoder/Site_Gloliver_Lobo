@@ -9,7 +9,11 @@ interface AudioVisualizerProps {
   waveformStyle?: "bars" | "wave" | "mirror" | "animatedBars";
 }
 
-export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" }: AudioVisualizerProps) => {
+export const AudioVisualizer = ({
+  url,
+  autoPlay = false,
+  waveformStyle = "bars",
+}: AudioVisualizerProps) => {
   const waveformRef = useRef<HTMLDivElement>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -27,9 +31,9 @@ export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" 
     const waveConfig: any = {
       container: waveformRef.current,
       // Use explicit HSL values for high contrast instead of CSS vars (var())
-      waveColor: "hsl(40 20% 30%)",      // darker amber base for background waveform
-      progressColor: "hsl(40 90% 55%)",   // bright amber for played portion (high contrast)
-      cursorColor: "hsl(0 0% 98%)",       // near-white cursor
+      waveColor: "hsl(40 20% 30%)", // darker amber base for background waveform
+      progressColor: "hsl(40 90% 55%)", // bright amber for played portion (high contrast)
+      cursorColor: "hsl(0 0% 98%)", // near-white cursor
       height: 128,
       normalize: true,
       responsive: true,
@@ -63,13 +67,15 @@ export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" 
     wavesurfer.on("error", (error) => {
       console.error("WaveSurfer error:", error);
       setLoadError(true);
-      toast.error("Não foi possível carregar o visualizador. Usando player padrão.");
+      toast.error(
+        "Não foi possível carregar o visualizador. Usando player padrão.",
+      );
     });
 
     // Load audio
     const loadAudio = async () => {
       try {
-        if (typeof url === 'string' && url.startsWith('blob:')) {
+        if (typeof url === "string" && url.startsWith("blob:")) {
           // For blob URLs, fetch the blob and use loadBlob for reliability
           const response = await fetch(url);
           const blob = await response.blob();
@@ -108,18 +114,23 @@ export const AudioVisualizer = ({ url, autoPlay = false, waveformStyle = "bars" 
   // Fallback to a live animated bars visualizer if WaveSurfer fails
   if (loadError) {
     return (
-      <LiveAudioVisualizer url={url} autoPlay={autoPlay} />
+      <LiveAudioVisualizer url={url} autoPlay={autoPlay} data-oid="p-zjwhb" />
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div 
-        ref={waveformRef} 
+    <div className="space-y-4" data-oid="mlduhge">
+      <div
+        ref={waveformRef}
         className="w-full bg-deep-black/30 rounded-lg border border-golden/20 p-4 cursor-pointer"
         onClick={handlePlayPause}
+        data-oid="qvc4vzq"
       />
-      <div className="text-center text-muted-foreground text-sm">
+
+      <div
+        className="text-center text-muted-foreground text-sm"
+        data-oid="jcng1c0"
+      >
         Clique na forma de onda para reproduzir/pausar
       </div>
     </div>
