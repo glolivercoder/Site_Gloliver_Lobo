@@ -48,6 +48,21 @@ const Settings = () => {
 
   const [audioSettings, setAudioSettings] = useState({
     waveformStyle: "bars",
+    height: 128,
+    barWidth: 3,
+    barGap: 2,
+    barRadius: 3,
+    cursorWidth: 2,
+    waveColor: "hsl(40 20% 30%)",
+    progressColor: "hsl(40 90% 55%)",
+    cursorColor: "hsl(0 0% 98%)",
+    enableSpectrogram: false,
+    spectrogramFftSamples: 256,
+    liveAnalyzerFftSize: 256,
+    liveAnalyzerSmoothing: 0.8,
+    liveBarColor: "hsl(var(--golden))",
+    liveHeight: 128,
+    liveBarWidth: 2,
   });
 
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
@@ -365,8 +380,252 @@ const Settings = () => {
                     <SelectItem value="bars">Barras (Padrão)</SelectItem>
                     <SelectItem value="wave">Onda Contínua</SelectItem>
                     <SelectItem value="mirror">Espelho</SelectItem>
+                    <SelectItem value="animatedBars">Barras Animadas (Ao Vivo)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground">Altura (px)</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.height}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        height: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Largura da Barra</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.barWidth}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        barWidth: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Espaço da Barra</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.barGap}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        barGap: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Raio da Barra</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.barRadius}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        barRadius: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cursor (px)</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.cursorWidth}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        cursorWidth: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor da Onda</Label>
+                  <Input
+                    value={audioSettings.waveColor}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        waveColor: e.target.value,
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor do Progresso</Label>
+                  <Input
+                    value={audioSettings.progressColor}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        progressColor: e.target.value,
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor do Cursor</Label>
+                  <Input
+                    value={audioSettings.cursorColor}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        cursorColor: e.target.value,
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Espectrograma</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={audioSettings.enableSpectrogram}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        enableSpectrogram: e.target.checked,
+                      })
+                    }
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    Ativar espectrograma (WaveSurfer)
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <Label className="text-foreground">FFT Samples</Label>
+                  <Select
+                    value={String(audioSettings.spectrogramFftSamples)}
+                    onValueChange={(value) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        spectrogramFftSamples: Number(value),
+                      })
+                    }
+                  >
+                    <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                      <SelectValue placeholder="FFT" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-golden/20">
+                      <SelectItem value="128">128</SelectItem>
+                      <SelectItem value="256">256</SelectItem>
+                      <SelectItem value="512">512</SelectItem>
+                      <SelectItem value="1024">1024</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Visualizador ao vivo</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-foreground">FFT Size</Label>
+                    <Select
+                      value={String(audioSettings.liveAnalyzerFftSize)}
+                      onValueChange={(value) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveAnalyzerFftSize: Number(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                        <SelectValue placeholder="FFT" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-golden/20">
+                        <SelectItem value="64">64</SelectItem>
+                        <SelectItem value="128">128</SelectItem>
+                        <SelectItem value="256">256</SelectItem>
+                        <SelectItem value="512">512</SelectItem>
+                        <SelectItem value="1024">1024</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Suavização</Label>
+                    <Input
+                      type="number"
+                      step="0.05"
+                      min="0"
+                      max="0.99"
+                      value={audioSettings.liveAnalyzerSmoothing}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveAnalyzerSmoothing: Number(e.target.value || 0),
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Altura (px)</Label>
+                    <Input
+                      type="number"
+                      value={audioSettings.liveHeight}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveHeight: Number(e.target.value || 0),
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Largura da Barra</Label>
+                    <Input
+                      type="number"
+                      value={audioSettings.liveBarWidth}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveBarWidth: Number(e.target.value || 0),
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Cor da Barra</Label>
+                    <Input
+                      value={audioSettings.liveBarColor}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveBarColor: e.target.value,
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                </div>
               </div>
               <Button
                 onClick={saveAudioSettings}

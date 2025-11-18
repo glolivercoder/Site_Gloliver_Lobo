@@ -17,6 +17,7 @@ const Index = () => {
       <FeaturedSection />
       <GenreSection />
       <Biography />
+      
 
       {/* Upload removido da Home. Use a aba Configurações para enviar mídia. */}
 

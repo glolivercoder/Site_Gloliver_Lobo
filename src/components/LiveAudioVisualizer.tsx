@@ -13,6 +13,7 @@ export const LiveAudioVisualizer = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationRef = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [settingsVersion, setSettingsVersion] = useState(0);
 
   useEffect(() => {
     const audioEl = audioRef.current;
@@ -23,13 +24,20 @@ export const LiveAudioVisualizer = ({
     let sourceNode: MediaElementAudioSourceNode | null = null;
     let analyser: AnalyserNode | null = null;
     let dataArray: Uint8Array | null = null;
+    let ctx: CanvasRenderingContext2D | null = null;
 
     const setup = async () => {
       try {
         audioCtx = new (window.AudioContext ||
           (window as any).webkitAudioContext)();
         analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
+        const stored = localStorage.getItem("audioSettings");
+        let s: any = {};
+        try {
+          s = stored ? JSON.parse(stored) : {};
+        } catch {}
+        analyser.fftSize = Number(s.liveAnalyzerFftSize || 256);
+        analyser.smoothingTimeConstant = Number(s.liveAnalyzerSmoothing || 0.8);
         const bufferLength = analyser.frequencyBinCount; // 128
         dataArray = new Uint8Array(bufferLength);
 
@@ -37,22 +45,31 @@ export const LiveAudioVisualizer = ({
         sourceNode.connect(analyser);
         analyser.connect(audioCtx.destination);
 
-        const ctx = canvas.getContext("2d");
+        ctx = canvas.getContext("2d");
         if (!ctx) return;
         const render = () => {
           if (!analyser || !dataArray) return;
+          if (audioEl.paused) return;
           analyser.getByteFrequencyData(dataArray);
           const width = canvas.width;
-          const height = canvas.height;
+          const stored2 = localStorage.getItem("audioSettings");
+          let s2: any = {};
+          try {
+            s2 = stored2 ? JSON.parse(stored2) : {};
+          } catch {}
+          const height = Number(s2.liveHeight || 128);
+          canvas.height = height;
           ctx.clearRect(0, 0, width, height);
 
           const barCount = dataArray.length;
-          const barWidth = Math.max(2, Math.floor(width / barCount));
+          const barWidth = Math.max(
+            Number(s2.liveBarWidth || 2),
+            Math.floor(width / barCount),
+          );
           for (let i = 0; i < barCount; i++) {
             const value = dataArray[i];
             const barHeight = (value / 255) * height;
-            // Neon amber color
-            ctx.fillStyle = `hsl(var(--golden))`;
+            ctx.fillStyle = s2.liveBarColor || `hsl(var(--golden))`;
             ctx.fillRect(
               i * barWidth,
               height - barHeight,
@@ -62,7 +79,16 @@ export const LiveAudioVisualizer = ({
           }
           animationRef.current = requestAnimationFrame(render);
         };
-        render();
+        const startRender = () => {
+          if (animationRef.current) cancelAnimationFrame(animationRef.current);
+          animationRef.current = requestAnimationFrame(render);
+        };
+        const stopRender = () => {
+          if (animationRef.current) cancelAnimationFrame(animationRef.current);
+        };
+        audioEl.addEventListener("play", startRender);
+        audioEl.addEventListener("pause", stopRender);
+        startRender();
 
         if (autoPlay) {
           try {
@@ -89,7 +115,15 @@ export const LiveAudioVisualizer = ({
         audioCtx?.close();
       } catch {}
     };
-  }, [url, autoPlay]);
+  }, [url, autoPlay, settingsVersion]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "audioSettings") setSettingsVersion((v) => v + 1);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   if (error) {
     return (

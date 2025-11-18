@@ -44,6 +44,7 @@ const genreOptions = [
   { value: "rap", label: "Rap" },
   { value: "trap", label: "Trap" },
   { value: "instrumental", label: "Músicas Instrumentais" },
+  { value: "eletrohits", label: "Eletro Hits" },
 ];
 
 // Featured section options
@@ -337,67 +338,7 @@ export const UploadSection = () => {
           Área de Upload
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-12" data-oid="iu63:w7">
-          <Card
-            className="p-6 bg-card/50 backdrop-blur-sm border-border/50 text-center hover:border-primary/50 transition-all"
-            data-oid="z-ooe50"
-          >
-            <ImageIcon
-              className="w-12 h-12 mx-auto mb-4 text-primary"
-              data-oid="ym4kq:x"
-            />
-
-            <h3
-              className="text-lg font-semibold mb-2 text-foreground"
-              data-oid="gd1i:ca"
-            >
-              Imagens
-            </h3>
-            <p className="text-sm text-muted-foreground" data-oid="g:g31em">
-              Thumbnails para vídeos e músicas
-            </p>
-          </Card>
-
-          <Card
-            className="p-6 bg-card/50 backdrop-blur-sm border-border/50 text-center hover:border-primary/50 transition-all"
-            data-oid="1v5v.ec"
-          >
-            <Music
-              className="w-12 h-12 mx-auto mb-4 text-primary"
-              data-oid="byvk02o"
-            />
-
-            <h3
-              className="text-lg font-semibold mb-2 text-foreground"
-              data-oid="gs3ast_"
-            >
-              Áudio
-            </h3>
-            <p className="text-sm text-muted-foreground" data-oid="fkz65-x">
-              Formatos MP3 e WAV
-            </p>
-          </Card>
-
-          <Card
-            className="p-6 bg-card/50 backdrop-blur-sm border-border/50 text-center hover:border-primary/50 transition-all"
-            data-oid="_r0cgzr"
-          >
-            <Video
-              className="w-12 h-12 mx-auto mb-4 text-primary"
-              data-oid="tlj59ch"
-            />
-
-            <h3
-              className="text-lg font-semibold mb-2 text-foreground"
-              data-oid="klpx1rm"
-            >
-              Vídeos
-            </h3>
-            <p className="text-sm text-muted-foreground" data-oid="u1lflcw">
-              Clipes e performances
-            </p>
-          </Card>
-        </div>
+        
 
         <Card
           className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${

@@ -139,7 +139,7 @@ export const FeaturedSection = () => {
   const [allPages, setAllPages] = useState<any[][]>([defaultFeatured]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const [waveformStyle, setWaveformStyle] = useState<
-    "bars" | "wave" | "mirror"
+    "bars" | "wave" | "mirror" | "animatedBars"
   >("bars");
 
   useEffect(() => {
@@ -167,8 +167,22 @@ export const FeaturedSection = () => {
     };
 
     loadFeatured();
+    const loadAudioSettings = () => {
+      try {
+        const stored = localStorage.getItem("audioSettings");
+        if (stored) {
+          const s = JSON.parse(stored);
+          if (s && s.waveformStyle) setWaveformStyle(s.waveformStyle);
+        }
+      } catch {}
+    };
+    loadAudioSettings();
     window.addEventListener("storage", loadFeatured);
-    return () => window.removeEventListener("storage", loadFeatured);
+    window.addEventListener("storage", loadAudioSettings);
+    return () => {
+      window.removeEventListener("storage", loadFeatured);
+      window.removeEventListener("storage", loadAudioSettings);
+    };
   }, []);
 
   const handleMediaClick = async (item: any) => {
@@ -216,7 +230,7 @@ export const FeaturedSection = () => {
                 <TabsTrigger
                   key={index}
                   value={`page-${index}`}
-                  className="data-[state=active]:bg-golden data-[state=active]:text-deep-black"
+                  className="data-[state=active]:bg-golden data-[state=active]:text-black"
                   data-oid="dj-b541"
                 >
                   Página {index + 1}

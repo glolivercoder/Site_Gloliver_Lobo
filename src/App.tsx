@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import FanClubPage from "./pages/FanClub";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,11 @@ const App = () => (
             path="/settings"
             element={<Settings data-oid="k4j9f69" />}
             data-oid="u1-i74a"
+          />
+
+          <Route
+            path="/fanclub"
+            element={<FanClubPage />}
           />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

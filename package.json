@@ -47,6 +47,8 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
+    "html-to-image": "^1.11.13",
+    "idb": "^8.0.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
@@ -67,7 +69,6 @@
     "typeorm": "^0.3.27",
     "vaul": "^0.9.9",
     "wavesurfer.js": "^7.11.1",
-    "idb": "^8.0.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

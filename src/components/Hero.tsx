@@ -1,5 +1,26 @@
 import wolfMoonBg from "@/assets/wolf-moon-bg.png";
+import { useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { toPng } from "html-to-image";
 export const Hero = () => {
+  const spanRef = useRef<HTMLSpanElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const exportNode = async (node: HTMLElement | null, filename: string) => {
+    if (!node) return;
+    try {
+      const dataUrl = await toPng(node, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "transparent",
+      });
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {}
+  };
   return (
     <section
       id="home"
@@ -23,16 +44,34 @@ export const Hero = () => {
         data-oid="kl3v.nq"
       />
 
-      {/* Content */}
       <div
         className="relative z-30 container mx-auto px-6 text-center pt-32"
         data-oid="72kdl1o"
       >
+        <div className="absolute top-0 right-0 flex gap-2" data-oid="exp_tools">
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-background/60"
+            onClick={() => exportNode(spanRef.current, "IMAGENS_span.png")}
+            data-oid="exp_span"
+          >
+            Exportar Span
+          </Button>
+          <Button
+            size="sm"
+            className="bg-golden text-deep-black hover:bg-golden/90"
+            onClick={() => exportNode(containerRef.current, "IMAGENS_div.png")}
+            data-oid="exp_div"
+          >
+            Exportar Div
+          </Button>
+        </div>
         <div
           className="max-w-4xl mx-[100px] px-px my-0 py-[6px] mt-[500px]"
           data-oid="dd_kuik"
+          ref={containerRef}
         >
-          {/* Neon Logo with Roman Numerals Style - Moved Down */}
           <h1
             className="text-7xl md:text-9xl font-bold mb-8 tracking-wider mt-32"
             data-oid="03lsgvw"
@@ -40,6 +79,7 @@ export const Hero = () => {
             <span
               className="bonheur-royale-regular text-[100px]"
               data-oid=":8d20no"
+              ref={spanRef}
             >
               Gloliver Lobo
             </span>
@@ -74,7 +114,6 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Bottom Fade */}
       <div
         className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20"
         data-oid="5e5ijsr"

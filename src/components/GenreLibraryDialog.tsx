@@ -19,7 +19,8 @@ type GenreKey =
   | "polemicas"
   | "rap"
   | "trap"
-  | "instrumental";
+  | "instrumental"
+  | "eletrohits";
 
 interface GenreLibraryDialogProps {
   open: boolean;

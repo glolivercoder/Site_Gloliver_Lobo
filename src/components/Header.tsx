@@ -46,25 +46,17 @@ export const Header = () => {
             >
               Biografia
             </a>
+            <a
+              href="/fanclub"
+              className="text-foreground/80 hover:text-primary transition-colors"
+              data-oid="fanclub-link"
+            >
+              Fã Clube
+            </a>
           </nav>
         </div>
 
         <div className="flex items-center gap-4" data-oid="hvezz6j">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-foreground/80 hover:text-primary"
-            onClick={() => window.open(whatsappLink, "_blank")}
-            title="Contato WhatsApp"
-            data-oid="924ai5s"
-          >
-            <img
-              src="/favicon-whatsapp.svg"
-              alt="WhatsApp"
-              className="w-5 h-5"
-              data-oid="vwsqabz"
-            />
-          </Button>
           <Button
             variant="ghost"
             size="icon"

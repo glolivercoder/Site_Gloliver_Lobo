@@ -15,26 +15,32 @@ export const AudioVisualizer = ({
   waveformStyle = "bars",
 }: AudioVisualizerProps) => {
   const waveformRef = useRef<HTMLDivElement>(null);
+  const spectrogramRef = useRef<HTMLDivElement | null>(null);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    // If animated bars are requested, render the LiveAudioVisualizer directly
     if (waveformStyle === "animatedBars") {
       setLoadError(true);
       return;
     }
 
-    if (!waveformRef.current || loadError) return;
+    setLoadError(false);
+    if (!waveformRef.current) return;
 
     // Configure waveform based on style
+    const stored = localStorage.getItem("audioSettings");
+    let s: any = {};
+    try {
+      s = stored ? JSON.parse(stored) : {};
+    } catch {}
+
     const waveConfig: any = {
       container: waveformRef.current,
-      // Use explicit HSL values for high contrast instead of CSS vars (var())
-      waveColor: "hsl(40 20% 30%)", // darker amber base for background waveform
-      progressColor: "hsl(40 90% 55%)", // bright amber for played portion (high contrast)
-      cursorColor: "hsl(0 0% 98%)", // near-white cursor
-      height: 128,
+      waveColor: s.waveColor || "hsl(40 20% 30%)",
+      progressColor: s.progressColor || "hsl(40 90% 55%)",
+      cursorColor: s.cursorColor || "hsl(0 0% 98%)",
+      height: Number(s.height) || 128,
       normalize: true,
       responsive: true,
     };
@@ -42,18 +48,18 @@ export const AudioVisualizer = ({
     // Apply style-specific configurations
     switch (waveformStyle) {
       case "bars":
-        waveConfig.barWidth = 3;
-        waveConfig.barRadius = 3;
-        waveConfig.barGap = 2;
+        waveConfig.barWidth = Number(s.barWidth ?? 3);
+        waveConfig.barRadius = Number(s.barRadius ?? 3);
+        waveConfig.barGap = Number(s.barGap ?? 2);
         break;
       case "wave":
         waveConfig.barWidth = 0;
-        waveConfig.cursorWidth = 2;
+        waveConfig.cursorWidth = Number(s.cursorWidth ?? 2);
         break;
       case "mirror":
-        waveConfig.barWidth = 3;
-        waveConfig.barRadius = 3;
-        waveConfig.barGap = 2;
+        waveConfig.barWidth = Number(s.barWidth ?? 3);
+        waveConfig.barRadius = Number(s.barRadius ?? 3);
+        waveConfig.barGap = Number(s.barGap ?? 2);
         waveConfig.splitChannels = true;
         break;
     }
@@ -72,7 +78,31 @@ export const AudioVisualizer = ({
       );
     });
 
-    // Load audio
+    // Spectrogram plugin
+    const enableSpectrogram = !!s.enableSpectrogram;
+    if (enableSpectrogram) {
+      import("wavesurfer.js/dist/plugins/spectrogram.esm.js")
+        .then((mod: any) => {
+          const SpectrogramPlugin = mod.default || mod.SpectrogramPlugin || mod;
+          if (!spectrogramRef.current) {
+            const el = document.createElement("div");
+            el.className = "w-full mt-2";
+            waveformRef.current?.after(el);
+            spectrogramRef.current = el;
+          }
+          try {
+            // @ts-ignore
+            const plugin = SpectrogramPlugin.create({
+              container: spectrogramRef.current,
+              fftSamples: Number(s.spectrogramFftSamples || 256),
+            });
+            // @ts-ignore
+            wavesurfer.registerPlugin(plugin);
+          } catch {}
+        })
+        .catch(() => {});
+    }
+
     const loadAudio = async () => {
       try {
         if (typeof url === "string" && url.startsWith("blob:")) {
@@ -103,9 +133,12 @@ export const AudioVisualizer = ({
     }
 
     return () => {
+      try {
+        wavesurfer.pause();
+      } catch {}
       wavesurfer.destroy();
     };
-  }, [url, autoPlay, loadError, waveformStyle]);
+  }, [url, autoPlay, waveformStyle]);
 
   const handlePlayPause = () => {
     wavesurferRef.current?.playPause();

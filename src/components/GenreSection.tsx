@@ -7,6 +7,7 @@ import {
   Church,
   MessageSquare,
   Piano,
+  Headphones,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
@@ -60,6 +61,12 @@ const genres = [
     icon: Piano,
     color: "from-slate-500 to-zinc-500",
   },
+  {
+    name: "Eletro Hits",
+    value: "eletrohits",
+    icon: Headphones,
+    color: "from-fuchsia-500 to-cyan-500",
+  },
 ];
 
 export const GenreSection = () => {
@@ -73,6 +80,7 @@ export const GenreSection = () => {
     | "rap"
     | "trap"
     | "instrumental"
+    | "eletrohits"
     | null
   >(null);
 

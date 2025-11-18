@@ -1,6 +1,13 @@
 import { Music, Instagram, Youtube, Facebook } from "lucide-react";
 
 export const Footer = () => {
+  const social = typeof window !== "undefined" ? localStorage.getItem("socialLinks") : null;
+  const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
+  let whatsappLink = envWhatsapp || "https://wa.me/";
+  try {
+    const parsed = social ? JSON.parse(social) : {};
+    if (parsed && parsed.whatsapp) whatsappLink = parsed.whatsapp;
+  } catch {}
   return (
     <footer
       className="bg-muted/20 border-t border-border/50 py-12 px-6"
@@ -22,6 +29,11 @@ export const Footer = () => {
               Compositor e artista multifacetado, explorando as fronteiras da
               música contemporânea.
             </p>
+            <div className="mt-4" data-oid="whatsapp-footer">
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center">
+                <img src="/favicon-whatsapp.svg" alt="WhatsApp" className="w-10 h-10" />
+              </a>
+            </div>
           </div>
 
           <div data-oid="jg2o2zk">
