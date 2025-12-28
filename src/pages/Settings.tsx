@@ -21,7 +21,115 @@ import {
   Radio,
   Upload,
   Image as ImageIcon,
+  HardDrive,
+  Trash2,
 } from "lucide-react";
+import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
+
+// Storage Management Component
+const StorageManagement = () => {
+  const [storageInfo, setStorageInfo] = useState({ totalSize: 0, fileCount: 0 });
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadStorageInfo = async () => {
+    const info = await getStorageInfo();
+    setStorageInfo(info);
+  };
+
+  useEffect(() => {
+    loadStorageInfo();
+  }, []);
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const handleCleanup = async (days: number) => {
+    setIsLoading(true);
+    try {
+      await cleanupOldFilesByAge(days);
+      await loadStorageInfo();
+      toast.success(`Arquivos com mais de ${days} dias foram removidos.`);
+    } catch (error) {
+      toast.error("Erro ao limpar arquivos.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-2xl text-golden flex items-center gap-2">
+          <HardDrive className="w-6 h-6" />
+          Gerenciamento de Armazenamento
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10">
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Espaço utilizado</p>
+            <p className="text-2xl font-bold text-golden">
+              {formatBytes(storageInfo.totalSize)}
+            </p>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Arquivos salvos</p>
+            <p className="text-2xl font-bold text-foreground">
+              {storageInfo.fileCount}
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-foreground">Limpar arquivos antigos</Label>
+          <p className="text-sm text-muted-foreground">
+            Remove músicas e mídias que não são usadas há algum tempo.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => handleCleanup(30)}
+              disabled={isLoading}
+              className="border-golden/20 hover:bg-golden/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Mais de 30 dias
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleCleanup(14)}
+              disabled={isLoading}
+              className="border-golden/20 hover:bg-golden/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Mais de 14 dias
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleCleanup(7)}
+              disabled={isLoading}
+              className="border-golden/20 hover:bg-golden/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Mais de 7 dias
+            </Button>
+          </div>
+        </div>
+
+        <p className="text-xs text-muted-foreground mt-4">
+          💡 Os arquivos de mídia são armazenados localmente no seu navegador
+          (IndexedDB). As configurações e links de destaques permanecem salvos
+          até você limpá-los manualmente.
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
 const Settings = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -961,6 +1069,9 @@ const Settings = () => {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Storage Management Section */}
+          <StorageManagement />
 
           {/* Upload Section */}
           <UploadSection data-oid="u46l20i" />

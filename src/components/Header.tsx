@@ -33,9 +33,21 @@ export const Header = () => {
   const handleNavClick = (href: string) => {
     setIsOpen(false);
     if (href.startsWith("/#")) {
-      // Para links de âncora na mesma página
-      const element = document.querySelector(href.replace("/", ""));
-      element?.scrollIntoView({ behavior: "smooth" });
+      const anchorId = href.replace("/", ""); // "#home"
+
+      // Se estamos em outra página (não na principal), navegar primeiro
+      if (window.location.pathname !== "/") {
+        navigate("/");
+        // Aguardar a navegação e então fazer scroll
+        setTimeout(() => {
+          const element = document.querySelector(anchorId);
+          element?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        // Já estamos na página principal, apenas fazer scroll
+        const element = document.querySelector(anchorId);
+        element?.scrollIntoView({ behavior: "smooth" });
+      }
     } else {
       navigate(href);
     }
@@ -59,7 +71,11 @@ export const Header = () => {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-foreground/80 hover:text-primary transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick(link.href);
+                }}
+                className="text-foreground/80 hover:text-primary transition-colors cursor-pointer"
                 data-oid={`nav-${link.label.toLowerCase()}`}
               >
                 {link.label}

@@ -15,4 +15,28 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Otimizações de performance
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "wavesurfer.js",
+      "lucide-react",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-tabs",
+    ],
+  },
+  build: {
+    // Chunk splitting para melhor cache
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom", "react-router-dom"],
+          ui: ["lucide-react", "@radix-ui/react-dialog"],
+        },
+      },
+    },
+  },
 }));
+

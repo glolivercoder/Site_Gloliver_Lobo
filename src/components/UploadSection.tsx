@@ -7,6 +7,7 @@ import {
   Link as LinkIcon,
   ChevronDown,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ export const UploadSection = () => {
       genre?: string;
       fileId?: string;
       externalUrl?: string;
+      isMissing?: boolean;
     }>
   >([]);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -101,7 +103,9 @@ export const UploadSection = () => {
 
   // Clean up old files on component mount
   useEffect(() => {
-    cleanupOldFilesByAge(7); // Clean up files older than 7 days
+    // NOTA: Limpeza automática desativada para evitar perda de dados
+    // O usuário pode limpar manualmente nas Configurações
+    // cleanupOldFilesByAge(7);
     loadLibraryFromStorage();
     const onStorage = () => loadLibraryFromStorage();
     window.addEventListener("storage", onStorage);
@@ -255,7 +259,13 @@ export const UploadSection = () => {
         genre?: string;
         fileId?: string;
         externalUrl?: string;
+        isMissing?: boolean;
       }> = [];
+
+      // Obter lista de arquivos que realmente existem no IndexedDB
+      const meta = await listMediaFilesMeta();
+      const existingFileIds = new Set(meta.map((m) => m.id));
+
       if (stored) {
         try {
           const pages = JSON.parse(stored) as any[][];
@@ -264,6 +274,7 @@ export const UploadSection = () => {
               if (item && item.type === "audio" && item.url) {
                 const isLocal =
                   typeof item.url === "string" && item.url.startsWith("file_");
+                const isMissing = isLocal && !existingFileIds.has(item.url);
                 items.push({
                   id: String(item.id || item.url),
                   title: String(item.title || item.name || "Sem título"),
@@ -271,6 +282,7 @@ export const UploadSection = () => {
                   genre: item.genre,
                   fileId: isLocal ? item.url : undefined,
                   externalUrl: !isLocal ? item.url : undefined,
+                  isMissing,
                 });
               }
             });
@@ -281,7 +293,6 @@ export const UploadSection = () => {
       }
 
       // Incluir arquivos de áudio do IndexedDB que não estão nos destaques
-      const meta = await listMediaFilesMeta();
       const audioMeta = meta.filter((m) => (m.type || "").startsWith("audio/"));
       const knownIds = new Set(
         items.map((i) => i.fileId).filter(Boolean) as string[],
@@ -294,6 +305,7 @@ export const UploadSection = () => {
             type: "audio",
             genre: undefined,
             fileId: m.id,
+            isMissing: false,
           });
         }
       });
@@ -311,12 +323,24 @@ export const UploadSection = () => {
   };
 
   const handlePlayLibraryItem = async (item: any) => {
+    // Se já sabemos que está faltando, mostrar mensagem útil
+    if (item.isMissing) {
+      toast.error(
+        "Este arquivo foi removido. Faça upload novamente na Área de Upload.",
+        { duration: 5000 }
+      );
+      return;
+    }
+
     try {
       let url = item.externalUrl || "";
       if (item.fileId) {
         const blobUrl = await getMediaUrl(item.fileId);
         if (!blobUrl) {
-          toast.error("Arquivo local não encontrado");
+          toast.error(
+            "Arquivo não encontrado no navegador. Faça upload novamente.",
+            { duration: 5000 }
+          );
           return;
         }
         url = blobUrl;
@@ -339,9 +363,8 @@ export const UploadSection = () => {
         </h2>
 
         <Card
-          className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${
-            dragActive ? "border-primary bg-primary/5" : "border-border/50"
-          }`}
+          className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${dragActive ? "border-primary bg-primary/5" : "border-border/50"
+            }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
@@ -655,7 +678,10 @@ export const UploadSection = () => {
                   .map((item) => (
                     <Card
                       key={item.id}
-                      className="p-3 bg-card/70 border-border/50 hover:border-primary/50 cursor-pointer"
+                      className={`p-3 border-border/50 cursor-pointer ${item.isMissing
+                          ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
+                          : "bg-card/70 hover:border-primary/50"
+                        }`}
                       onClick={() => handlePlayLibraryItem(item)}
                       data-oid="89a2e.2"
                     >
@@ -665,9 +691,11 @@ export const UploadSection = () => {
                       >
                         <div data-oid="948qxdy">
                           <div
-                            className="text-foreground font-medium truncate"
+                            className={`font-medium truncate flex items-center gap-2 ${item.isMissing ? "text-destructive" : "text-foreground"
+                              }`}
                             data-oid="4-qt5.t"
                           >
+                            {item.isMissing && <AlertTriangle className="w-4 h-4" />}
                             {item.title}
                           </div>
                           <div
@@ -679,18 +707,23 @@ export const UploadSection = () => {
                               : "Sem gênero"}
                           </div>
                           <div
-                            className="text-xs text-muted-foreground"
+                            className={`text-xs ${item.isMissing ? "text-destructive" : "text-muted-foreground"
+                              }`}
                             data-oid="hgf6j9l"
                           >
-                            {item.fileId ? "Local (IndexedDB)" : "Externo"}
+                            {item.isMissing
+                              ? "⚠️ Arquivo não encontrado - faça upload novamente"
+                              : item.fileId ? "Local (IndexedDB)" : "Externo"}
                           </div>
                         </div>
                         <Button
                           size="sm"
-                          className="bg-primary text-white"
+                          className={item.isMissing
+                            ? "bg-muted text-muted-foreground"
+                            : "bg-primary text-white"}
                           data-oid="7qyrcnx"
                         >
-                          Reproduzir
+                          {item.isMissing ? "Indisponível" : "Reproduzir"}
                         </Button>
                       </div>
                     </Card>
