@@ -85,4 +85,41 @@ All colors MUST be HSL.
     0 0 32px hsl(var(--golden) / 0.5),
     0 0 64px hsl(var(--golden-dark) / 0.4);
   letter-spacing: 0.08em;
+  /* Tamanho responsivo - se ajusta à viewport mantendo legibilidade */
+  font-size: clamp(2.2rem, 12vw, 6.5rem);
+  white-space: nowrap;
 }
+
+/* Utilitários responsivos */
+@layer utilities {
+  .text-responsive-title {
+    font-size: clamp(2rem, 10vw, 6rem);
+  }
+  
+  .text-responsive-subtitle {
+    font-size: clamp(0.875rem, 3vw, 1.5rem);
+  }
+  
+  /* Container responsivo para hero */
+  .hero-container {
+    @apply mx-4 px-2;
+  }
+  
+  @screen md {
+    .hero-container {
+      @apply mx-auto px-6;
+    }
+  }
+}
+
+/* Ajustes mobile globais */
+@media (max-width: 640px) {
+  .bonheur-royale-regular {
+    text-shadow:
+      0 0 3px hsl(var(--golden-light) / 0.8),
+      0 0 6px hsl(var(--golden-light) / 0.6),
+      0 0 12px hsl(var(--golden) / 0.5);
+    letter-spacing: 0.04em;
+  }
+}
+

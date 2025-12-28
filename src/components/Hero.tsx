@@ -19,7 +19,7 @@ export const Hero = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch {}
+    } catch { }
   };
   return (
     <section
@@ -48,7 +48,7 @@ export const Hero = () => {
         className="relative z-30 container mx-auto px-6 text-center pt-32"
         data-oid="72kdl1o"
       >
-        <div className="absolute top-0 right-0 flex gap-2" data-oid="exp_tools">
+        <div className="absolute top-0 right-0 hidden md:flex gap-2" data-oid="exp_tools">
           <Button
             size="sm"
             variant="outline"
@@ -68,16 +68,16 @@ export const Hero = () => {
           </Button>
         </div>
         <div
-          className="max-w-4xl mx-[100px] px-px my-0 py-[6px] mt-[500px]"
+          className="max-w-4xl mx-4 md:mx-auto px-2 md:px-4 my-0 py-2 mt-24 sm:mt-32 md:mt-64 lg:mt-80"
           data-oid="dd_kuik"
           ref={containerRef}
         >
           <h1
-            className="text-7xl md:text-9xl font-bold mb-8 tracking-wider mt-32"
+            className="font-bold mb-4 md:mb-8 tracking-wider mt-8 md:mt-16"
             data-oid="03lsgvw"
           >
             <span
-              className="bonheur-royale-regular text-[100px]"
+              className="bonheur-royale-regular"
               data-oid=":8d20no"
               ref={spanRef}
             >
@@ -86,7 +86,7 @@ export const Hero = () => {
           </h1>
 
           <p
-            className="text-[25px] text-foreground/80 mb-12 font-light"
+            className="text-sm sm:text-base md:text-xl lg:text-2xl text-foreground/80 mb-6 md:mb-12 font-light"
             data-oid="i97n2to"
           >
             Compositor • Artista • Produtor
@@ -98,14 +98,14 @@ export const Hero = () => {
           >
             <a
               href="#genres"
-              className="glass-button px-8 py-4 rounded-lg font-medium hover:scale-105 transition-transform"
+              className="glass-button px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-medium hover:scale-105 transition-transform"
               data-oid="2jht9qx"
             >
               Explorar Música
             </a>
             <a
               href="#biography"
-              className="glass-button-outline px-8 py-4 rounded-lg font-medium hover:scale-105 transition-transform"
+              className="glass-button-outline px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-medium hover:scale-105 transition-transform"
               data-oid="mdx_o0m"
             >
               Sobre o Artista
