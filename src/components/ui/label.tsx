@@ -17,6 +17,7 @@ const Label = React.forwardRef<
     ref={ref}
     className={cn(labelVariants(), className)}
     {...props}
+    data-oid="-zitr1l"
   />
 ));
 Label.displayName = LabelPrimitive.Root.displayName;

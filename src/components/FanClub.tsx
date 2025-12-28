@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { saveMediaFile, getMediaUrl, listMediaFilesMeta } from "@/utils/storage";
+import {
+  saveMediaFile,
+  getMediaUrl,
+  listMediaFilesMeta,
+} from "@/utils/storage";
 import { Pencil, X } from "lucide-react";
 
 type GalleryItem = {
@@ -27,7 +31,9 @@ export const FanClub = () => {
   const [dragPhoto, setDragPhoto] = useState(false);
   const [dragVideo, setDragVideo] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingType, setEditingType] = useState<"image" | "video" | null>(null);
+  const [editingType, setEditingType] = useState<"image" | "video" | null>(
+    null,
+  );
   const [editingText, setEditingText] = useState("");
 
   useEffect(() => {
@@ -42,7 +48,10 @@ export const FanClub = () => {
   }, []);
 
   const persist = (p: GalleryItem[], v: GalleryItem[]) => {
-    localStorage.setItem("fanClubGallery", JSON.stringify({ photos: p, videos: v }));
+    localStorage.setItem(
+      "fanClubGallery",
+      JSON.stringify({ photos: p, videos: v }),
+    );
     setPhotos(p);
     setVideos(v);
   };
@@ -56,10 +65,14 @@ export const FanClub = () => {
   const saveEdit = () => {
     if (!editingId || !editingType) return;
     if (editingType === "image") {
-      const updated = photos.map((p) => (p.id === editingId ? { ...p, title: editingText } : p));
+      const updated = photos.map((p) =>
+        p.id === editingId ? { ...p, title: editingText } : p,
+      );
       persist(updated, videos);
     } else {
-      const updated = videos.map((v) => (v.id === editingId ? { ...v, title: editingText } : v));
+      const updated = videos.map((v) =>
+        v.id === editingId ? { ...v, title: editingText } : v,
+      );
       persist(photos, updated);
     }
     setEditingId(null);
@@ -177,38 +190,63 @@ export const FanClub = () => {
       };
     }, [item.id]);
     return (
-      <Card className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all">
-        <div className="aspect-square relative">
+      <Card
+        className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all"
+        data-oid=".5sn4fm"
+      >
+        <div className="aspect-square relative" data-oid="0_6cy66">
           {src ? (
-            <img src={src} alt={item.title} className="w-full h-full object-cover" />
+            <img
+              src={src}
+              alt={item.title}
+              className="w-full h-full object-cover"
+              data-oid="iczrfnv"
+            />
           ) : (
-            <div className="w-full h-full bg-muted" />
+            <div className="w-full h-full bg-muted" data-oid="-b-2wb2" />
           )}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent opacity-70 group-hover:opacity-80 transition-opacity" />
-          <div className="absolute top-2 right-2 flex gap-2">
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent opacity-70 group-hover:opacity-80 transition-opacity"
+            data-oid="vz3y7un"
+          />
+          <div className="absolute top-2 right-2 flex gap-2" data-oid="t1qmu6n">
             <button
               className="p-2 rounded-lg bg-card/70 border border-golden/40 hover:border-golden text-foreground hover:text-golden"
               onClick={() => startEdit(item)}
+              data-oid=".2dsl86"
             >
-              <Pencil className="w-4 h-4" />
+              <Pencil className="w-4 h-4" data-oid="i.5ytmz" />
             </button>
             <button
               className="p-2 rounded-lg bg-card/70 border border-golden/40 hover:border-golden text-foreground hover:text-golden"
               onClick={() => deleteItem(item)}
+              data-oid="0lg1wgs"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" data-oid="ty5o-ix" />
             </button>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 p-3 text-foreground text-[29px] font-bold" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className="absolute bottom-0 left-0 right-0 p-3 text-foreground text-[29px] font-bold"
+            onMouseDown={(e) => e.stopPropagation()}
+            data-oid="zfpo3q:"
+          >
             {editingId === item.id && editingType === "image" ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" data-oid="y:pl:40">
                 <Input
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
                   autoFocus
                   className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
+                  data-oid="juc9qtj"
                 />
-                <Button onClick={saveEdit} className="bg-golden text-deep-black hover:bg-golden/90">Salvar</Button>
+
+                <Button
+                  onClick={saveEdit}
+                  className="bg-golden text-deep-black hover:bg-golden/90"
+                  data-oid="j24:1e."
+                >
+                  Salvar
+                </Button>
               </div>
             ) : (
               item.title
@@ -224,7 +262,9 @@ export const FanClub = () => {
     useEffect(() => {
       let mounted = true;
       (async () => {
-        const url = item.externalUrl || (item.fileId ? await getMediaUrl(item.fileId) : null);
+        const url =
+          item.externalUrl ||
+          (item.fileId ? await getMediaUrl(item.fileId) : null);
         if (mounted) setSrc(url);
       })();
       return () => {
@@ -232,38 +272,63 @@ export const FanClub = () => {
       };
     }, [item.id]);
     return (
-      <Card className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all">
-        <div className="aspect-square relative">
+      <Card
+        className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all"
+        data-oid="u_rdpoj"
+      >
+        <div className="aspect-square relative" data-oid="u9j0hsi">
           {src ? (
-            <video src={src} controls className="w-full h-full object-cover" />
+            <video
+              src={src}
+              controls
+              className="w-full h-full object-cover"
+              data-oid="p0vcqw7"
+            />
           ) : (
-            <div className="w-full h-full bg-muted" />
+            <div className="w-full h-full bg-muted" data-oid="_:czh-8" />
           )}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent opacity-70 group-hover:opacity-80 transition-opacity" />
-          <div className="absolute top-2 right-2 flex gap-2">
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent opacity-70 group-hover:opacity-80 transition-opacity"
+            data-oid="2f5mz7y"
+          />
+          <div className="absolute top-2 right-2 flex gap-2" data-oid="tq3y1kv">
             <button
               className="p-2 rounded-lg bg-card/70 border border-golden/40 hover:border-golden text-foreground hover:text-golden"
               onClick={() => startEdit(item)}
+              data-oid="k.8n3gp"
             >
-              <Pencil className="w-4 h-4" />
+              <Pencil className="w-4 h-4" data-oid="-gthcj9" />
             </button>
             <button
               className="p-2 rounded-lg bg-card/70 border border-golden/40 hover:border-golden text-foreground hover:text-golden"
               onClick={() => deleteItem(item)}
+              data-oid="6v7e116"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" data-oid="ak16ukt" />
             </button>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 p-3 text-foreground text-[29px] font-bold" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className="absolute bottom-0 left-0 right-0 p-3 text-foreground text-[29px] font-bold"
+            onMouseDown={(e) => e.stopPropagation()}
+            data-oid="c8j54wi"
+          >
             {editingId === item.id && editingType === "video" ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" data-oid="z-pbd6y">
                 <Input
                   value={editingText}
                   onChange={(e) => setEditingText(e.target.value)}
                   autoFocus
                   className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
+                  data-oid="i59ludo"
                 />
-                <Button onClick={saveEdit} className="bg-golden text-deep-black hover:bg-golden/90">Salvar</Button>
+
+                <Button
+                  onClick={saveEdit}
+                  className="bg-golden text-deep-black hover:bg-golden/90"
+                  data-oid="e9f6wb3"
+                >
+                  Salvar
+                </Button>
               </div>
             ) : (
               item.title
@@ -275,61 +340,168 @@ export const FanClub = () => {
   };
 
   return (
-    <section id="fanclub" className="py-16 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto space-y-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-2 text-golden">Fã Clube</h2>
+    <section id="fanclub" className="py-16 px-4 md:px-8" data-oid="5qb7j-w">
+      <div className="max-w-7xl mx-auto space-y-12" data-oid="1j_ek1a">
+        <h2
+          className="text-3xl md:text-4xl font-bold mb-2 text-golden"
+          data-oid="p2l4:xm"
+        >
+          Fã Clube
+        </h2>
 
-        <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-          <div className="p-6">
-            <h3 className="text-2xl text-golden mb-6">Minhas Lobinhas</h3>
+        <Card
+          className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+          data-oid=".id_ds-"
+        >
+          <div className="p-6" data-oid="onpv_ym">
+            <h3 className="text-2xl text-golden mb-6" data-oid="fl1t9g-">
+              Minhas Lobinhas
+            </h3>
             <div
               className={`border-2 border-dashed rounded-lg p-6 text-center mb-4 ${dragPhoto ? "border-golden bg-golden/5" : "border-golden/20"}`}
-              onDragEnter={(e) => { e.preventDefault(); setDragPhoto(true); }}
-              onDragOver={(e) => { e.preventDefault(); setDragPhoto(true); }}
-              onDragLeave={(e) => { e.preventDefault(); setDragPhoto(false); }}
-              onDrop={(e) => { e.preventDefault(); setDragPhoto(false); const f = e.dataTransfer.files?.[0]; if (f && f.type.startsWith("image/")) handlePhotoFile(f); }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setDragPhoto(true);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragPhoto(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setDragPhoto(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragPhoto(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f && f.type.startsWith("image/")) handlePhotoFile(f);
+              }}
+              data-oid="_k5lppw"
             >
-              <div className="text-sm text-muted-foreground">Arraste fotos (JPG/PNG) aqui ou use URL</div>
-              <div className="flex gap-2 mt-3 justify-center">
-                <Input value={photoTitle} onChange={(e) => setPhotoTitle(e.target.value)} placeholder="Título" className="max-w-xs bg-background/50 border-golden/20 focus:border-golden" />
-                <Input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://imagem..." className="max-w-md bg-background/50 border-golden/20 focus:border-golden" />
-                <Button onClick={handleAddPhotoUrl} className="bg-golden text-deep-black hover:bg-golden/90">Adicionar</Button>
+              <div className="text-sm text-muted-foreground" data-oid="xsgva-t">
+                Arraste fotos (JPG/PNG) aqui ou use URL
+              </div>
+              <div
+                className="flex gap-2 mt-3 justify-center"
+                data-oid="ygky4v-"
+              >
+                <Input
+                  value={photoTitle}
+                  onChange={(e) => setPhotoTitle(e.target.value)}
+                  placeholder="Título"
+                  className="max-w-xs bg-background/50 border-golden/20 focus:border-golden"
+                  data-oid="ap7fauy"
+                />
+                <Input
+                  value={photoUrl}
+                  onChange={(e) => setPhotoUrl(e.target.value)}
+                  placeholder="https://imagem..."
+                  className="max-w-md bg-background/50 border-golden/20 focus:border-golden"
+                  data-oid="l6smr.g"
+                />
+                <Button
+                  onClick={handleAddPhotoUrl}
+                  className="bg-golden text-deep-black hover:bg-golden/90"
+                  data-oid="w.8yt9t"
+                >
+                  Adicionar
+                </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-4"
+              data-oid="376t0lz"
+            >
               {photos.map((p) => (
-                <ImageCard key={p.id} item={p} />
+                <ImageCard key={p.id} item={p} data-oid="26lujex" />
               ))}
               {photos.length === 0 && (
-                <div className="text-sm text-muted-foreground">Nenhuma foto ainda</div>
+                <div
+                  className="text-sm text-muted-foreground"
+                  data-oid="_v68bvy"
+                >
+                  Nenhuma foto ainda
+                </div>
               )}
             </div>
           </div>
         </Card>
 
-        <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-          <div className="p-6">
-            <h3 className="text-2xl text-golden mb-6">Vídeos</h3>
+        <Card
+          className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+          data-oid="3_4naae"
+        >
+          <div className="p-6" data-oid="-_6y1ls">
+            <h3 className="text-2xl text-golden mb-6" data-oid="5akii23">
+              Vídeos
+            </h3>
             <div
               className={`border-2 border-dashed rounded-lg p-6 text-center mb-4 ${dragVideo ? "border-golden bg-golden/5" : "border-golden/20"}`}
-              onDragEnter={(e) => { e.preventDefault(); setDragVideo(true); }}
-              onDragOver={(e) => { e.preventDefault(); setDragVideo(true); }}
-              onDragLeave={(e) => { e.preventDefault(); setDragVideo(false); }}
-              onDrop={(e) => { e.preventDefault(); setDragVideo(false); const f = e.dataTransfer.files?.[0]; if (f && f.type.startsWith("video/")) handleVideoFile(f); }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setDragVideo(true);
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragVideo(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setDragVideo(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragVideo(false);
+                const f = e.dataTransfer.files?.[0];
+                if (f && f.type.startsWith("video/")) handleVideoFile(f);
+              }}
+              data-oid="3i8c5jv"
             >
-              <div className="text-sm text-muted-foreground">Arraste vídeos (MP4/WebM) aqui ou use URL</div>
-              <div className="flex gap-2 mt-3 justify-center">
-                <Input value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} placeholder="Título" className="max-w-xs bg-background/50 border-golden/20 focus:border-golden" />
-                <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://vídeo..." className="max-w-md bg-background/50 border-golden/20 focus:border-golden" />
-                <Button onClick={handleAddVideoUrl} className="bg-golden text-deep-black hover:bg-golden/90">Adicionar</Button>
+              <div className="text-sm text-muted-foreground" data-oid="c4653zc">
+                Arraste vídeos (MP4/WebM) aqui ou use URL
+              </div>
+              <div
+                className="flex gap-2 mt-3 justify-center"
+                data-oid="vs3va9u"
+              >
+                <Input
+                  value={videoTitle}
+                  onChange={(e) => setVideoTitle(e.target.value)}
+                  placeholder="Título"
+                  className="max-w-xs bg-background/50 border-golden/20 focus:border-golden"
+                  data-oid="_.:di4j"
+                />
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://vídeo..."
+                  className="max-w-md bg-background/50 border-golden/20 focus:border-golden"
+                  data-oid="p69u.mb"
+                />
+                <Button
+                  onClick={handleAddVideoUrl}
+                  className="bg-golden text-deep-black hover:bg-golden/90"
+                  data-oid="950.ih3"
+                >
+                  Adicionar
+                </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+              className="grid grid-cols-2 md:grid-cols-4 gap-4"
+              data-oid="z-oqeeu"
+            >
               {videos.map((v) => (
-                <VideoCard key={v.id} item={v} />
+                <VideoCard key={v.id} item={v} data-oid="ybl0q:z" />
               ))}
               {videos.length === 0 && (
-                <div className="text-sm text-muted-foreground">Nenhum vídeo ainda</div>
+                <div
+                  className="text-sm text-muted-foreground"
+                  data-oid="nwfik5."
+                >
+                  Nenhum vídeo ainda
+                </div>
               )}
             </div>
           </div>

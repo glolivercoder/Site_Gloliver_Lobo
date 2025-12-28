@@ -11,17 +11,16 @@ const Index = () => {
   // Removido estado de upload local da Home
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <Hero />
-      <FeaturedSection />
-      <GenreSection />
-      <Biography />
-      
+    <div className="min-h-screen bg-background" data-oid="8moteop">
+      <Header data-oid="jcqs8h9" />
+      <Hero data-oid="fp4a9bq" />
+      <FeaturedSection data-oid="vqyqnol" />
+      <GenreSection data-oid="-kdp:xu" />
+      <Biography data-oid="gqqme78" />
 
       {/* Upload removido da Home. Use a aba Configurações para enviar mídia. */}
 
-      <Footer />
+      <Footer data-oid="zn9obh7" />
     </div>
   );
 };

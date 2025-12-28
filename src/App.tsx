@@ -31,7 +31,8 @@ const App = () => (
 
           <Route
             path="/fanclub"
-            element={<FanClubPage />}
+            element={<FanClubPage data-oid="ld-8aqt" />}
+            data-oid="rq4t5.r"
           />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -191,24 +191,33 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="pt-20 px-4 md:px-8 pb-16">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <h1 className="text-4xl font-bold text-golden mb-8">Configurações</h1>
+    <div className="min-h-screen bg-background" data-oid=".qxrbfp">
+      <Header data-oid="w625vxi" />
+      <div className="pt-20 px-4 md:px-8 pb-16" data-oid="k.0:glh">
+        <div className="max-w-7xl mx-auto space-y-8" data-oid="r3mszi:">
+          <h1
+            className="text-4xl font-bold text-golden mb-8"
+            data-oid="qjwbxwf"
+          >
+            Configurações
+          </h1>
 
           {/* Featured Section Editor */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl text-golden">
+          <Card
+            className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+            data-oid="1j4-4xe"
+          >
+            <CardHeader data-oid="1274t8i">
+              <CardTitle className="text-2xl text-golden" data-oid="76yaomv">
                 Editar Destaques
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2 mb-4">
+            <CardContent className="space-y-4" data-oid="7bs.fxb">
+              <div className="flex gap-2 mb-4" data-oid="gio881t">
                 <Button
                   onClick={addNewPage}
                   className="bg-golden text-deep-black hover:bg-golden/90"
+                  data-oid="3-q71c:"
                 >
                   Adicionar Página
                 </Button>
@@ -216,13 +225,17 @@ const Settings = () => {
                   <Button
                     onClick={() => removePage(currentPage)}
                     variant="destructive"
+                    data-oid="x_.brmr"
                   >
                     Remover Página Atual
                   </Button>
                 )}
               </div>
 
-              <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+              <div
+                className="flex gap-2 mb-4 overflow-x-auto pb-2"
+                data-oid="q-cr443"
+              >
                 {allPages.map((_, index) => (
                   <Button
                     key={index}
@@ -233,19 +246,24 @@ const Settings = () => {
                         ? "bg-golden text-deep-black hover:bg-golden/90"
                         : ""
                     }
+                    data-oid="j8291g8"
                   >
                     Página {index + 1}
                   </Button>
                 ))}
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4" data-oid="onl:ep1">
                 {allPages[currentPage]?.map((item, index) => (
                   <div
                     key={item.id}
                     className="space-y-2 p-4 border border-golden/20 rounded-lg"
+                    data-oid="d:65if9"
                   >
-                    <Label className="text-sm font-medium text-golden">
+                    <Label
+                      className="text-sm font-medium text-golden"
+                      data-oid="gftjm8u"
+                    >
                       Destaque {index + 1}
                     </Label>
                     <Input
@@ -260,6 +278,7 @@ const Settings = () => {
                         )
                       }
                       className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="lvds0t7"
                     />
 
                     <Input
@@ -274,6 +293,7 @@ const Settings = () => {
                         )
                       }
                       className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="zge6bpj"
                     />
 
                     <select
@@ -287,17 +307,27 @@ const Settings = () => {
                         )
                       }
                       className="flex h-10 w-full rounded-md border border-golden/20 bg-background/50 px-3 py-2 text-sm text-foreground focus:border-golden"
+                      data-oid="n2p8c.b"
                     >
-                      <option value="video">Vídeo</option>
-                      <option value="audio">Áudio</option>
-                      <option value="image">Imagem</option>
+                      <option value="video" data-oid="f1c3_-c">
+                        Vídeo
+                      </option>
+                      <option value="audio" data-oid="1eok0f2">
+                        Áudio
+                      </option>
+                      <option value="image" data-oid="x1j42q:">
+                        Imagem
+                      </option>
                     </select>
 
-                    <div className="mt-2 space-y-2">
-                      <Label className="text-xs text-muted-foreground">
+                    <div className="mt-2 space-y-2" data-oid="bqn914h">
+                      <Label
+                        className="text-xs text-muted-foreground"
+                        data-oid="wby:.vv"
+                      >
                         Imagem Thumbnail
                       </Label>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" data-oid="errfqgp">
                         <Input
                           placeholder="URL da imagem thumbnail"
                           value={item.thumbnail || ""}
@@ -310,6 +340,7 @@ const Settings = () => {
                             )
                           }
                           className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
+                          data-oid="p_kh0x_"
                         />
 
                         <Button
@@ -329,16 +360,21 @@ const Settings = () => {
                             input.click();
                           }}
                           className="border-golden/20 hover:bg-golden/10"
+                          data-oid="ji242qj"
                         >
-                          <Upload className="w-4 h-4" />
+                          <Upload className="w-4 h-4" data-oid="pnd8atk" />
                         </Button>
                       </div>
                       {item.thumbnail && (
-                        <div className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden">
+                        <div
+                          className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden"
+                          data-oid="16o5s4f"
+                        >
                           <img
                             src={item.thumbnail}
                             alt="Thumbnail"
                             className="w-full h-full object-cover"
+                            data-oid="l638dp4"
                           />
                         </div>
                       )}
@@ -349,6 +385,7 @@ const Settings = () => {
               <Button
                 onClick={saveFeatured}
                 className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
+                data-oid="ni5czla"
               >
                 Salvar Destaques
               </Button>
@@ -356,15 +393,22 @@ const Settings = () => {
           </Card>
 
           {/* Audio Visualizer Settings */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl text-golden">
+          <Card
+            className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+            data-oid="wbffq7r"
+          >
+            <CardHeader data-oid="_f-g:5k">
+              <CardTitle className="text-2xl text-golden" data-oid="46nvzkg">
                 Configurações do Visualizador de Áudio
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="waveformStyle" className="text-foreground">
+            <CardContent className="space-y-4" data-oid="_4qr7g6">
+              <div className="space-y-2" data-oid="_ucfxx9">
+                <Label
+                  htmlFor="waveformStyle"
+                  className="text-foreground"
+                  data-oid="tbxn6dv"
+                >
                   Estilo do Waveform
                 </Label>
                 <Select
@@ -372,22 +416,45 @@ const Settings = () => {
                   onValueChange={(value) =>
                     setAudioSettings({ ...audioSettings, waveformStyle: value })
                   }
+                  data-oid="elqpa_3"
                 >
-                  <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                    <SelectValue placeholder="Selecione o estilo" />
+                  <SelectTrigger
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="vq1js7_"
+                  >
+                    <SelectValue
+                      placeholder="Selecione o estilo"
+                      data-oid=":tr15kf"
+                    />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-golden/20">
-                    <SelectItem value="bars">Barras (Padrão)</SelectItem>
-                    <SelectItem value="wave">Onda Contínua</SelectItem>
-                    <SelectItem value="mirror">Espelho</SelectItem>
-                    <SelectItem value="animatedBars">Barras Animadas (Ao Vivo)</SelectItem>
+                  <SelectContent
+                    className="bg-popover border-golden/20"
+                    data-oid="fh_nnoh"
+                  >
+                    <SelectItem value="bars" data-oid="b-gjd1n">
+                      Barras (Padrão)
+                    </SelectItem>
+                    <SelectItem value="wave" data-oid="klcurk0">
+                      Onda Contínua
+                    </SelectItem>
+                    <SelectItem value="mirror" data-oid="l0__yq9">
+                      Espelho
+                    </SelectItem>
+                    <SelectItem value="animatedBars" data-oid="3hnnoyb">
+                      Barras Animadas (Ao Vivo)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-foreground">Altura (px)</Label>
+              <div
+                className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                data-oid="25t64:c"
+              >
+                <div className="space-y-2" data-oid="mti3opw">
+                  <Label className="text-foreground" data-oid="4cmo49y">
+                    Altura (px)
+                  </Label>
                   <Input
                     type="number"
                     value={audioSettings.height}
@@ -398,10 +465,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="xy.f54y"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Largura da Barra</Label>
+                <div className="space-y-2" data-oid="qf.w.kq">
+                  <Label className="text-foreground" data-oid="bz9ub7w">
+                    Largura da Barra
+                  </Label>
                   <Input
                     type="number"
                     value={audioSettings.barWidth}
@@ -412,10 +482,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="aeihu8r"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Espaço da Barra</Label>
+                <div className="space-y-2" data-oid="xs7xpqz">
+                  <Label className="text-foreground" data-oid="fv.hger">
+                    Espaço da Barra
+                  </Label>
                   <Input
                     type="number"
                     value={audioSettings.barGap}
@@ -426,10 +499,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="v8vgxr3"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Raio da Barra</Label>
+                <div className="space-y-2" data-oid="ig6wv3_">
+                  <Label className="text-foreground" data-oid="ibcf69f">
+                    Raio da Barra
+                  </Label>
                   <Input
                     type="number"
                     value={audioSettings.barRadius}
@@ -440,10 +516,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="rku0syf"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cursor (px)</Label>
+                <div className="space-y-2" data-oid="yx.fgnn">
+                  <Label className="text-foreground" data-oid="n:9qy.7">
+                    Cursor (px)
+                  </Label>
                   <Input
                     type="number"
                     value={audioSettings.cursorWidth}
@@ -454,13 +533,19 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="1rldqnp"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cor da Onda</Label>
+              <div
+                className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                data-oid="ulg2yxn"
+              >
+                <div className="space-y-2" data-oid=".sdrqcy">
+                  <Label className="text-foreground" data-oid="r9jr-xp">
+                    Cor da Onda
+                  </Label>
                   <Input
                     value={audioSettings.waveColor}
                     onChange={(e) =>
@@ -470,10 +555,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="eu8y:2n"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cor do Progresso</Label>
+                <div className="space-y-2" data-oid="p8ks4wn">
+                  <Label className="text-foreground" data-oid="b.a.v27">
+                    Cor do Progresso
+                  </Label>
                   <Input
                     value={audioSettings.progressColor}
                     onChange={(e) =>
@@ -483,10 +571,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="-b4rje."
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cor do Cursor</Label>
+                <div className="space-y-2" data-oid=".34c3n_">
+                  <Label className="text-foreground" data-oid="71:pq6i">
+                    Cor do Cursor
+                  </Label>
                   <Input
                     value={audioSettings.cursorColor}
                     onChange={(e) =>
@@ -496,13 +587,16 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="-07r_3g"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-foreground">Espectrograma</Label>
-                <div className="flex items-center gap-3">
+              <div className="space-y-2" data-oid="1.px0qq">
+                <Label className="text-foreground" data-oid="f3tw2af">
+                  Espectrograma
+                </Label>
+                <div className="flex items-center gap-3" data-oid="atr-1i1">
                   <input
                     type="checkbox"
                     checked={audioSettings.enableSpectrogram}
@@ -512,13 +606,20 @@ const Settings = () => {
                         enableSpectrogram: e.target.checked,
                       })
                     }
+                    data-oid="ko..jg:"
                   />
-                  <span className="text-sm text-muted-foreground">
+
+                  <span
+                    className="text-sm text-muted-foreground"
+                    data-oid="h730_qv"
+                  >
                     Ativar espectrograma (WaveSurfer)
                   </span>
                 </div>
-                <div className="mt-2">
-                  <Label className="text-foreground">FFT Samples</Label>
+                <div className="mt-2" data-oid="4va.71g">
+                  <Label className="text-foreground" data-oid="kjasmej">
+                    FFT Samples
+                  </Label>
                   <Select
                     value={String(audioSettings.spectrogramFftSamples)}
                     onValueChange={(value) =>
@@ -527,25 +628,47 @@ const Settings = () => {
                         spectrogramFftSamples: Number(value),
                       })
                     }
+                    data-oid="svz2a0j"
                   >
-                    <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                      <SelectValue placeholder="FFT" />
+                    <SelectTrigger
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="57qamhs"
+                    >
+                      <SelectValue placeholder="FFT" data-oid=":zqr_9z" />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover border-golden/20">
-                      <SelectItem value="128">128</SelectItem>
-                      <SelectItem value="256">256</SelectItem>
-                      <SelectItem value="512">512</SelectItem>
-                      <SelectItem value="1024">1024</SelectItem>
+                    <SelectContent
+                      className="bg-popover border-golden/20"
+                      data-oid="hypa8yh"
+                    >
+                      <SelectItem value="128" data-oid="g1xk.y.">
+                        128
+                      </SelectItem>
+                      <SelectItem value="256" data-oid="b6ski6n">
+                        256
+                      </SelectItem>
+                      <SelectItem value="512" data-oid="lo67:wh">
+                        512
+                      </SelectItem>
+                      <SelectItem value="1024" data-oid="z5tvne3">
+                        1024
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-foreground">Visualizador ao vivo</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-foreground">FFT Size</Label>
+              <div className="space-y-2" data-oid="-07mqmm">
+                <Label className="text-foreground" data-oid="ws0t.5e">
+                  Visualizador ao vivo
+                </Label>
+                <div
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                  data-oid=":p9hqix"
+                >
+                  <div className="space-y-2" data-oid="sqnyr:x">
+                    <Label className="text-foreground" data-oid="tda1fbn">
+                      FFT Size
+                    </Label>
                     <Select
                       value={String(audioSettings.liveAnalyzerFftSize)}
                       onValueChange={(value) =>
@@ -554,21 +677,40 @@ const Settings = () => {
                           liveAnalyzerFftSize: Number(value),
                         })
                       }
+                      data-oid="h0xqxdp"
                     >
-                      <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                        <SelectValue placeholder="FFT" />
+                      <SelectTrigger
+                        className="bg-background/50 border-golden/20 focus:border-golden"
+                        data-oid="a8kp9is"
+                      >
+                        <SelectValue placeholder="FFT" data-oid="rt_8bbs" />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover border-golden/20">
-                        <SelectItem value="64">64</SelectItem>
-                        <SelectItem value="128">128</SelectItem>
-                        <SelectItem value="256">256</SelectItem>
-                        <SelectItem value="512">512</SelectItem>
-                        <SelectItem value="1024">1024</SelectItem>
+                      <SelectContent
+                        className="bg-popover border-golden/20"
+                        data-oid="g5pqz2o"
+                      >
+                        <SelectItem value="64" data-oid="exm4-n-">
+                          64
+                        </SelectItem>
+                        <SelectItem value="128" data-oid=":smf..d">
+                          128
+                        </SelectItem>
+                        <SelectItem value="256" data-oid="yn_493m">
+                          256
+                        </SelectItem>
+                        <SelectItem value="512" data-oid="agzs4kr">
+                          512
+                        </SelectItem>
+                        <SelectItem value="1024" data-oid="natz26-">
+                          1024
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Suavização</Label>
+                  <div className="space-y-2" data-oid="5kln442">
+                    <Label className="text-foreground" data-oid="ehm5geh">
+                      Suavização
+                    </Label>
                     <Input
                       type="number"
                       step="0.05"
@@ -582,10 +724,13 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="4pqrarn"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Altura (px)</Label>
+                  <div className="space-y-2" data-oid="c1w2gy7">
+                    <Label className="text-foreground" data-oid="lk8ox-c">
+                      Altura (px)
+                    </Label>
                     <Input
                       type="number"
                       value={audioSettings.liveHeight}
@@ -596,10 +741,13 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="yzx_sra"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Largura da Barra</Label>
+                  <div className="space-y-2" data-oid="1-2rzyx">
+                    <Label className="text-foreground" data-oid="-6qr:b5">
+                      Largura da Barra
+                    </Label>
                     <Input
                       type="number"
                       value={audioSettings.liveBarWidth}
@@ -610,10 +758,13 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="07ynuse"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Cor da Barra</Label>
+                  <div className="space-y-2" data-oid="9aq.2ly">
+                    <Label className="text-foreground" data-oid="iqa5k-h">
+                      Cor da Barra
+                    </Label>
                     <Input
                       value={audioSettings.liveBarColor}
                       onChange={(e) =>
@@ -623,6 +774,7 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
+                      data-oid="a491xcu"
                     />
                   </div>
                 </div>
@@ -630,6 +782,7 @@ const Settings = () => {
               <Button
                 onClick={saveAudioSettings}
                 className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
+                data-oid="c339ak4"
               >
                 Salvar Configurações de Áudio
               </Button>
@@ -637,23 +790,31 @@ const Settings = () => {
           </Card>
 
           {/* Social Links Editor */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl text-golden">
+          <Card
+            className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+            data-oid="m63ira3"
+          >
+            <CardHeader data-oid="5e-0wrl">
+              <CardTitle className="text-2xl text-golden" data-oid="28.ycr9">
                 Redes Sociais
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+            <CardContent className="space-y-4" data-oid="mtra815">
+              <div
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                data-oid="0q99j0w"
+              >
+                <div className="space-y-2" data-oid="8lg1cz.">
                   <Label
                     htmlFor="whatsapp"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="cnqt7f6"
                   >
                     <img
                       src="/favicon-whatsapp.svg"
                       alt="WhatsApp"
                       className="w-4 h-4"
+                      data-oid="0b_4ma8"
                     />{" "}
                     WhatsApp
                   </Label>
@@ -665,14 +826,17 @@ const Settings = () => {
                     }
                     placeholder="https://wa.me/message/SEU_CODIGO"
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="11--t.z"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2" data-oid="d4p81dt">
                   <Label
                     htmlFor="instagram"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="6-ddibo"
                   >
-                    <Instagram className="w-4 h-4" /> Instagram
+                    <Instagram className="w-4 h-4" data-oid="h2xjv8-" />{" "}
+                    Instagram
                   </Label>
                   <Input
                     id="instagram"
@@ -682,15 +846,17 @@ const Settings = () => {
                     }
                     placeholder="https://instagram.com/seu_perfil"
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="--1ov7u"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-oid="ezl63va">
                   <Label
                     htmlFor="tiktok"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="d0akfbm"
                   >
-                    <Music className="w-4 h-4" /> TikTok
+                    <Music className="w-4 h-4" data-oid="5s3kicb" /> TikTok
                   </Label>
                   <Input
                     id="tiktok"
@@ -700,15 +866,17 @@ const Settings = () => {
                     }
                     placeholder="https://tiktok.com/@seu_perfil"
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="8dmmj79"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-oid="cmf8i-.">
                   <Label
                     htmlFor="youtube"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="06.7c.h"
                   >
-                    <Youtube className="w-4 h-4" /> YouTube
+                    <Youtube className="w-4 h-4" data-oid="x9zd8l-" /> YouTube
                   </Label>
                   <Input
                     id="youtube"
@@ -718,15 +886,17 @@ const Settings = () => {
                     }
                     placeholder="https://youtube.com/@seu_canal"
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="5w6lwz1"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-oid="szl5.yi">
                   <Label
                     htmlFor="spotify"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="x94x8v_"
                   >
-                    <Radio className="w-4 h-4" /> Spotify
+                    <Radio className="w-4 h-4" data-oid="7lc4olc" /> Spotify
                   </Label>
                   <Input
                     id="spotify"
@@ -736,15 +906,18 @@ const Settings = () => {
                     }
                     placeholder="https://open.spotify.com/artist/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="9_vn55u"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-oid="fba1k4x">
                   <Label
                     htmlFor="youtubeMusic"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="qjoedgw"
                   >
-                    <Music className="w-4 h-4" /> YouTube Music
+                    <Music className="w-4 h-4" data-oid="23-6jma" /> YouTube
+                    Music
                   </Label>
                   <Input
                     id="youtubeMusic"
@@ -754,15 +927,18 @@ const Settings = () => {
                     }
                     placeholder="https://music.youtube.com/channel/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="by-og7o"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" data-oid="gpkvvzd">
                   <Label
                     htmlFor="amazonMusic"
                     className="text-foreground flex items-center gap-2"
+                    data-oid="nsshea:"
                   >
-                    <Radio className="w-4 h-4" /> Amazon Music
+                    <Radio className="w-4 h-4" data-oid="wfaezfp" /> Amazon
+                    Music
                   </Label>
                   <Input
                     id="amazonMusic"
@@ -772,12 +948,14 @@ const Settings = () => {
                     }
                     placeholder="https://music.amazon.com/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
+                    data-oid="nc3sju6"
                   />
                 </div>
               </div>
               <Button
                 onClick={saveSocial}
                 className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
+                data-oid="mzmgvne"
               >
                 Salvar Redes Sociais
               </Button>
@@ -785,10 +963,10 @@ const Settings = () => {
           </Card>
 
           {/* Upload Section */}
-          <UploadSection />
+          <UploadSection data-oid="u46l20i" />
         </div>
       </div>
-      <Footer />
+      <Footer data-oid="qipum3o" />
     </div>
   );
 };

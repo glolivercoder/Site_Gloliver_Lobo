@@ -338,8 +338,6 @@ export const UploadSection = () => {
           Área de Upload
         </h2>
 
-        
-
         <Card
           className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${
             dragActive ? "border-primary bg-primary/5" : "border-border/50"
