@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { toast } from "sonner";
 import { LiveAudioVisualizer } from "./LiveAudioVisualizer";
+import { ReactiveAudioVisualizer } from "./ReactiveAudioVisualizer";
 
 interface AudioVisualizerProps {
   url: string;
@@ -19,12 +20,28 @@ export const AudioVisualizer = ({
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    if (waveformStyle === "animatedBars") {
-      setLoadError(true);
-      return;
-    }
+  // Check if reactive mode is enabled
+  const stored = localStorage.getItem("audioSettings");
+  let audioSettings: any = {};
+  try {
+    audioSettings = stored ? JSON.parse(stored) : {};
+  } catch { }
 
+  const useReactiveVisualizer = waveformStyle === "animatedBars" || audioSettings.enableSpectrogram;
+
+  // Use ReactiveAudioVisualizer for animated/spectrogram modes
+  if (useReactiveVisualizer) {
+    return (
+      <ReactiveAudioVisualizer
+        url={url}
+        autoPlay={autoPlay}
+        showSpectrogram={audioSettings.enableSpectrogram}
+        data-oid="reactive-visualizer"
+      />
+    );
+  }
+
+  useEffect(() => {
     setLoadError(false);
     if (!waveformRef.current) return;
 
@@ -33,7 +50,7 @@ export const AudioVisualizer = ({
     let s: any = {};
     try {
       s = stored ? JSON.parse(stored) : {};
-    } catch {}
+    } catch { }
 
     const waveConfig: any = {
       container: waveformRef.current,
@@ -98,9 +115,9 @@ export const AudioVisualizer = ({
             });
             // @ts-ignore
             wavesurfer.registerPlugin(plugin);
-          } catch {}
+          } catch { }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     const loadAudio = async () => {
@@ -135,7 +152,7 @@ export const AudioVisualizer = ({
     return () => {
       try {
         wavesurfer.pause();
-      } catch {}
+      } catch { }
       wavesurfer.destroy();
     };
   }, [url, autoPlay, waveformStyle]);

@@ -41,7 +41,7 @@ const MediaPlayer = ({
 }: {
   url: string;
   type: string;
-  waveformStyle?: "bars" | "wave" | "mirror";
+  waveformStyle?: "bars" | "wave" | "mirror" | "animatedBars";
 }) => {
   // YouTube
   if (url.includes("youtube.com") || url.includes("youtu.be")) {
@@ -156,7 +156,7 @@ export const FeaturedSection = () => {
                   item.type === "image" && item.url
                     ? item.url
                     : defaultFeatured[index % 8]?.image ||
-                      defaultFeatured[0].image,
+                    defaultFeatured[0].image,
               })),
             ),
           );
@@ -174,7 +174,7 @@ export const FeaturedSection = () => {
           const s = JSON.parse(stored);
           if (s && s.waveformStyle) setWaveformStyle(s.waveformStyle);
         }
-      } catch {}
+      } catch { }
     };
     loadAudioSettings();
     window.addEventListener("storage", loadFeatured);
@@ -324,7 +324,10 @@ export const FeaturedSection = () => {
             </DialogDescription>
           </DialogHeader>
           <div
-            className="aspect-video w-full bg-black rounded-lg overflow-hidden"
+            className={`w-full bg-black rounded-lg overflow-hidden ${selectedMedia?.type === "audio"
+              ? "max-h-[80vh] overflow-y-auto"
+              : "aspect-video"
+              }`}
             data-oid="3hq6mi-"
           >
             {selectedMedia?.url && (
