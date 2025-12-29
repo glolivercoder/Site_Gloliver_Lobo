@@ -921,7 +921,7 @@ const Settings = () => {
                     <img
                       src="/favicon-whatsapp.svg"
                       alt="WhatsApp"
-                      className="w-4 h-4"
+                      className="w-5 h-5"
                       data-oid="0b_4ma8"
                     />{" "}
                     WhatsApp
