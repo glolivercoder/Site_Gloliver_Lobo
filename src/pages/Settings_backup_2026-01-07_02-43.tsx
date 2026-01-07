@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header";
 import { UploadSection } from "@/components/UploadSection";
 import { Footer } from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
@@ -32,13 +23,8 @@ import {
   Image as ImageIcon,
   HardDrive,
   Trash2,
-  Users,
-  Settings2,
-  Shield,
 } from "lucide-react";
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
-import { useAuth } from "@/contexts/AuthContext";
-import { pb } from "@/lib/pocketbase";
 
 // Storage Management Component
 const StorageManagement = () => {
@@ -145,150 +131,6 @@ const StorageManagement = () => {
   );
 };
 
-// User Management Component
-const UserManagement = () => {
-  const { isAdmin } = useAuth();
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isAdmin) {
-      loadUsers();
-    }
-  }, [isAdmin]);
-
-  const loadUsers = async () => {
-    setLoading(true);
-    try {
-      const records = await pb.collection("users").getFullList({
-        sort: "-created",
-      });
-      setUsers(records);
-    } catch (e) {
-      console.error("Error loading users:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteUser = async (userId: string, email: string) => {
-    if (email === "gloliverlobo@gmail.com") {
-      toast.error("Não é possível excluir o administrador principal.");
-      return;
-    }
-    if (!confirm(`Tem certeza que deseja excluir o usuário "${email}"?`)) return;
-    try {
-      await pb.collection("users").delete(userId);
-      setUsers(users.filter(u => u.id !== userId));
-      toast.success("Usuário excluído com sucesso.");
-    } catch (e) {
-      toast.error("Erro ao excluir usuário.");
-    }
-  };
-
-  if (!isAdmin) {
-    return (
-      <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Acesso restrito a administradores.
-        </CardContent>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl text-golden flex items-center gap-2">
-          <Users className="w-6 h-6" />
-          Gerenciamento de Usuários
-        </CardTitle>
-        <CardDescription>
-          Visualize e gerencie os usuários registrados no sistema via PocketBase.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border border-golden/20 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-golden/20">
-                <TableHead className="text-golden">Email</TableHead>
-                <TableHead className="text-golden">Nome</TableHead>
-                <TableHead className="text-golden">Criado em</TableHead>
-                <TableHead className="text-golden">Role</TableHead>
-                <TableHead className="text-golden text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Carregando...
-                  </TableCell>
-                </TableRow>
-              ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nenhum usuário encontrado. Configure o PocketBase para ver usuários.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((u) => (
-                  <TableRow key={u.id} className="border-golden/10">
-                    <TableCell className="font-medium">
-                      <div className="flex flex-col">
-                        <span>{u.email}</span>
-                        {u.username && (
-                          <span className="text-xs text-muted-foreground">@{u.username}</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{u.name || "-"}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(u.created).toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell>
-                      {u.email === "gloliverlobo@gmail.com" ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-golden/20 text-golden">
-                          <Shield className="w-3 h-3 mr-1" /> Admin
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">Usuário</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {u.email !== "gloliverlobo@gmail.com" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteUser(u.id, u.email)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex justify-end mt-4">
-          <Button
-            variant="outline"
-            onClick={loadUsers}
-            disabled={loading}
-            className="border-golden/20 hover:bg-golden/10"
-          >
-            Atualizar Lista
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 const Settings = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [allPages, setAllPages] = useState<any[][]>([
@@ -301,7 +143,6 @@ const Settings = () => {
         type: "video",
       })),
   ]);
-
 
   const [socialLinks, setSocialLinks] = useState({
     instagram: "",
@@ -468,9 +309,6 @@ const Settings = () => {
           >
             Configurações
           </h1>
-
-          {/* User Management */}
-          <UserManagement />
 
           {/* Featured Section Editor */}
           <Card
