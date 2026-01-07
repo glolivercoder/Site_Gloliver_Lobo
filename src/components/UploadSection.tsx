@@ -34,6 +34,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { AudioVisualizer } from "./AudioVisualizer";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
+import { pb, getPbImageUrl } from "@/lib/pocketbase";
 
 // Define the genre options
 const genreOptions = [
@@ -68,6 +71,7 @@ const pageOptions = [
 ];
 
 export const UploadSection = () => {
+  const { user, isAdmin } = useAuth();
   const [dragActive, setDragActive] = useState(false);
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaTitle, setMediaTitle] = useState("");
@@ -87,6 +91,11 @@ export const UploadSection = () => {
     value: string;
     label: string;
   } | null>(null);
+
+  // Replace localStorage logic with useSiteConfig
+  // Assuming the structure is an array of arrays (pages -> slots)
+  const { data: featuredPages, save: saveFeaturedPages } = useSiteConfig<any[][]>("featured_pages", []);
+
   const [libraryItems, setLibraryItems] = useState<
     Array<{
       id: string;
@@ -103,14 +112,9 @@ export const UploadSection = () => {
 
   // Clean up old files on component mount
   useEffect(() => {
-    // NOTA: Limpeza automática desativada para evitar perda de dados
-    // O usuário pode limpar manualmente nas Configurações
-    // cleanupOldFilesByAge(7);
-    loadLibraryFromStorage();
-    const onStorage = () => loadLibraryFromStorage();
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+    // NOTA: Limpeza automática desativada
+    loadLibraryFromConfig();
+  }, [featuredPages]); // Reload library when config changes
 
   // Ao selecionar um gênero, abrir a biblioteca diretamente para facilitar
   useEffect(() => {
@@ -144,6 +148,10 @@ export const UploadSection = () => {
   };
 
   const handleFile = async (file: File) => {
+    if (!isAdmin) {
+      toast.error("Apenas administradores podem fazer upload.");
+      return;
+    }
     const type = file.type.startsWith("image/")
       ? "image"
       : file.type.startsWith("audio/")
@@ -152,18 +160,26 @@ export const UploadSection = () => {
 
     setIsUploading(true);
     try {
-      const fileId = await saveMediaFile(file);
-      setMediaUrl(fileId);
+      // Upload to PocketBase 'media_files' collection
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("title", file.name.replace(/\.[^/.]+$/, ""));
+      formData.append("uploaded_by", user?.id || "");
+      formData.append("type", type); // If your schema supports it, strictly helpful for filtering
+
+      const record = await pb.collection("media_files").create(formData);
+
+      // Construct public URL
+      // Note: For audio/video, standard file serving works.
+      const url = getPbImageUrl(record.collectionId, record.id, record.file);
+
+      setMediaUrl(url);
       setMediaType(type);
       setMediaTitle(file.name.replace(/\.[^/.]+$/, ""));
       toast.success(`${file.name} carregado! Adicione aos destaques abaixo.`);
     } catch (error) {
       console.error("Erro ao carregar arquivo:", error);
-      if (typeof error === "string") {
-        toast.error(error);
-      } else {
-        toast.error("Erro ao carregar arquivo. Tente novamente mais tarde.");
-      }
+      toast.error("Erro ao fazer upload para o servidor.");
     } finally {
       setIsUploading(false);
     }
@@ -176,6 +192,10 @@ export const UploadSection = () => {
   };
 
   const handleAddToFeatured = async () => {
+    if (!isAdmin) {
+      toast.error("Apenas administradores podem gerenciar destaques.");
+      return;
+    }
     if (!mediaUrl || !mediaTitle) {
       toast.error("Adicione uma URL e título primeiro.");
       return;
@@ -189,18 +209,8 @@ export const UploadSection = () => {
     setIsUploading(true);
 
     try {
-      // Carregar páginas existentes ou inicializar estrutura
-      const stored = localStorage.getItem("featuredPages");
-      let pages: any[][] = [];
-
-      if (stored) {
-        try {
-          pages = JSON.parse(stored);
-        } catch (e) {
-          console.error("Erro ao ler featuredPages:", e);
-          pages = [];
-        }
-      }
+      // Clone current pages or initialize
+      let pages = [...(featuredPages || [])];
 
       const pageIndex =
         Number((selectedPage?.value || "pagina1").replace("pagina", "")) - 1;
@@ -209,22 +219,24 @@ export const UploadSection = () => {
           (selectedFeatured?.value || "destaque1").replace("destaque", ""),
         ) - 1;
 
-      // Garantir que a página exista com 8 slots
-      if (!pages[pageIndex]) {
-        pages[pageIndex] = Array(8)
-          .fill(null)
-          .map((_, i) => ({
-            id: pageIndex * 8 + i + 1,
-            title: `Destaque ${pageIndex * 8 + i + 1}`,
-            url: "",
-            type: "video",
-          }));
+      // Garantir que a página exista com 8 slots (e páginas anteriores também)
+      for (let i = 0; i <= pageIndex; i++) {
+        if (!pages[i]) {
+          pages[i] = Array(8)
+            .fill(null)
+            .map((_, idx) => ({
+              id: i * 8 + idx + 1,
+              title: `Destaque ${i * 8 + idx + 1}`,
+              url: "",
+              type: "video",
+            }));
+        }
       }
 
       const newItem = {
         id: pages[pageIndex][slotIndex]?.id ?? Date.now(),
         title: mediaTitle.trim(),
-        url: mediaUrl.trim(), // pode ser link externo ou fileId (IndexedDB)
+        url: mediaUrl.trim(),
         type: mediaType,
         genre: selectedGenre?.value,
         featuredKey: selectedFeatured?.value,
@@ -233,14 +245,11 @@ export const UploadSection = () => {
 
       pages[pageIndex][slotIndex] = newItem;
 
-      localStorage.setItem("featuredPages", JSON.stringify(pages));
-      // Notificar ouvintes (Homepage/FeaturedSection) para recarregar
-      window.dispatchEvent(new Event("storage"));
+      await saveFeaturedPages(pages);
 
       toast.success("Adicionado aos destaques com sucesso!");
 
-      // Opcional: limpar campos de formulário
-      // Mantemos mediaUrl/title para facilitar edições subsequentes
+      // Limpar formulário (opcional, mantendo mediaUrl/Title)
     } catch (error) {
       console.error("Erro ao adicionar aos destaques:", error);
       toast.error("Não foi possível adicionar aos destaques.");
@@ -249,9 +258,8 @@ export const UploadSection = () => {
     }
   };
 
-  const loadLibraryFromStorage = async () => {
+  const loadLibraryFromConfig = async () => {
     try {
-      const stored = localStorage.getItem("featuredPages");
       const items: Array<{
         id: string;
         title: string;
@@ -266,33 +274,29 @@ export const UploadSection = () => {
       const meta = await listMediaFilesMeta();
       const existingFileIds = new Set(meta.map((m) => m.id));
 
-      if (stored) {
-        try {
-          const pages = JSON.parse(stored) as any[][];
-          pages.forEach((page) => {
-            (page || []).forEach((item) => {
-              if (item && item.type === "audio" && item.url) {
-                const isLocal =
-                  typeof item.url === "string" && item.url.startsWith("file_");
-                const isMissing = isLocal && !existingFileIds.has(item.url);
-                items.push({
-                  id: String(item.id || item.url),
-                  title: String(item.title || item.name || "Sem título"),
-                  type: "audio",
-                  genre: item.genre,
-                  fileId: isLocal ? item.url : undefined,
-                  externalUrl: !isLocal ? item.url : undefined,
-                  isMissing,
-                });
-              }
-            });
+      if (featuredPages && Array.isArray(featuredPages)) {
+        featuredPages.forEach((page) => {
+          (page || []).forEach((item) => {
+            if (item && item.type === "audio" && item.url) {
+              const isLocal =
+                typeof item.url === "string" && item.url.startsWith("file_");
+              const isMissing = isLocal && !existingFileIds.has(item.url);
+              items.push({
+                id: String(item.id || item.url),
+                title: String(item.title || item.name || "Sem título"),
+                type: "audio",
+                genre: item.genre,
+                fileId: isLocal ? item.url : undefined,
+                externalUrl: !isLocal ? item.url : undefined,
+                isMissing,
+              });
+            }
           });
-        } catch (e) {
-          console.error("Erro ao processar featuredPages para biblioteca:", e);
-        }
+        });
       }
 
-      // Incluir arquivos de áudio do IndexedDB que não estão nos destaques
+      // Incluir arquivos de áudio do IndexedDB não listados nos destaques?
+      // Mantendo lógica original, mas agora usando dados do config
       const audioMeta = meta.filter((m) => (m.type || "").startsWith("audio/"));
       const knownIds = new Set(
         items.map((i) => i.fileId).filter(Boolean) as string[],
@@ -310,7 +314,7 @@ export const UploadSection = () => {
         }
       });
 
-      // Ordenar por gênero e data aproximada
+      // Ordenar por gênero
       items.sort((a, b) => (a.genre || "").localeCompare(b.genre || ""));
       setLibraryItems(items);
     } catch (error) {
@@ -323,7 +327,6 @@ export const UploadSection = () => {
   };
 
   const handlePlayLibraryItem = async (item: any) => {
-    // Se já sabemos que está faltando, mostrar mensagem útil
     if (item.isMissing) {
       toast.error(
         "Este arquivo foi removido. Faça upload novamente na Área de Upload.",
@@ -351,6 +354,23 @@ export const UploadSection = () => {
       toast.error("Falha ao abrir música da biblioteca");
     }
   };
+
+  if (!isAdmin && user) {
+    // User is logged in but not admin
+    return (
+      <section className="py-24 px-6 relative">
+        <div className="container mx-auto max-w-6xl text-center text-muted-foreground">
+          <h2 className="text-3xl text-golden mb-4">Área Restrita</h2>
+          <p>Apenas administradores podem acessar a área de upload.</p>
+        </div>
+      </section>
+    )
+  }
+
+  if (!user) {
+    // Not logged in
+    return null;
+  }
 
   return (
     <section className="py-24 px-6 relative" data-oid="qgl35o-">
@@ -679,8 +699,8 @@ export const UploadSection = () => {
                     <Card
                       key={item.id}
                       className={`p-3 border-border/50 cursor-pointer ${item.isMissing
-                          ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
-                          : "bg-card/70 hover:border-primary/50"
+                        ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
+                        : "bg-card/70 hover:border-primary/50"
                         }`}
                       onClick={() => handlePlayLibraryItem(item)}
                       data-oid="89a2e.2"
