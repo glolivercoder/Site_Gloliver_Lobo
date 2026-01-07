@@ -100,13 +100,13 @@ export const GenreSection = () => {
         </h2>
 
         <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
           data-oid="u3i5w7e"
         >
           {genres.map((genre, index) => (
             <Card
               key={genre.name}
-              className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 cursor-pointer hover:scale-105 animate-fade-in"
+              className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all duration-300 hover:scale-105 cursor-pointer aspect-square flex flex-col items-center justify-center text-center animate-fade-in"
               style={{
                 animationDelay: `${index * 0.1}s`,
               }}
@@ -118,28 +118,22 @@ export const GenreSection = () => {
                 data-oid="0sflu8l"
               />
 
-              <div className="p-6 relative z-10" data-oid=":.bal78">
+              <div className="p-4 relative z-10 flex flex-col items-center justify-center w-full h-full" data-oid=":.bal78">
                 <genre.icon
-                  className="w-12 h-12 mb-4 text-primary group-hover:text-golden transition-colors"
+                  className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-4 text-golden group-hover:text-white transition-colors"
                   data-oid="m3kmbrn"
                 />
 
                 <h3
-                  className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors"
+                  className="text-sm md:text-xl font-bold text-foreground group-hover:text-white transition-colors uppercase tracking-wider"
                   data-oid="-e:gr7b"
                 >
                   {genre.name}
                 </h3>
-                <p
-                  className="text-sm text-muted-foreground mt-2"
-                  data-oid="jtxrqzo"
-                >
-                  Explorar coleção
-                </p>
               </div>
 
               <div
-                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-golden to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                 data-oid=".36y6q2"
               />
             </Card>
