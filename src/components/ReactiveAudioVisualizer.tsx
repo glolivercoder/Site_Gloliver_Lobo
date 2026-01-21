@@ -20,7 +20,7 @@ export const ReactiveAudioVisualizer = ({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
   const spectrogramDataRef = useRef<ImageData | null>(null);
-  
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -42,13 +42,19 @@ export const ReactiveAudioVisualizer = ({
     if (!audioEl || audioCtxRef.current) return;
 
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext || (window as any).webkitAudioContext;
       const audioCtx = new AudioContextClass();
       const analyser = audioCtx.createAnalyser();
-      
+
       const settings = getSettings();
-      analyser.fftSize = Math.max(256, Number(settings.liveAnalyzerFftSize || 512));
-      analyser.smoothingTimeConstant = Number(settings.liveAnalyzerSmoothing || 0.7);
+      analyser.fftSize = Math.max(
+        256,
+        Number(settings.liveAnalyzerFftSize || 512),
+      );
+      analyser.smoothingTimeConstant = Number(
+        settings.liveAnalyzerSmoothing || 0.7,
+      );
 
       // Only create source node once
       if (!sourceNodeRef.current) {
@@ -91,7 +97,10 @@ export const ReactiveAudioVisualizer = ({
     ctx.fillRect(0, 0, width, height);
 
     // Draw frequency bars with glow effect
-    const barWidth = Math.max(Number(settings.liveBarWidth || 4), Math.floor(width / bufferLength) - 1);
+    const barWidth = Math.max(
+      Number(settings.liveBarWidth || 4),
+      Math.floor(width / bufferLength) - 1,
+    );
     const gap = 2;
     const barCount = Math.floor(width / (barWidth + gap));
     const step = Math.floor(bufferLength / barCount);
@@ -100,37 +109,49 @@ export const ReactiveAudioVisualizer = ({
       const dataIndex = i * step;
       const value = dataArray[dataIndex] || 0;
       const barHeight = (value / 255) * height * 0.9;
-      
+
       const x = i * (barWidth + gap);
       const y = height - barHeight;
-      
+
       // Create gradient for each bar
       const gradient = ctx.createLinearGradient(x, height, x, y);
       const hue = 35 + (value / 255) * 15; // Golden hue range
       const saturation = 70 + (value / 255) * 30;
       const lightness = 45 + (value / 255) * 25;
-      
-      gradient.addColorStop(0, `hsl(${hue}, ${saturation}%, ${lightness * 0.6}%)`);
+
+      gradient.addColorStop(
+        0,
+        `hsl(${hue}, ${saturation}%, ${lightness * 0.6}%)`,
+      );
       gradient.addColorStop(0.5, `hsl(${hue}, ${saturation}%, ${lightness}%)`);
-      gradient.addColorStop(1, `hsl(${hue + 10}, ${saturation}%, ${lightness + 10}%)`);
-      
+      gradient.addColorStop(
+        1,
+        `hsl(${hue + 10}, ${saturation}%, ${lightness + 10}%)`,
+      );
+
       // Glow effect
       ctx.shadowColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
       ctx.shadowBlur = value > 128 ? 15 : 5;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
-      
+
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
       ctx.fill();
-      
+
       // Mirror effect (reflection)
       const mirrorHeight = barHeight * 0.3;
       const mirrorGradient = ctx.createLinearGradient(x, 0, x, mirrorHeight);
-      mirrorGradient.addColorStop(0, `hsla(${hue}, ${saturation}%, ${lightness}%, 0.3)`);
-      mirrorGradient.addColorStop(1, `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`);
-      
+      mirrorGradient.addColorStop(
+        0,
+        `hsla(${hue}, ${saturation}%, ${lightness}%, 0.3)`,
+      );
+      mirrorGradient.addColorStop(
+        1,
+        `hsla(${hue}, ${saturation}%, ${lightness}%, 0)`,
+      );
+
       ctx.shadowBlur = 0;
       ctx.fillStyle = mirrorGradient;
       ctx.beginPath();
@@ -166,7 +187,7 @@ export const ReactiveAudioVisualizer = ({
     for (let i = 0; i < bufferLength; i++) {
       const value = dataArray[i];
       const y = height - (i / bufferLength) * height;
-      
+
       // Color mapping: dark purple -> magenta -> yellow -> white
       let r, g, b;
       if (value < 64) {
@@ -190,7 +211,7 @@ export const ReactiveAudioVisualizer = ({
         g = 255;
         b = (value - 192) * 4;
       }
-      
+
       ctx.fillStyle = `rgb(${Math.min(255, r)}, ${Math.min(255, g)}, ${Math.min(255, b)})`;
       ctx.fillRect(width - 1, y, 1, height / bufferLength);
     }
@@ -340,14 +361,26 @@ export const ReactiveAudioVisualizer = ({
           style={{ height: `${waveformHeight}px` }}
           data-oid="waveform-canvas"
         />
-        
+
         {/* Play/Pause overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/20">
-          <div className="w-16 h-16 rounded-full bg-golden/90 flex items-center justify-center backdrop-blur-sm">
+        <div
+          className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/20"
+          data-oid="y0-t0h0"
+        >
+          <div
+            className="w-16 h-16 rounded-full bg-golden/90 flex items-center justify-center backdrop-blur-sm"
+            data-oid="u-.mpsb"
+          >
             {isPlaying ? (
-              <Pause className="w-8 h-8 text-deep-black" data-oid="pause-icon" />
+              <Pause
+                className="w-8 h-8 text-deep-black"
+                data-oid="pause-icon"
+              />
             ) : (
-              <Play className="w-8 h-8 text-deep-black ml-1" data-oid="play-icon" />
+              <Play
+                className="w-8 h-8 text-deep-black ml-1"
+                data-oid="play-icon"
+              />
             )}
           </div>
         </div>
@@ -355,13 +388,19 @@ export const ReactiveAudioVisualizer = ({
 
       {/* Spectrogram Canvas */}
       {showSpectrogram && (
-        <div className="w-full rounded-lg border border-golden/20 overflow-hidden" data-oid="spectrogram-container">
+        <div
+          className="w-full rounded-lg border border-golden/20 overflow-hidden"
+          data-oid="spectrogram-container"
+        >
           <canvas
             ref={spectrogramCanvasRef}
             width={800}
             height={180}
             className="w-full"
-            style={{ height: "180px", background: "linear-gradient(to bottom, #1a0a2e, #0d0015)" }}
+            style={{
+              height: "180px",
+              background: "linear-gradient(to bottom, #1a0a2e, #0d0015)",
+            }}
             data-oid="spectrogram-canvas"
           />
         </div>
@@ -376,17 +415,25 @@ export const ReactiveAudioVisualizer = ({
         >
           <div
             className="h-full bg-gradient-to-r from-golden/80 to-golden rounded-full transition-all duration-100"
-            style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+            style={{
+              width: `${duration ? (currentTime / duration) * 100 : 0}%`,
+            }}
             data-oid="progress-fill"
           />
         </div>
-        <div className="flex justify-between text-sm text-muted-foreground">
+        <div
+          className="flex justify-between text-sm text-muted-foreground"
+          data-oid="w1hxpo_"
+        >
           <span data-oid="current-time">{formatTime(currentTime)}</span>
           <span data-oid="duration">{formatTime(duration)}</span>
         </div>
       </div>
 
-      <div className="text-center text-muted-foreground text-sm" data-oid="instructions">
+      <div
+        className="text-center text-muted-foreground text-sm"
+        data-oid="instructions"
+      >
         Clique para reproduzir/pausar
       </div>
     </div>

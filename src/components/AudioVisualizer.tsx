@@ -25,9 +25,10 @@ export const AudioVisualizer = ({
   let audioSettings: any = {};
   try {
     audioSettings = stored ? JSON.parse(stored) : {};
-  } catch { }
+  } catch {}
 
-  const useReactiveVisualizer = waveformStyle === "animatedBars" || audioSettings.enableSpectrogram;
+  const useReactiveVisualizer =
+    waveformStyle === "animatedBars" || audioSettings.enableSpectrogram;
 
   // Use ReactiveAudioVisualizer for animated/spectrogram modes
   if (useReactiveVisualizer) {
@@ -50,7 +51,7 @@ export const AudioVisualizer = ({
     let s: any = {};
     try {
       s = stored ? JSON.parse(stored) : {};
-    } catch { }
+    } catch {}
 
     const waveConfig: any = {
       container: waveformRef.current,
@@ -115,9 +116,9 @@ export const AudioVisualizer = ({
             });
             // @ts-ignore
             wavesurfer.registerPlugin(plugin);
-          } catch { }
+          } catch {}
         })
-        .catch(() => { });
+        .catch(() => {});
     }
 
     const loadAudio = async () => {
@@ -152,7 +153,7 @@ export const AudioVisualizer = ({
     return () => {
       try {
         wavesurfer.pause();
-      } catch { }
+      } catch {}
       wavesurfer.destroy();
     };
   }, [url, autoPlay, waveformStyle]);

@@ -94,7 +94,9 @@ export const UploadSection = () => {
 
   // Replace localStorage logic with useSiteConfig
   // Assuming the structure is an array of arrays (pages -> slots)
-  const { data: featuredPages, save: saveFeaturedPages } = useSiteConfig<any[][]>("featured_pages", []);
+  const { data: featuredPages, save: saveFeaturedPages } = useSiteConfig<
+    any[][]
+  >("featured_pages", []);
 
   const [libraryItems, setLibraryItems] = useState<
     Array<{
@@ -330,7 +332,7 @@ export const UploadSection = () => {
     if (item.isMissing) {
       toast.error(
         "Este arquivo foi removido. Faça upload novamente na Área de Upload.",
-        { duration: 5000 }
+        { duration: 5000 },
       );
       return;
     }
@@ -342,7 +344,7 @@ export const UploadSection = () => {
         if (!blobUrl) {
           toast.error(
             "Arquivo não encontrado no navegador. Faça upload novamente.",
-            { duration: 5000 }
+            { duration: 5000 },
           );
           return;
         }
@@ -358,13 +360,20 @@ export const UploadSection = () => {
   if (!isAdmin && user) {
     // User is logged in but not admin
     return (
-      <section className="py-24 px-6 relative">
-        <div className="container mx-auto max-w-6xl text-center text-muted-foreground">
-          <h2 className="text-3xl text-golden mb-4">Área Restrita</h2>
-          <p>Apenas administradores podem acessar a área de upload.</p>
+      <section className="py-24 px-6 relative" data-oid="253is3a">
+        <div
+          className="container mx-auto max-w-6xl text-center text-muted-foreground"
+          data-oid="wjdy2gn"
+        >
+          <h2 className="text-3xl text-golden mb-4" data-oid=":g2uxn.">
+            Área Restrita
+          </h2>
+          <p data-oid="e0cbu3v">
+            Apenas administradores podem acessar a área de upload.
+          </p>
         </div>
       </section>
-    )
+    );
   }
 
   if (!user) {
@@ -383,8 +392,7 @@ export const UploadSection = () => {
         </h2>
 
         <Card
-          className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${dragActive ? "border-primary bg-primary/5" : "border-border/50"
-            }`}
+          className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${dragActive ? "border-primary bg-primary/5" : "border-border/50"}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
@@ -698,10 +706,11 @@ export const UploadSection = () => {
                   .map((item) => (
                     <Card
                       key={item.id}
-                      className={`p-3 border-border/50 cursor-pointer ${item.isMissing
-                        ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
-                        : "bg-card/70 hover:border-primary/50"
-                        }`}
+                      className={`p-3 border-border/50 cursor-pointer ${
+                        item.isMissing
+                          ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
+                          : "bg-card/70 hover:border-primary/50"
+                      }`}
                       onClick={() => handlePlayLibraryItem(item)}
                       data-oid="89a2e.2"
                     >
@@ -711,11 +720,15 @@ export const UploadSection = () => {
                       >
                         <div data-oid="948qxdy">
                           <div
-                            className={`font-medium truncate flex items-center gap-2 ${item.isMissing ? "text-destructive" : "text-foreground"
-                              }`}
+                            className={`font-medium truncate flex items-center gap-2 ${item.isMissing ? "text-destructive" : "text-foreground"}`}
                             data-oid="4-qt5.t"
                           >
-                            {item.isMissing && <AlertTriangle className="w-4 h-4" />}
+                            {item.isMissing && (
+                              <AlertTriangle
+                                className="w-4 h-4"
+                                data-oid="zve48m7"
+                              />
+                            )}
                             {item.title}
                           </div>
                           <div
@@ -727,20 +740,23 @@ export const UploadSection = () => {
                               : "Sem gênero"}
                           </div>
                           <div
-                            className={`text-xs ${item.isMissing ? "text-destructive" : "text-muted-foreground"
-                              }`}
+                            className={`text-xs ${item.isMissing ? "text-destructive" : "text-muted-foreground"}`}
                             data-oid="hgf6j9l"
                           >
                             {item.isMissing
                               ? "⚠️ Arquivo não encontrado - faça upload novamente"
-                              : item.fileId ? "Local (IndexedDB)" : "Externo"}
+                              : item.fileId
+                                ? "Local (IndexedDB)"
+                                : "Externo"}
                           </div>
                         </div>
                         <Button
                           size="sm"
-                          className={item.isMissing
-                            ? "bg-muted text-muted-foreground"
-                            : "bg-primary text-white"}
+                          className={
+                            item.isMissing
+                              ? "bg-muted text-muted-foreground"
+                              : "bg-primary text-white"
+                          }
                           data-oid="7qyrcnx"
                         >
                           {item.isMissing ? "Indisponível" : "Reproduzir"}

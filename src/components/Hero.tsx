@@ -19,7 +19,7 @@ export const Hero = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch { }
+    } catch {}
   };
   return (
     <section
@@ -48,7 +48,10 @@ export const Hero = () => {
         className="relative z-30 container mx-auto px-6 text-center pt-32"
         data-oid="72kdl1o"
       >
-        <div className="absolute top-0 right-0 hidden md:flex gap-2" data-oid="exp_tools">
+        <div
+          className="absolute top-0 right-0 hidden md:flex gap-2"
+          data-oid="exp_tools"
+        >
           <Button
             size="sm"
             variant="outline"

@@ -8,7 +8,7 @@ export const Footer = () => {
   try {
     const parsed = social ? JSON.parse(social) : {};
     if (parsed && parsed.whatsapp) whatsappLink = parsed.whatsapp;
-  } catch { }
+  } catch {}
   return (
     <footer
       className="bg-muted/20 border-t border-border/50 py-12 px-6"

@@ -1,7 +1,13 @@
 import { Header } from "@/components/Header";
 import { UploadSection } from "@/components/UploadSection";
 import { Footer } from "@/components/Footer";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -42,7 +48,10 @@ import { pb } from "@/lib/pocketbase";
 
 // Storage Management Component
 const StorageManagement = () => {
-  const [storageInfo, setStorageInfo] = useState({ totalSize: 0, fileCount: 0 });
+  const [storageInfo, setStorageInfo] = useState({
+    totalSize: 0,
+    fileCount: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const loadStorageInfo = async () => {
@@ -76,42 +85,61 @@ const StorageManagement = () => {
   };
 
   return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl text-golden flex items-center gap-2">
-          <HardDrive className="w-6 h-6" />
+    <Card
+      className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+      data-oid=".ro:wqs"
+    >
+      <CardHeader data-oid="6.vb2na">
+        <CardTitle
+          className="text-2xl text-golden flex items-center gap-2"
+          data-oid="736tw7q"
+        >
+          <HardDrive className="w-6 h-6" data-oid="yqi8355" />
           Gerenciamento de Armazenamento
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Espaço utilizado</p>
-            <p className="text-2xl font-bold text-golden">
+      <CardContent className="space-y-4" data-oid="mzm29:s">
+        <div
+          className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10"
+          data-oid="3id9kli"
+        >
+          <div className="flex-1" data-oid="n:_ew-v">
+            <p className="text-sm text-muted-foreground" data-oid="7es6lfv">
+              Espaço utilizado
+            </p>
+            <p className="text-2xl font-bold text-golden" data-oid="et2tty6">
               {formatBytes(storageInfo.totalSize)}
             </p>
           </div>
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Arquivos salvos</p>
-            <p className="text-2xl font-bold text-foreground">
+          <div className="flex-1" data-oid="c5cwfpe">
+            <p className="text-sm text-muted-foreground" data-oid="1_x9_p-">
+              Arquivos salvos
+            </p>
+            <p
+              className="text-2xl font-bold text-foreground"
+              data-oid="6o.0tm-"
+            >
               {storageInfo.fileCount}
             </p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-foreground">Limpar arquivos antigos</Label>
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-2" data-oid="offf15_">
+          <Label className="text-foreground" data-oid="5wzb88j">
+            Limpar arquivos antigos
+          </Label>
+          <p className="text-sm text-muted-foreground" data-oid="qf2xpjs">
             Remove músicas e mídias que não são usadas há algum tempo.
           </p>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2" data-oid="mry080g">
             <Button
               variant="outline"
               onClick={() => handleCleanup(30)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
+              data-oid="mgokkfs"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2" data-oid="y2idhqq" />
               Mais de 30 dias
             </Button>
             <Button
@@ -119,8 +147,9 @@ const StorageManagement = () => {
               onClick={() => handleCleanup(14)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
+              data-oid="cqicg6a"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2" data-oid="ujk8_so" />
               Mais de 14 dias
             </Button>
             <Button
@@ -128,14 +157,15 @@ const StorageManagement = () => {
               onClick={() => handleCleanup(7)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
+              data-oid="-u-kmba"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2" data-oid="vwdan5c" />
               Mais de 7 dias
             </Button>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-4">
+        <p className="text-xs text-muted-foreground mt-4" data-oid="3rtubr4">
           💡 Os arquivos de mídia são armazenados localmente no seu navegador
           (IndexedDB). As configurações e links de destaques permanecem salvos
           até você limpá-los manualmente.
@@ -176,10 +206,11 @@ const UserManagement = () => {
       toast.error("Não é possível excluir o administrador principal.");
       return;
     }
-    if (!confirm(`Tem certeza que deseja excluir o usuário "${email}"?`)) return;
+    if (!confirm(`Tem certeza que deseja excluir o usuário "${email}"?`))
+      return;
     try {
       await pb.collection("users").delete(userId);
-      setUsers(users.filter(u => u.id !== userId));
+      setUsers(users.filter((u) => u.id !== userId));
       toast.success("Usuário excluído com sucesso.");
     } catch (e) {
       toast.error("Erro ao excluir usuário.");
@@ -188,8 +219,14 @@ const UserManagement = () => {
 
   if (!isAdmin) {
     return (
-      <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-        <CardContent className="py-8 text-center text-muted-foreground">
+      <Card
+        className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+        data-oid="ys45e3a"
+      >
+        <CardContent
+          className="py-8 text-center text-muted-foreground"
+          data-oid="u78a-zz"
+        >
           Acesso restrito a administradores.
         </CardContent>
       </Card>
@@ -197,74 +234,128 @@ const UserManagement = () => {
   }
 
   return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl text-golden flex items-center gap-2">
-          <Users className="w-6 h-6" />
+    <Card
+      className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+      data-oid="ubf4dmm"
+    >
+      <CardHeader data-oid="c27xx0c">
+        <CardTitle
+          className="text-2xl text-golden flex items-center gap-2"
+          data-oid="nmx39ky"
+        >
+          <Users className="w-6 h-6" data-oid="ryaxgud" />
           Gerenciamento de Usuários
         </CardTitle>
-        <CardDescription>
-          Visualize e gerencie os usuários registrados no sistema via PocketBase.
+        <CardDescription data-oid="6-4u0wn">
+          Visualize e gerencie os usuários registrados no sistema via
+          PocketBase.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="rounded-md border border-golden/20 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-golden/20">
-                <TableHead className="text-golden">Email</TableHead>
-                <TableHead className="text-golden">Nome</TableHead>
-                <TableHead className="text-golden">Criado em</TableHead>
-                <TableHead className="text-golden">Role</TableHead>
-                <TableHead className="text-golden text-right">Ações</TableHead>
+      <CardContent data-oid="alsl1h7">
+        <div
+          className="rounded-md border border-golden/20 overflow-hidden"
+          data-oid=".qvwt1-"
+        >
+          <Table data-oid="rmszpqd">
+            <TableHeader data-oid="rv20oml">
+              <TableRow className="border-golden/20" data-oid="q4ldgwr">
+                <TableHead className="text-golden" data-oid="72ptmn.">
+                  Email
+                </TableHead>
+                <TableHead className="text-golden" data-oid="7llqmxl">
+                  Nome
+                </TableHead>
+                <TableHead className="text-golden" data-oid="p4.ymzc">
+                  Criado em
+                </TableHead>
+                <TableHead className="text-golden" data-oid="8goxzga">
+                  Role
+                </TableHead>
+                <TableHead
+                  className="text-golden text-right"
+                  data-oid="wfpdseh"
+                >
+                  Ações
+                </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody data-oid="fx8r6xo">
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableRow data-oid="v26yn.0">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-muted-foreground"
+                    data-oid="iy2h_bx"
+                  >
                     Carregando...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nenhum usuário encontrado. Configure o PocketBase para ver usuários.
+                <TableRow data-oid="29g_k-j">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-muted-foreground"
+                    data-oid="1339qky"
+                  >
+                    Nenhum usuário encontrado. Configure o PocketBase para ver
+                    usuários.
                   </TableCell>
                 </TableRow>
               ) : (
                 users.map((u) => (
-                  <TableRow key={u.id} className="border-golden/10">
-                    <TableCell className="font-medium">
-                      <div className="flex flex-col">
-                        <span>{u.email}</span>
+                  <TableRow
+                    key={u.id}
+                    className="border-golden/10"
+                    data-oid="90v26z8"
+                  >
+                    <TableCell className="font-medium" data-oid="-_k2c61">
+                      <div className="flex flex-col" data-oid="jcwz-0g">
+                        <span data-oid="eb7hz:r">{u.email}</span>
                         {u.username && (
-                          <span className="text-xs text-muted-foreground">@{u.username}</span>
+                          <span
+                            className="text-xs text-muted-foreground"
+                            data-oid="0yr::ju"
+                          >
+                            @{u.username}
+                          </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{u.name || "-"}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell data-oid="1k-9nnu">{u.name || "-"}</TableCell>
+                    <TableCell
+                      className="text-muted-foreground"
+                      data-oid="f6l3pvg"
+                    >
                       {new Date(u.created).toLocaleDateString("pt-BR")}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-oid="cq2.jx6">
                       {u.email === "gloliverlobo@gmail.com" ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-golden/20 text-golden">
-                          <Shield className="w-3 h-3 mr-1" /> Admin
+                        <span
+                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-golden/20 text-golden"
+                          data-oid="0rzrxs7"
+                        >
+                          <Shield className="w-3 h-3 mr-1" data-oid="2um.i22" />{" "}
+                          Admin
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">Usuário</span>
+                        <span
+                          className="text-muted-foreground"
+                          data-oid="w99nsqz"
+                        >
+                          Usuário
+                        </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" data-oid="5du-pc7">
                       {u.email !== "gloliverlobo@gmail.com" && (
                         <Button
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:bg-destructive/10"
                           onClick={() => handleDeleteUser(u.id, u.email)}
+                          data-oid="cdje6bo"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" data-oid="yp3a2vu" />
                         </Button>
                       )}
                     </TableCell>
@@ -274,12 +365,13 @@ const UserManagement = () => {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-end mt-4" data-oid="3qql6w4">
           <Button
             variant="outline"
             onClick={loadUsers}
             disabled={loading}
             className="border-golden/20 hover:bg-golden/10"
+            data-oid="mn:6lsv"
           >
             Atualizar Lista
           </Button>
@@ -301,7 +393,6 @@ const Settings = () => {
         type: "video",
       })),
   ]);
-
 
   const [socialLinks, setSocialLinks] = useState({
     instagram: "",
@@ -470,7 +561,7 @@ const Settings = () => {
           </h1>
 
           {/* User Management */}
-          <UserManagement />
+          <UserManagement data-oid="n3q0j_3" />
 
           {/* Featured Section Editor */}
           <Card
@@ -1233,7 +1324,7 @@ const Settings = () => {
           </Card>
 
           {/* Storage Management Section */}
-          <StorageManagement />
+          <StorageManagement data-oid="bld2uj_" />
 
           {/* Upload Section */}
           <UploadSection data-oid="u46l20i" />

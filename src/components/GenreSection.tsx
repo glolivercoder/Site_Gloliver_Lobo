@@ -118,7 +118,10 @@ export const GenreSection = () => {
                 data-oid="0sflu8l"
               />
 
-              <div className="p-4 relative z-10 flex flex-col items-center justify-center w-full h-full" data-oid=":.bal78">
+              <div
+                className="p-4 relative z-10 flex flex-col items-center justify-center w-full h-full"
+                data-oid=":.bal78"
+              >
                 <genre.icon
                   className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-4 text-golden group-hover:text-white transition-colors"
                   data-oid="m3kmbrn"

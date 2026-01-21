@@ -28,7 +28,10 @@ import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
 
 // Storage Management Component
 const StorageManagement = () => {
-  const [storageInfo, setStorageInfo] = useState({ totalSize: 0, fileCount: 0 });
+  const [storageInfo, setStorageInfo] = useState({
+    totalSize: 0,
+    fileCount: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   const loadStorageInfo = async () => {
@@ -62,42 +65,61 @@ const StorageManagement = () => {
   };
 
   return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl text-golden flex items-center gap-2">
-          <HardDrive className="w-6 h-6" />
+    <Card
+      className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
+      data-oid="2cczy_e"
+    >
+      <CardHeader data-oid="jruayzq">
+        <CardTitle
+          className="text-2xl text-golden flex items-center gap-2"
+          data-oid="r3qwu5z"
+        >
+          <HardDrive className="w-6 h-6" data-oid="q6bn2jp" />
           Gerenciamento de Armazenamento
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Espaço utilizado</p>
-            <p className="text-2xl font-bold text-golden">
+      <CardContent className="space-y-4" data-oid="73:_bum">
+        <div
+          className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10"
+          data-oid="01nly6e"
+        >
+          <div className="flex-1" data-oid=":gpfdcy">
+            <p className="text-sm text-muted-foreground" data-oid="6sk:zxw">
+              Espaço utilizado
+            </p>
+            <p className="text-2xl font-bold text-golden" data-oid="zgjrvpr">
               {formatBytes(storageInfo.totalSize)}
             </p>
           </div>
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Arquivos salvos</p>
-            <p className="text-2xl font-bold text-foreground">
+          <div className="flex-1" data-oid="3nwtrqq">
+            <p className="text-sm text-muted-foreground" data-oid="eiu5-u3">
+              Arquivos salvos
+            </p>
+            <p
+              className="text-2xl font-bold text-foreground"
+              data-oid="cp.sv6a"
+            >
               {storageInfo.fileCount}
             </p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label className="text-foreground">Limpar arquivos antigos</Label>
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-2" data-oid="m51tgqv">
+          <Label className="text-foreground" data-oid="15dm88c">
+            Limpar arquivos antigos
+          </Label>
+          <p className="text-sm text-muted-foreground" data-oid="m_qwx6t">
             Remove músicas e mídias que não são usadas há algum tempo.
           </p>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2" data-oid="v6u0tha">
             <Button
               variant="outline"
               onClick={() => handleCleanup(30)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
+              data-oid="xxbrxdf"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2" data-oid="_j4k9ot" />
               Mais de 30 dias
             </Button>
             <Button
@@ -105,8 +127,9 @@ const StorageManagement = () => {
               onClick={() => handleCleanup(14)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
+              data-oid=".wh2i2f"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2" data-oid="zv_ww2s" />
               Mais de 14 dias
             </Button>
             <Button
@@ -114,14 +137,15 @@ const StorageManagement = () => {
               onClick={() => handleCleanup(7)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
+              data-oid="1ki70_t"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2" data-oid="gr9i4m6" />
               Mais de 7 dias
             </Button>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-4">
+        <p className="text-xs text-muted-foreground mt-4" data-oid="jt5kan8">
           💡 Os arquivos de mídia são armazenados localmente no seu navegador
           (IndexedDB). As configurações e links de destaques permanecem salvos
           até você limpá-los manualmente.
@@ -1071,7 +1095,7 @@ const Settings = () => {
           </Card>
 
           {/* Storage Management Section */}
-          <StorageManagement />
+          <StorageManagement data-oid="kxcgp6b" />
 
           {/* Upload Section */}
           <UploadSection data-oid="u46l20i" />
