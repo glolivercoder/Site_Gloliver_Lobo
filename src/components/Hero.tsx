@@ -1,26 +1,5 @@
 import wolfMoonBg from "@/assets/wolf-moon-bg.png";
-import { useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { toPng } from "html-to-image";
 export const Hero = () => {
-  const spanRef = useRef<HTMLSpanElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const exportNode = async (node: HTMLElement | null, filename: string) => {
-    if (!node) return;
-    try {
-      const dataUrl = await toPng(node, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "transparent",
-      });
-      const link = document.createElement("a");
-      link.download = filename;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch {}
-  };
   return (
     <section
       id="home"
@@ -40,29 +19,11 @@ export const Hero = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80 z-20" />
 
       <div className="relative z-30 container mx-auto px-6 text-center pt-32">
-        <div className="absolute top-0 right-0 hidden md:flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="bg-background/60"
-            onClick={() => exportNode(spanRef.current, "IMAGENS_span.png")}
-          >
-            Exportar Span
-          </Button>
-          <Button
-            size="sm"
-            className="bg-golden text-deep-black hover:bg-golden/90"
-            onClick={() => exportNode(containerRef.current, "IMAGENS_div.png")}
-          >
-            Exportar Div
-          </Button>
-        </div>
         <div
           className="max-w-4xl mx-4 md:mx-auto px-2 md:px-4 my-0 py-2 mt-24 sm:mt-32 md:mt-64 lg:mt-80"
-          ref={containerRef}
         >
           <h1 className="font-bold mb-4 md:mb-8 tracking-wider mt-8 md:mt-16">
-            <span className="bonheur-royale-regular" ref={spanRef}>
+            <span className="bonheur-royale-regular">
               Gloliver Lobo
             </span>
           </h1>

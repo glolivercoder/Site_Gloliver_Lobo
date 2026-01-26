@@ -36,7 +36,7 @@ import {
 import { AudioVisualizer } from "./AudioVisualizer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
-import { pb, getPbImageUrl } from "@/lib/pocketbase";
+import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 // Define the genre options
 const genreOptions = [
@@ -92,8 +92,6 @@ export const UploadSection = () => {
     label: string;
   } | null>(null);
 
-  // Replace localStorage logic with useSiteConfig
-  // Assuming the structure is an array of arrays (pages -> slots)
   const { data: featuredPages, save: saveFeaturedPages } = useSiteConfig<
     any[][]
   >("featured_pages", []);
@@ -112,16 +110,12 @@ export const UploadSection = () => {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [selectedLibraryItem, setSelectedLibraryItem] = useState<any>(null);
 
-  // Clean up old files on component mount
   useEffect(() => {
-    // NOTA: Limpeza automática desativada
     loadLibraryFromConfig();
-  }, [featuredPages]); // Reload library when config changes
+  }, [featuredPages]);
 
-  // Ao selecionar um gênero, abrir a biblioteca diretamente para facilitar
   useEffect(() => {
     if (selectedGenre) {
-      // Abre a biblioteca se houver itens para o gênero selecionado
       const hasItems = libraryItems.some(
         (i) => i.genre === selectedGenre.value,
       );
@@ -162,23 +156,37 @@ export const UploadSection = () => {
 
     setIsUploading(true);
     try {
-      // Upload to PocketBase 'media_files' collection
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("title", file.name.replace(/\.[^/.]+$/, ""));
-      formData.append("uploaded_by", user?.id || "");
-      formData.append("type", type); // If your schema supports it, strictly helpful for filtering
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${user?.id}/${fileName}`;
 
-      const record = await pb.collection("media_files").create(formData);
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
 
-      // Construct public URL
-      // Note: For audio/video, standard file serving works.
-      const url = getPbImageUrl(record.collectionId, record.id, record.file);
+      if (uploadError) throw uploadError;
 
-      setMediaUrl(url);
-      setMediaType(type);
-      setMediaTitle(file.name.replace(/\.[^/.]+$/, ""));
-      toast.success(`${file.name} carregado! Adicione aos destaques abaixo.`);
+      const { data: record, error: dbError } = await supabase
+        .from("media_files")
+        .insert({
+          file_path: filePath,
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          uploaded_by: user?.id,
+          type
+        })
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
+
+      const url = getSupabaseUrl("media", record.file_path);
+
+      if (url) {
+        setMediaUrl(url);
+        setMediaType(type);
+        setMediaTitle(file.name.replace(/\.[^/.]+$/, ""));
+        toast.success(`${file.name} carregado! Adicione aos destaques abaixo.`);
+      }
     } catch (error) {
       console.error("Erro ao carregar arquivo:", error);
       toast.error("Erro ao fazer upload para o servidor.");
@@ -211,7 +219,6 @@ export const UploadSection = () => {
     setIsUploading(true);
 
     try {
-      // Clone current pages or initialize
       let pages = [...(featuredPages || [])];
 
       const pageIndex =
@@ -221,7 +228,6 @@ export const UploadSection = () => {
           (selectedFeatured?.value || "destaque1").replace("destaque", ""),
         ) - 1;
 
-      // Garantir que a página exista com 8 slots (e páginas anteriores também)
       for (let i = 0; i <= pageIndex; i++) {
         if (!pages[i]) {
           pages[i] = Array(8)
@@ -248,10 +254,7 @@ export const UploadSection = () => {
       pages[pageIndex][slotIndex] = newItem;
 
       await saveFeaturedPages(pages);
-
       toast.success("Adicionado aos destaques com sucesso!");
-
-      // Limpar formulário (opcional, mantendo mediaUrl/Title)
     } catch (error) {
       console.error("Erro ao adicionar aos destaques:", error);
       toast.error("Não foi possível adicionar aos destaques.");
@@ -272,7 +275,6 @@ export const UploadSection = () => {
         isMissing?: boolean;
       }> = [];
 
-      // Obter lista de arquivos que realmente existem no IndexedDB
       const meta = await listMediaFilesMeta();
       const existingFileIds = new Set(meta.map((m) => m.id));
 
@@ -281,15 +283,18 @@ export const UploadSection = () => {
           (page || []).forEach((item) => {
             if (item && item.type === "audio" && item.url) {
               const isLocal =
-                typeof item.url === "string" && item.url.startsWith("file_");
-              const isMissing = isLocal && !existingFileIds.has(item.url);
+                typeof item.url === "string" && (item.url.startsWith("file_") || item.url.includes("supabase.co"));
+
+              // Local indexeddb check
+              const isMissing = typeof item.url === "string" && item.url.startsWith("file_") && !existingFileIds.has(item.url);
+
               items.push({
                 id: String(item.id || item.url),
                 title: String(item.title || item.name || "Sem título"),
                 type: "audio",
                 genre: item.genre,
-                fileId: isLocal ? item.url : undefined,
-                externalUrl: !isLocal ? item.url : undefined,
+                fileId: typeof item.url === "string" && item.url.startsWith("file_") ? item.url : undefined,
+                externalUrl: !isLocal ? item.url : item.url,
                 isMissing,
               });
             }
@@ -297,8 +302,6 @@ export const UploadSection = () => {
         });
       }
 
-      // Incluir arquivos de áudio do IndexedDB não listados nos destaques?
-      // Mantendo lógica original, mas agora usando dados do config
       const audioMeta = meta.filter((m) => (m.type || "").startsWith("audio/"));
       const knownIds = new Set(
         items.map((i) => i.fileId).filter(Boolean) as string[],
@@ -316,7 +319,6 @@ export const UploadSection = () => {
         }
       });
 
-      // Ordenar por gênero
       items.sort((a, b) => (a.genre || "").localeCompare(b.genre || ""));
       setLibraryItems(items);
     } catch (error) {
@@ -358,7 +360,6 @@ export const UploadSection = () => {
   };
 
   if (!isAdmin && user) {
-    // User is logged in but not admin
     return (
       <section className="py-24 px-6 relative">
         <div className="container mx-auto max-w-6xl text-center text-muted-foreground">
@@ -370,7 +371,6 @@ export const UploadSection = () => {
   }
 
   if (!user) {
-    // Not logged in
     return null;
   }
 
@@ -603,11 +603,10 @@ export const UploadSection = () => {
                   .map((item) => (
                     <Card
                       key={item.id}
-                      className={`p-3 border-border/50 cursor-pointer ${
-                        item.isMissing
+                      className={`p-3 border-border/50 cursor-pointer ${item.isMissing
                           ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
                           : "bg-card/70 hover:border-primary/50"
-                      }`}
+                        }`}
                       onClick={() => handlePlayLibraryItem(item)}
                     >
                       <div className="flex items-center justify-between">
