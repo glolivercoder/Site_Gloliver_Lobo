@@ -5,6 +5,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
     console.error("Supabase credentials missing! You MUST add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your Cloudflare/Vercel Environment Variables.");
+} else {
+    console.log("Supabase URL Configurada:", supabaseUrl); // LINHA PARA TESTE
 }
 
 // Fallback to avoid total crash, but features will fail
