@@ -64,8 +64,14 @@ TO public USING (true);
 CREATE POLICY "Admin only media" ON media_files FOR ALL 
 USING (auth.jwt() ->> 'email' = 'gloliverlobo@gmail.com');
 
-CREATE POLICY "Profile read" ON profiles FOR SELECT 
+CREATE POLICY "Public read profiles" ON profiles FOR SELECT 
 TO public USING (true);
+
+CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT 
+WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE 
+USING (auth.uid() = id);
 
 -- 6. Storage Buckets (Run in Supabase Dashboard or via API)
 -- Need to create buckets: 'fan_club' and 'media'
