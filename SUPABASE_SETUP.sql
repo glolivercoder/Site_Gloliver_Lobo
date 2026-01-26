@@ -38,13 +38,28 @@ CREATE TABLE media_files (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 5. RLS Policies (Row Level Security)
+-- 5. Automate Profile Creation on Signup
+-- Use a trigger to ensure a profile is created as soon as a user signs up.
 
--- Enable RLS on all tables
-ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE fan_club_posts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE media_files ENABLE ROW LEVEL SECURITY;
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, username)
+  VALUES (
+    new.id,
+    new.email,
+    new.raw_user_meta_data->>'full_name',
+    COALESCE(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1) || '_' || floor(random() * 10000)::text)
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- 6. RLS Policies
 
 -- ADMIN ROLE CHECK: Replace 'gloliverlobo@gmail.com' with your actual admin email
 -- Create a policy where only the admin can insert/update/delete
