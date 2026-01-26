@@ -78,3 +78,34 @@ Este método é o mais potente (Cloudflare DNS), pois acelera o site e protege s
 - **Forçar NPM**: Ao remover o `bun.lockb` e manter apenas o `package-lock.json`, a Cloudflare usará automaticamente o NPM. Não é necessário configurar variáveis extras para isso.
 - **SPA Redirects**: Já incluímos o arquivo `public/_redirects` no código para garantir que as rotas do React funcionem após o deploy.
 - **Atualizações**: Sempre que você fizer um novo `push` para a branch `main2`, a Cloudflare fará o deploy automático das mudanças.
+
+---
+
+## 🛠️ Corrigindo o redirecionamento para Localhost
+Se o site te levar para `localhost:3000` ou para um endereço estranho (como `supabase.co/site...`) após o login, verifique:
+
+1. No **Supabase Dashboard**, vá em **Authentication** > **URL Configuration**.
+2. No campo **Site URL**, altere para o endereço do seu site **OBRIGATÓRIO incluir o https://**.
+   - ✅ CORRETO: `https://site-gloliver-lobo.pages.dev`
+   - ❌ ERRADO: `site-gloliver-lobo.pages.dev`
+3. No campo **Redirect URIs**, adicione também (com `https://`):
+   - `https://site-gloliver-lobo.pages.dev/**`
+   - `https://www.gloliverlobo.com/**`
+4. Clique em **Save**.
+
+---
+
+## ⏰ Mantendo o Supabase "Acordado" (Cron-job.org)
+No plano gratuito, o Supabase entra em "pausa" após 1 semana sem uso. Use o **Cron-job.org** para evitar isso:
+
+1. Crie uma conta no [Cron-job.org](https://cron-job.org/).
+2. Clique em **Create Cronjob**.
+3. **Title**: `Ping Supabase Gloliver`
+4. **URL**: `https://trgvxjbazxripssubgit.supabase.co/rest/v1/profiles?select=id&limit=1`
+5. **Execution schedule**: A cada **2 dias** (ou diariamente).
+6. **Advanced Settings (Headers)**: Clique em "Add header" e adicione estes dois:
+   - `apikey`: (Sua VITE_SUPABASE_ANON_KEY)
+   - `Authorization`: `Bearer (Sua VITE_SUPABASE_ANON_KEY)`
+7. Clique em **Create**.
+
+*Isso fará uma pequena consulta automática ao seu banco de dados, mantendo-o sempre ativo e pronto para os fãs!*
