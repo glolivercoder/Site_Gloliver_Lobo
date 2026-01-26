@@ -5,11 +5,11 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { pb } from "../lib/pocketbase";
-import { RecordModel } from "pocketbase";
+import { supabase } from "../lib/supabase";
+import { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
-  user: RecordModel | null;
+  user: User | null;
   isAdmin: boolean;
   isLoading: boolean;
   loginWithGoogle: () => Promise<void>;
@@ -20,32 +20,42 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<RecordModel | null>(pb.authStore.model);
-  const [isLoading, setIsLoading] = useState(false); // Initial load is instant for authStore
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Configured Admin Email
   const ADMIN_EMAIL = "gloliverlobo@gmail.com";
 
   useEffect(() => {
-    // Sync state on change
-    const unsubscribe = pb.authStore.onChange((token, model) => {
-      setUser(model);
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
     });
 
-    return () => {
-      unsubscribe();
-    };
+    // Listen for changes on auth state (logged in, signed out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const isAdmin =
     user?.email === ADMIN_EMAIL ||
-    user?.role === "admin" ||
-    user?.username === "admin";
+    (user?.app_metadata?.role === "admin");
 
   const loginWithGoogle = async () => {
     setIsLoading(true);
     try {
-      await pb.collection("users").authWithOAuth2({ provider: "google" });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
     } catch (error) {
       console.error("Google login failed:", error);
       throw error;
@@ -57,7 +67,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithFacebook = async () => {
     setIsLoading(true);
     try {
-      await pb.collection("users").authWithOAuth2({ provider: "facebook" });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "facebook",
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
     } catch (error) {
       console.error("Facebook login failed:", error);
       throw error;
@@ -66,8 +82,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    pb.authStore.clear();
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   return (

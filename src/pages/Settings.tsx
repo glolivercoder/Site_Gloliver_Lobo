@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
 import { useAuth } from "@/contexts/AuthContext";
-import { pb } from "@/lib/pocketbase";
+import { supabase } from "@/lib/supabase";
 
 // Storage Management Component
 const StorageManagement = () => {
@@ -169,10 +169,14 @@ const UserManagement = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const records = await pb.collection("users").getFullList({
-        sort: "-created",
-      });
-      setUsers(records);
+      // In Supabase, we typically use a 'profiles' table to list users on the client side
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
     } catch (e) {
       console.error("Error loading users:", e);
     } finally {
@@ -188,9 +192,16 @@ const UserManagement = () => {
     if (!confirm(`Tem certeza que deseja excluir o usuário "${email}"?`))
       return;
     try {
-      await pb.collection("users").delete(userId);
+      // Deleting from profiles table. 
+      // Note: Real deletion from auth.users requires admin API or service role.
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+
+      if (error) throw error;
       setUsers(users.filter((u) => u.id !== userId));
-      toast.success("Usuário excluído com sucesso.");
+      toast.success("Usuário removido da lista.");
     } catch (e) {
       toast.error("Erro ao excluir usuário.");
     }
@@ -211,11 +222,10 @@ const UserManagement = () => {
       <CardHeader>
         <CardTitle className="text-2xl text-golden flex items-center gap-2">
           <Users className="w-6 h-6" />
-          Gerenciamento de Usuários
+          Gerenciamento de Fãs (Perfis)
         </CardTitle>
         <CardDescription>
-          Visualize e gerencie os usuários registrados no sistema via
-          PocketBase.
+          Visualize e gerencie os perfis registrados no sistema via Supabase.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -246,8 +256,7 @@ const UserManagement = () => {
                     colSpan={5}
                     className="text-center py-8 text-muted-foreground"
                   >
-                    Nenhum usuário encontrado. Configure o PocketBase para ver
-                    usuários.
+                    Nenhum usuário encontrado. Configure a tabela 'profiles' no Supabase.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -263,9 +272,9 @@ const UserManagement = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{u.name || "-"}</TableCell>
+                    <TableCell>{u.full_name || u.display_name || "-"}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(u.created).toLocaleDateString("pt-BR")}
+                      {new Date(u.created_at).toLocaleDateString("pt-BR")}
                     </TableCell>
                     <TableCell>
                       {u.email === "gloliverlobo@gmail.com" ? (
@@ -273,7 +282,7 @@ const UserManagement = () => {
                           <Shield className="w-3 h-3 mr-1" /> Admin
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">Usuário</span>
+                        <span className="text-muted-foreground">Fã</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
