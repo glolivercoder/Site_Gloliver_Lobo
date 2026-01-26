@@ -48,8 +48,11 @@ Antes de clicar em salvar, role para baixo até **Environment variables (advance
 
 ---
 
-### Dicas Úteis
-- **Erro de Lockfile**: Se o build falhar dizendo algo sobre `bun.lockb` ou `frozen lockfile`, eu já removi esse arquivo do código. Certifique-se de que NÃO existe a variável `BUN_VERSION` configurada no painel da Cloudflare (ou remova-a se você a adicionou).
+### Dicas Úteis 🚨
+- **RESOLVENDO O ERRO DE BUILD**: O erro que você está vendo (`Installing bun none`) acontece porque a variável `BUN_VERSION` está ativa.
+  1. Vá no painel da Cloudflare (Settings > Functions > Environment Variables ou Settings > Environment Variables).
+  2. **DELETE** (remova) a variável `BUN_VERSION`. Não mude o valor, apenas apague-a completamente.
+  3. Salve e clique em **Retry deployment**.
 - **Forçar NPM**: Ao remover o `bun.lockb` e manter apenas o `package-lock.json`, a Cloudflare usará automaticamente o NPM. Não é necessário configurar variáveis extras para isso.
 - **SPA Redirects**: Já incluímos o arquivo `public/_redirects` no código para garantir que as rotas do React funcionem após o deploy.
 - **Atualizações**: Sempre que você fizer um novo `push` para a branch `main2`, a Cloudflare fará o deploy automático das mudanças.
