@@ -109,3 +109,22 @@ No plano gratuito, o Supabase entra em "pausa" após 1 semana sem uso. Use o **C
 7. Clique em **Create**.
 
 *Isso fará uma pequena consulta automática ao seu banco de dados, mantendo-o sempre ativo e pronto para os fãs!*
+
+---
+
+## 🔵 Configurando o Login com Facebook
+Para o Facebook funcionar no Supabase, os passos são parecidos com o Google:
+
+1. Acesse o [Meta for Developers](https://developers.facebook.com/).
+2. Crie um novo App do tipo **"Permitir que as pessoas façam login com a conta do Facebook"**.
+3. No menu lateral, adicione o produto **Facebook Login**.
+4. Em **Configurações do Login**, adicione a **Valid OAuth Redirect URI** (a mesma que você usou no Google):
+   - `https://trgvxjbazxripssubgit.supabase.co/auth/v1/callback`
+5. Vá em **Configurações > Painel** para pegar o **App ID** e **App Secret**.
+6. No **Supabase Dashboard**, vá em **Authentication > Providers > Facebook** e cole os códigos.
+
+### Sobre o "Portfólio de Empresa":
+- **Não é obrigatório para começar**. Você pode criar o App como um desenvolvedor individual.
+- A Meta só exige o "Portfólio de Empresa" e a **Verificação de Empresa** se o seu site pedir dados sensíveis (como lista de amigos ou postar no mural).
+- Para um Login simples (Nome e E-mail), você pode seguir como **Individual**.
+- **Importante**: Enquanto o App estiver em modo "Desenvolvimento", só você poderá logar. Para o público usar, você precisará mudar para modo **"Ao vivo" (Live)** no topo do painel da Meta.
