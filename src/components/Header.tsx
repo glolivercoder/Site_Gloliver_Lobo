@@ -94,16 +94,12 @@ export const Header = () => {
                   >
                     <Avatar className="h-8 w-8 border border-golden/20">
                       <AvatarImage
-                        src={
-                          user.avatar
-                            ? `http://127.0.0.1:8090/api/files/users/${user.id}/${user.avatar}`
-                            : undefined
-                        }
-                        alt={user.name}
+                        src={user.user_metadata?.avatar_url}
+                        alt={user.user_metadata?.full_name || user.email}
                       />
 
                       <AvatarFallback className="bg-golden/10 text-golden">
-                        {user.name?.charAt(0) || "U"}
+                        {(user.user_metadata?.full_name || user.email)?.charAt(0).toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -116,7 +112,7 @@ export const Header = () => {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none text-golden">
-                        {user.name || "Usuário"}
+                        {user.user_metadata?.full_name || user.email?.split('@')[0]}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
