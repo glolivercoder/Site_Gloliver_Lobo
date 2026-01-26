@@ -80,7 +80,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loginWithFacebook,
         logout,
       }}
-      data-oid="do3zaep"
     >
       {children}
     </AuthContext.Provider>

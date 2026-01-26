@@ -39,42 +39,31 @@ export const LoginDialog = ({ open, onOpenChange }: LoginDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} data-oid="fyzaoun">
-      <DialogContent
-        className="sm:max-w-md bg-deep-black/95 border-golden/20"
-        data-oid="cye0qio"
-      >
-        <DialogHeader data-oid=".o_2m.3">
-          <DialogTitle
-            className="text-golden text-center text-2xl"
-            data-oid="ghjazxh"
-          >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-deep-black/95 border-golden/20">
+        <DialogHeader>
+          <DialogTitle className="text-golden text-center text-2xl">
             Login
           </DialogTitle>
-          <DialogDescription
-            className="text-center text-muted-foreground"
-            data-oid="s00k1cl"
-          >
+          <DialogDescription className="text-center text-muted-foreground">
             Entre para acessar o Fã Clube e recursos exclusivos.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4" data-oid="krsone2">
+        <div className="flex flex-col gap-4 py-4">
           <Button
             variant="outline"
             className="w-full flex items-center gap-2 border-golden/20 hover:bg-golden/10 hover:text-golden"
             onClick={handleGoogleLogin}
-            data-oid="ki7hzx4"
           >
-            <Chrome className="w-5 h-5" data-oid="jz9l7ay" />
+            <Chrome className="w-5 h-5" />
             Continuar com Google
           </Button>
           <Button
             variant="outline"
             className="w-full flex items-center gap-2 border-golden/20 hover:bg-golden/10 hover:text-golden"
             onClick={handleFacebookLogin}
-            data-oid="9leuc59"
           >
-            <Facebook className="w-5 h-5" data-oid="8l5umm4" />
+            <Facebook className="w-5 h-5" />
             Continuar com Facebook
           </Button>
         </div>

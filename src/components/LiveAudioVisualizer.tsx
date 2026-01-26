@@ -127,21 +127,10 @@ export const LiveAudioVisualizer = ({
 
   if (error) {
     return (
-      <div className="space-y-4" data-oid="zj8svt5">
-        <audio
-          src={url}
-          controls
-          autoPlay={autoPlay}
-          className="w-full"
-          data-oid="x4eh3:x"
-        />
+      <div className="space-y-4">
+        <audio src={url} controls autoPlay={autoPlay} className="w-full" />
 
-        <div
-          className="text-center text-muted-foreground text-sm"
-          data-oid=".31ihg2"
-        >
-          {error}
-        </div>
+        <div className="text-center text-muted-foreground text-sm">{error}</div>
       </div>
     );
   }
@@ -154,21 +143,17 @@ export const LiveAudioVisualizer = ({
   };
 
   return (
-    <div className="space-y-4" data-oid="jl.:5nt">
+    <div className="space-y-4">
       <canvas
         ref={canvasRef}
         width={800}
         height={128}
         className="w-full bg-deep-black/30 rounded-lg border border-golden/20 cursor-pointer"
         onClick={handleToggle}
-        data-oid="06q6pyz"
       />
 
-      <audio ref={audioRef} src={url} className="hidden" data-oid="xigyhra" />
-      <div
-        className="text-center text-muted-foreground text-sm"
-        data-oid="3mlz60a"
-      >
+      <audio ref={audioRef} src={url} className="hidden" />
+      <div className="text-center text-muted-foreground text-sm">
         Clique nas barras para reproduzir/pausar
       </div>
     </div>

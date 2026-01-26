@@ -138,7 +138,6 @@ export function ShaderAnimation() {
         background: "transparent",
         overflow: "hidden",
       }}
-      data-oid="-:2bsra"
     />
   );
 }

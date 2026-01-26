@@ -37,7 +37,6 @@ export const AudioVisualizer = ({
         url={url}
         autoPlay={autoPlay}
         showSpectrogram={audioSettings.enableSpectrogram}
-        data-oid="reactive-visualizer"
       />
     );
   }
@@ -164,24 +163,18 @@ export const AudioVisualizer = ({
 
   // Fallback to a live animated bars visualizer if WaveSurfer fails
   if (loadError) {
-    return (
-      <LiveAudioVisualizer url={url} autoPlay={autoPlay} data-oid="p-zjwhb" />
-    );
+    return <LiveAudioVisualizer url={url} autoPlay={autoPlay} />;
   }
 
   return (
-    <div className="space-y-4" data-oid="mlduhge">
+    <div className="space-y-4">
       <div
         ref={waveformRef}
         className="w-full bg-deep-black/30 rounded-lg border border-golden/20 p-4 cursor-pointer"
         onClick={handlePlayPause}
-        data-oid="qvc4vzq"
       />
 
-      <div
-        className="text-center text-muted-foreground text-sm"
-        data-oid="jcng1c0"
-      >
+      <div className="text-center text-muted-foreground text-sm">
         Clique na forma de onda para reproduzir/pausar
       </div>
     </div>

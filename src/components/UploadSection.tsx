@@ -360,17 +360,10 @@ export const UploadSection = () => {
   if (!isAdmin && user) {
     // User is logged in but not admin
     return (
-      <section className="py-24 px-6 relative" data-oid="253is3a">
-        <div
-          className="container mx-auto max-w-6xl text-center text-muted-foreground"
-          data-oid="wjdy2gn"
-        >
-          <h2 className="text-3xl text-golden mb-4" data-oid=":g2uxn.">
-            Área Restrita
-          </h2>
-          <p data-oid="e0cbu3v">
-            Apenas administradores podem acessar a área de upload.
-          </p>
+      <section className="py-24 px-6 relative">
+        <div className="container mx-auto max-w-6xl text-center text-muted-foreground">
+          <h2 className="text-3xl text-golden mb-4">Área Restrita</h2>
+          <p>Apenas administradores podem acessar a área de upload.</p>
         </div>
       </section>
     );
@@ -382,12 +375,9 @@ export const UploadSection = () => {
   }
 
   return (
-    <section className="py-24 px-6 relative" data-oid="qgl35o-">
-      <div className="container mx-auto max-w-6xl" data-oid="7_gzt6k">
-        <h2
-          className="text-4xl md:text-5xl font-bold text-center mb-16 text-primary"
-          data-oid="z44-rv6"
-        >
+    <section className="py-24 px-6 relative">
+      <div className="container mx-auto max-w-6xl">
+        <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-primary">
           Área de Upload
         </h2>
 
@@ -397,21 +387,14 @@ export const UploadSection = () => {
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          data-oid="xeh2ddw"
         >
-          <div className="text-center" data-oid="x-nn9bt">
-            <Upload
-              className="w-16 h-16 mx-auto mb-6 text-primary"
-              data-oid="::k-9m_"
-            />
+          <div className="text-center">
+            <Upload className="w-16 h-16 mx-auto mb-6 text-primary" />
 
-            <h3
-              className="text-2xl font-semibold mb-4 text-foreground"
-              data-oid="5u1q23s"
-            >
+            <h3 className="text-2xl font-semibold mb-4 text-foreground">
               Arraste arquivos aqui
             </h3>
-            <p className="text-muted-foreground mb-6" data-oid="rh3db6o">
+            <p className="text-muted-foreground mb-6">
               ou clique para selecionar do seu computador
             </p>
             <Input
@@ -420,51 +403,33 @@ export const UploadSection = () => {
               onChange={handleFileInput}
               className="hidden"
               id="file-upload"
-              data-oid="kqv8fax"
             />
 
-            <label htmlFor="file-upload" data-oid="ue095kn">
+            <label htmlFor="file-upload">
               <Button
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 asChild
-                data-oid="dl9u_ri"
               >
-                <span data-oid="p5u-324">Selecionar Arquivos</span>
+                <span>Selecionar Arquivos</span>
               </Button>
             </label>
-            <p
-              className="text-sm text-muted-foreground mt-4"
-              data-oid="n97wo8l"
-            >
+            <p className="text-sm text-muted-foreground mt-4">
               Suporta: JPG, PNG, MP3, WAV, MP4
             </p>
           </div>
         </Card>
 
-        <Card
-          className="p-8 bg-card/50 backdrop-blur-sm border-border/50 mt-8"
-          data-oid="wbdiaxk"
-        >
-          <h3
-            className="text-2xl font-semibold mb-6 text-foreground"
-            data-oid="tactzpx"
-          >
+        <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 mt-8">
+          <h3 className="text-2xl font-semibold mb-6 text-foreground">
             Adicionar URL de Mídia
           </h3>
-          <div className="space-y-4" data-oid="hj1vf4h">
-            <div data-oid="_k2-fxy">
-              <Label
-                htmlFor="media-url"
-                className="text-foreground"
-                data-oid="56885nz"
-              >
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="media-url" className="text-foreground">
                 URL (YouTube, Spotify, SoundCloud, etc.)
               </Label>
-              <div className="flex gap-2 mt-2" data-oid="..k8_a_">
-                <LinkIcon
-                  className="w-5 h-5 text-muted-foreground mt-2.5"
-                  data-oid="id6otv1"
-                />
+              <div className="flex gap-2 mt-2">
+                <LinkIcon className="w-5 h-5 text-muted-foreground mt-2.5" />
 
                 <Input
                   id="media-url"
@@ -472,16 +437,11 @@ export const UploadSection = () => {
                   value={mediaUrl}
                   onChange={(e) => setMediaUrl(e.target.value)}
                   className="flex-1"
-                  data-oid="-g-lr-k"
                 />
               </div>
             </div>
-            <div data-oid="vhg434_">
-              <Label
-                htmlFor="media-title"
-                className="text-foreground"
-                data-oid="chs6hbs"
-              >
+            <div>
+              <Label htmlFor="media-title" className="text-foreground">
                 Título da Música/Vídeo
               </Label>
               <Input
@@ -490,48 +450,33 @@ export const UploadSection = () => {
                 value={mediaTitle}
                 onChange={(e) => setMediaTitle(e.target.value)}
                 className="mt-2"
-                data-oid="-96g9ha"
               />
             </div>
 
-            <div
-              className="grid grid-cols-1 md:grid-cols-3 gap-4"
-              data-oid="v.0q2p."
-            >
-              <div data-oid="h.jd:z:">
-                <Label
-                  className="text-foreground block mb-2"
-                  data-oid="yg96745"
-                >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-foreground block mb-2">
                   Gênero Musical
                 </Label>
-                <div className="flex gap-2" data-oid="tharh8.">
-                  <DropdownMenu data-oid="5hwnrse">
-                    <DropdownMenuTrigger asChild data-oid="qxs1qbv">
+                <div className="flex gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
                         className="w-full justify-between"
-                        data-oid="914pzl_"
                       >
                         {selectedGenre
                           ? selectedGenre.label
                           : "Selecione um gênero"}
-                        <ChevronDown
-                          className="ml-2 h-4 w-4"
-                          data-oid="5a_v38-"
-                        />
+                        <ChevronDown className="ml-2 h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-[200px]"
-                      data-oid="canozwk"
-                    >
+                    <DropdownMenuContent className="w-[200px]">
                       {genreOptions.map((genre) => (
                         <DropdownMenuItem
                           key={genre.value}
                           onClick={() => setSelectedGenre(genre)}
                           className="cursor-pointer"
-                          data-oid="bhuojna"
                         >
                           {genre.label}
                         </DropdownMenuItem>
@@ -542,43 +487,32 @@ export const UploadSection = () => {
                     variant="ghost"
                     className="text-primary"
                     onClick={handleOpenLibraryFromGenre}
-                    data-oid=":h9_co2"
                   >
                     Ver músicas salvas
                   </Button>
                 </div>
               </div>
 
-              <div data-oid="66ooqwv">
-                <Label
-                  className="text-foreground block mb-2"
-                  data-oid="b5ayn:i"
-                >
-                  Destaque
-                </Label>
-                <DropdownMenu data-oid=".fblu.8">
-                  <DropdownMenuTrigger asChild data-oid="fq9xh:g">
+              <div>
+                <Label className="text-foreground block mb-2">Destaque</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
                       className="w-full justify-between"
-                      data-oid="fuv9dma"
                     >
                       {selectedFeatured
                         ? selectedFeatured.label
                         : "Selecione o destaque"}
-                      <ChevronDown
-                        className="ml-2 h-4 w-4"
-                        data-oid="v:51bmm"
-                      />
+                      <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[200px]" data-oid="uf:zbtb">
+                  <DropdownMenuContent className="w-[200px]">
                     {featuredOptions.map((featured) => (
                       <DropdownMenuItem
                         key={featured.value}
                         onClick={() => setSelectedFeatured(featured)}
                         className="cursor-pointer"
-                        data-oid="wj82h8k"
                       >
                         {featured.label}
                       </DropdownMenuItem>
@@ -587,34 +521,24 @@ export const UploadSection = () => {
                 </DropdownMenu>
               </div>
 
-              <div data-oid="jzovf-f">
-                <Label
-                  className="text-foreground block mb-2"
-                  data-oid=".7d.p.j"
-                >
-                  Página
-                </Label>
-                <DropdownMenu data-oid="z6yaayp">
-                  <DropdownMenuTrigger asChild data-oid="2hteiox">
+              <div>
+                <Label className="text-foreground block mb-2">Página</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
                       className="w-full justify-between"
-                      data-oid=":-3gwlk"
                     >
                       {selectedPage ? selectedPage.label : "Selecione a página"}
-                      <ChevronDown
-                        className="ml-2 h-4 w-4"
-                        data-oid="q9-qs_7"
-                      />
+                      <ChevronDown className="ml-2 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[200px]" data-oid="6g3:jh4">
+                  <DropdownMenuContent className="w-[200px]">
                     {pageOptions.map((page) => (
                       <DropdownMenuItem
                         key={page.value}
                         onClick={() => setSelectedPage(page)}
                         className="cursor-pointer"
-                        data-oid="rvup2w0"
                       >
                         {page.label}
                       </DropdownMenuItem>
@@ -624,12 +548,8 @@ export const UploadSection = () => {
               </div>
             </div>
 
-            <div data-oid="3z7dw2m">
-              <Label
-                htmlFor="media-type"
-                className="text-foreground"
-                data-oid="l95qy4r"
-              >
+            <div>
+              <Label htmlFor="media-type" className="text-foreground">
                 Tipo de Mídia
               </Label>
               <select
@@ -637,31 +557,20 @@ export const UploadSection = () => {
                 value={mediaType}
                 onChange={(e) => setMediaType(e.target.value as any)}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2 text-foreground"
-                data-oid="1wrst_c"
               >
-                <option value="video" data-oid="01_dcus">
-                  Vídeo
-                </option>
-                <option value="audio" data-oid="4.8dp3:">
-                  Áudio
-                </option>
-                <option value="image" data-oid="hujwbf:">
-                  Imagem
-                </option>
+                <option value="video">Vídeo</option>
+                <option value="audio">Áudio</option>
+                <option value="image">Imagem</option>
               </select>
             </div>
             <Button
               onClick={handleAddToFeatured}
               className="w-full mt-4 bg-primary hover:bg-primary/90 text-white"
               disabled={isUploading}
-              data-oid="vn0bh:h"
             >
               {isUploading ? (
                 <>
-                  <Loader2
-                    className="mr-2 h-4 w-4 animate-spin"
-                    data-oid="3md0iw3"
-                  />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processando...
                 </>
               ) : (
@@ -672,33 +581,21 @@ export const UploadSection = () => {
         </Card>
 
         {/* Biblioteca de Músicas Salvas */}
-        <Dialog
-          open={libraryOpen}
-          onOpenChange={setLibraryOpen}
-          data-oid="gkplhco"
-        >
-          <DialogContent
-            className="max-w-3xl bg-card/90 border-border/50"
-            data-oid="wbsaqt:"
-          >
-            <DialogHeader data-oid="w71nmze">
-              <DialogTitle data-oid="q9ph:hv">
-                Biblioteca de Músicas Salvas
-              </DialogTitle>
-              <DialogDescription data-oid="bo6rhor">
+        <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+          <DialogContent className="max-w-3xl bg-card/90 border-border/50">
+            <DialogHeader>
+              <DialogTitle>Biblioteca de Músicas Salvas</DialogTitle>
+              <DialogDescription>
                 Selecione uma música para reproduzir ou filtre por gênero.
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4" data-oid="_wid5jl">
-              <div className="text-sm text-muted-foreground" data-oid="vr.x3qq">
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
                 {selectedGenre
                   ? `Filtrando por gênero: ${selectedGenre.label}`
                   : "Todos os gêneros"}
               </div>
-              <div
-                className="grid grid-cols-1 md:grid-cols-2 gap-3"
-                data-oid="vs48ko4"
-              >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {libraryItems
                   .filter(
                     (i) => !selectedGenre || i.genre === selectedGenre.value,
@@ -712,36 +609,24 @@ export const UploadSection = () => {
                           : "bg-card/70 hover:border-primary/50"
                       }`}
                       onClick={() => handlePlayLibraryItem(item)}
-                      data-oid="89a2e.2"
                     >
-                      <div
-                        className="flex items-center justify-between"
-                        data-oid="lynp-v-"
-                      >
-                        <div data-oid="948qxdy">
+                      <div className="flex items-center justify-between">
+                        <div>
                           <div
                             className={`font-medium truncate flex items-center gap-2 ${item.isMissing ? "text-destructive" : "text-foreground"}`}
-                            data-oid="4-qt5.t"
                           >
                             {item.isMissing && (
-                              <AlertTriangle
-                                className="w-4 h-4"
-                                data-oid="zve48m7"
-                              />
+                              <AlertTriangle className="w-4 h-4" />
                             )}
                             {item.title}
                           </div>
-                          <div
-                            className="text-xs text-muted-foreground"
-                            data-oid="j8t1.yr"
-                          >
+                          <div className="text-xs text-muted-foreground">
                             {item.genre
                               ? `Gênero: ${item.genre}`
                               : "Sem gênero"}
                           </div>
                           <div
                             className={`text-xs ${item.isMissing ? "text-destructive" : "text-muted-foreground"}`}
-                            data-oid="hgf6j9l"
                           >
                             {item.isMissing
                               ? "⚠️ Arquivo não encontrado - faça upload novamente"
@@ -757,7 +642,6 @@ export const UploadSection = () => {
                               ? "bg-muted text-muted-foreground"
                               : "bg-primary text-white"
                           }
-                          data-oid="7qyrcnx"
                         >
                           {item.isMissing ? "Indisponível" : "Reproduzir"}
                         </Button>
@@ -766,10 +650,7 @@ export const UploadSection = () => {
                   ))}
               </div>
               {libraryItems.length === 0 && (
-                <div
-                  className="text-sm text-muted-foreground"
-                  data-oid="fw2:k8w"
-                >
+                <div className="text-sm text-muted-foreground">
                   Nenhuma música salva encontrada.
                 </div>
               )}
@@ -781,29 +662,22 @@ export const UploadSection = () => {
         <Dialog
           open={!!selectedLibraryItem}
           onOpenChange={() => setSelectedLibraryItem(null)}
-          data-oid="-4c8ae4"
         >
-          <DialogContent
-            className="max-w-3xl bg-card/90 border-border/50"
-            data-oid="xyyrz1:"
-          >
-            <DialogHeader data-oid="vg5ay.4">
-              <DialogTitle data-oid="u1qidl9">
-                {selectedLibraryItem?.title}
-              </DialogTitle>
-              <DialogDescription data-oid="x1ceqpe">
+          <DialogContent className="max-w-3xl bg-card/90 border-border/50">
+            <DialogHeader>
+              <DialogTitle>{selectedLibraryItem?.title}</DialogTitle>
+              <DialogDescription>
                 Clique na forma de onda para reproduzir ou pausar.
               </DialogDescription>
             </DialogHeader>
-            <div className="p-2" data-oid="4rv8oj6">
+            <div className="p-2">
               {selectedLibraryItem?.url && (
-                <div className="aspect-video" data-oid="-y--7nk">
-                  <div className="p-2" data-oid="trevy3w">
+                <div className="aspect-video">
+                  <div className="p-2">
                     <AudioVisualizer
                       url={selectedLibraryItem.url}
                       autoPlay
                       waveformStyle="animatedBars"
-                      data-oid="nn3ucrr"
                     />
                   </div>
                 </div>

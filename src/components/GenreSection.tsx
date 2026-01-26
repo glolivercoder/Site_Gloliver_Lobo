@@ -90,19 +90,13 @@ export const GenreSection = () => {
   };
 
   return (
-    <section id="genres" className="py-24 px-6 relative" data-oid="j085:n3">
-      <div className="container mx-auto rounded-sm" data-oid="z0y155z">
-        <h2
-          className="text-4xl font-bold text-center mb-16 text-primary md:text-4xl"
-          data-oid="ivpkxh:"
-        >
+    <section id="genres" className="py-24 px-6 relative">
+      <div className="container mx-auto rounded-sm">
+        <h2 className="text-4xl font-bold text-center mb-16 text-primary md:text-4xl">
           Gêneros Musicais
         </h2>
 
-        <div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6"
-          data-oid="u3i5w7e"
-        >
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {genres.map((genre, index) => (
             <Card
               key={genre.name}
@@ -111,34 +105,20 @@ export const GenreSection = () => {
                 animationDelay: `${index * 0.1}s`,
               }}
               onClick={() => openCollection(genre.value)}
-              data-oid="nfjc8r1"
             >
               <div
                 className={`absolute inset-0 bg-gradient-to-br ${genre.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                data-oid="0sflu8l"
               />
 
-              <div
-                className="p-4 relative z-10 flex flex-col items-center justify-center w-full h-full"
-                data-oid=":.bal78"
-              >
-                <genre.icon
-                  className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-4 text-golden group-hover:text-white transition-colors"
-                  data-oid="m3kmbrn"
-                />
+              <div className="p-4 relative z-10 flex flex-col items-center justify-center w-full h-full">
+                <genre.icon className="w-10 h-10 md:w-12 md:h-12 mb-2 md:mb-4 text-golden group-hover:text-white transition-colors" />
 
-                <h3
-                  className="text-sm md:text-xl font-bold text-foreground group-hover:text-white transition-colors uppercase tracking-wider"
-                  data-oid="-e:gr7b"
-                >
+                <h3 className="text-sm md:text-xl font-bold text-foreground group-hover:text-white transition-colors uppercase tracking-wider">
                   {genre.name}
                 </h3>
               </div>
 
-              <div
-                className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-golden to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                data-oid=".36y6q2"
-              />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-golden to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Card>
           ))}
         </div>
@@ -147,7 +127,6 @@ export const GenreSection = () => {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         genreKey={selectedGenre}
-        data-oid="oezt8y0"
       />
     </section>
   );

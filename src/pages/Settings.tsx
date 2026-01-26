@@ -85,61 +85,42 @@ const StorageManagement = () => {
   };
 
   return (
-    <Card
-      className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
-      data-oid=".ro:wqs"
-    >
-      <CardHeader data-oid="6.vb2na">
-        <CardTitle
-          className="text-2xl text-golden flex items-center gap-2"
-          data-oid="736tw7q"
-        >
-          <HardDrive className="w-6 h-6" data-oid="yqi8355" />
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-2xl text-golden flex items-center gap-2">
+          <HardDrive className="w-6 h-6" />
           Gerenciamento de Armazenamento
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4" data-oid="mzm29:s">
-        <div
-          className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10"
-          data-oid="3id9kli"
-        >
-          <div className="flex-1" data-oid="n:_ew-v">
-            <p className="text-sm text-muted-foreground" data-oid="7es6lfv">
-              Espaço utilizado
-            </p>
-            <p className="text-2xl font-bold text-golden" data-oid="et2tty6">
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10">
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Espaço utilizado</p>
+            <p className="text-2xl font-bold text-golden">
               {formatBytes(storageInfo.totalSize)}
             </p>
           </div>
-          <div className="flex-1" data-oid="c5cwfpe">
-            <p className="text-sm text-muted-foreground" data-oid="1_x9_p-">
-              Arquivos salvos
-            </p>
-            <p
-              className="text-2xl font-bold text-foreground"
-              data-oid="6o.0tm-"
-            >
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Arquivos salvos</p>
+            <p className="text-2xl font-bold text-foreground">
               {storageInfo.fileCount}
             </p>
           </div>
         </div>
 
-        <div className="space-y-2" data-oid="offf15_">
-          <Label className="text-foreground" data-oid="5wzb88j">
-            Limpar arquivos antigos
-          </Label>
-          <p className="text-sm text-muted-foreground" data-oid="qf2xpjs">
+        <div className="space-y-2">
+          <Label className="text-foreground">Limpar arquivos antigos</Label>
+          <p className="text-sm text-muted-foreground">
             Remove músicas e mídias que não são usadas há algum tempo.
           </p>
-          <div className="flex flex-wrap gap-2 mt-2" data-oid="mry080g">
+          <div className="flex flex-wrap gap-2 mt-2">
             <Button
               variant="outline"
               onClick={() => handleCleanup(30)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
-              data-oid="mgokkfs"
             >
-              <Trash2 className="w-4 h-4 mr-2" data-oid="y2idhqq" />
+              <Trash2 className="w-4 h-4 mr-2" />
               Mais de 30 dias
             </Button>
             <Button
@@ -147,9 +128,8 @@ const StorageManagement = () => {
               onClick={() => handleCleanup(14)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
-              data-oid="cqicg6a"
             >
-              <Trash2 className="w-4 h-4 mr-2" data-oid="ujk8_so" />
+              <Trash2 className="w-4 h-4 mr-2" />
               Mais de 14 dias
             </Button>
             <Button
@@ -157,15 +137,14 @@ const StorageManagement = () => {
               onClick={() => handleCleanup(7)}
               disabled={isLoading}
               className="border-golden/20 hover:bg-golden/10"
-              data-oid="-u-kmba"
             >
-              <Trash2 className="w-4 h-4 mr-2" data-oid="vwdan5c" />
+              <Trash2 className="w-4 h-4 mr-2" />
               Mais de 7 dias
             </Button>
           </div>
         </div>
 
-        <p className="text-xs text-muted-foreground mt-4" data-oid="3rtubr4">
+        <p className="text-xs text-muted-foreground mt-4">
           💡 Os arquivos de mídia são armazenados localmente no seu navegador
           (IndexedDB). As configurações e links de destaques permanecem salvos
           até você limpá-los manualmente.
@@ -219,14 +198,8 @@ const UserManagement = () => {
 
   if (!isAdmin) {
     return (
-      <Card
-        className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
-        data-oid="ys45e3a"
-      >
-        <CardContent
-          className="py-8 text-center text-muted-foreground"
-          data-oid="u78a-zz"
-        >
+      <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+        <CardContent className="py-8 text-center text-muted-foreground">
           Acesso restrito a administradores.
         </CardContent>
       </Card>
@@ -234,68 +207,44 @@ const UserManagement = () => {
   }
 
   return (
-    <Card
-      className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
-      data-oid="ubf4dmm"
-    >
-      <CardHeader data-oid="c27xx0c">
-        <CardTitle
-          className="text-2xl text-golden flex items-center gap-2"
-          data-oid="nmx39ky"
-        >
-          <Users className="w-6 h-6" data-oid="ryaxgud" />
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-2xl text-golden flex items-center gap-2">
+          <Users className="w-6 h-6" />
           Gerenciamento de Usuários
         </CardTitle>
-        <CardDescription data-oid="6-4u0wn">
+        <CardDescription>
           Visualize e gerencie os usuários registrados no sistema via
           PocketBase.
         </CardDescription>
       </CardHeader>
-      <CardContent data-oid="alsl1h7">
-        <div
-          className="rounded-md border border-golden/20 overflow-hidden"
-          data-oid=".qvwt1-"
-        >
-          <Table data-oid="rmszpqd">
-            <TableHeader data-oid="rv20oml">
-              <TableRow className="border-golden/20" data-oid="q4ldgwr">
-                <TableHead className="text-golden" data-oid="72ptmn.">
-                  Email
-                </TableHead>
-                <TableHead className="text-golden" data-oid="7llqmxl">
-                  Nome
-                </TableHead>
-                <TableHead className="text-golden" data-oid="p4.ymzc">
-                  Criado em
-                </TableHead>
-                <TableHead className="text-golden" data-oid="8goxzga">
-                  Role
-                </TableHead>
-                <TableHead
-                  className="text-golden text-right"
-                  data-oid="wfpdseh"
-                >
-                  Ações
-                </TableHead>
+      <CardContent>
+        <div className="rounded-md border border-golden/20 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-golden/20">
+                <TableHead className="text-golden">Email</TableHead>
+                <TableHead className="text-golden">Nome</TableHead>
+                <TableHead className="text-golden">Criado em</TableHead>
+                <TableHead className="text-golden">Role</TableHead>
+                <TableHead className="text-golden text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody data-oid="fx8r6xo">
+            <TableBody>
               {loading ? (
-                <TableRow data-oid="v26yn.0">
+                <TableRow>
                   <TableCell
                     colSpan={5}
                     className="text-center py-8 text-muted-foreground"
-                    data-oid="iy2h_bx"
                   >
                     Carregando...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
-                <TableRow data-oid="29g_k-j">
+                <TableRow>
                   <TableCell
                     colSpan={5}
                     className="text-center py-8 text-muted-foreground"
-                    data-oid="1339qky"
                   >
                     Nenhum usuário encontrado. Configure o PocketBase para ver
                     usuários.
@@ -303,59 +252,39 @@ const UserManagement = () => {
                 </TableRow>
               ) : (
                 users.map((u) => (
-                  <TableRow
-                    key={u.id}
-                    className="border-golden/10"
-                    data-oid="90v26z8"
-                  >
-                    <TableCell className="font-medium" data-oid="-_k2c61">
-                      <div className="flex flex-col" data-oid="jcwz-0g">
-                        <span data-oid="eb7hz:r">{u.email}</span>
+                  <TableRow key={u.id} className="border-golden/10">
+                    <TableCell className="font-medium">
+                      <div className="flex flex-col">
+                        <span>{u.email}</span>
                         {u.username && (
-                          <span
-                            className="text-xs text-muted-foreground"
-                            data-oid="0yr::ju"
-                          >
+                          <span className="text-xs text-muted-foreground">
                             @{u.username}
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell data-oid="1k-9nnu">{u.name || "-"}</TableCell>
-                    <TableCell
-                      className="text-muted-foreground"
-                      data-oid="f6l3pvg"
-                    >
+                    <TableCell>{u.name || "-"}</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {new Date(u.created).toLocaleDateString("pt-BR")}
                     </TableCell>
-                    <TableCell data-oid="cq2.jx6">
+                    <TableCell>
                       {u.email === "gloliverlobo@gmail.com" ? (
-                        <span
-                          className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-golden/20 text-golden"
-                          data-oid="0rzrxs7"
-                        >
-                          <Shield className="w-3 h-3 mr-1" data-oid="2um.i22" />{" "}
-                          Admin
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-golden/20 text-golden">
+                          <Shield className="w-3 h-3 mr-1" /> Admin
                         </span>
                       ) : (
-                        <span
-                          className="text-muted-foreground"
-                          data-oid="w99nsqz"
-                        >
-                          Usuário
-                        </span>
+                        <span className="text-muted-foreground">Usuário</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right" data-oid="5du-pc7">
+                    <TableCell className="text-right">
                       {u.email !== "gloliverlobo@gmail.com" && (
                         <Button
                           variant="ghost"
                           size="icon"
                           className="text-destructive hover:bg-destructive/10"
                           onClick={() => handleDeleteUser(u.id, u.email)}
-                          data-oid="cdje6bo"
                         >
-                          <Trash2 className="w-4 h-4" data-oid="yp3a2vu" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
                     </TableCell>
@@ -365,13 +294,12 @@ const UserManagement = () => {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-end mt-4" data-oid="3qql6w4">
+        <div className="flex justify-end mt-4">
           <Button
             variant="outline"
             onClick={loadUsers}
             disabled={loading}
             className="border-golden/20 hover:bg-golden/10"
-            data-oid="mn:6lsv"
           >
             Atualizar Lista
           </Button>
@@ -549,36 +477,27 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background" data-oid=".qxrbfp">
-      <Header data-oid="w625vxi" />
-      <div className="pt-20 px-4 md:px-8 pb-16" data-oid="k.0:glh">
-        <div className="max-w-7xl mx-auto space-y-8" data-oid="r3mszi:">
-          <h1
-            className="text-4xl font-bold text-golden mb-8"
-            data-oid="qjwbxwf"
-          >
-            Configurações
-          </h1>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="pt-20 px-4 md:px-8 pb-16">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <h1 className="text-4xl font-bold text-golden mb-8">Configurações</h1>
 
           {/* User Management */}
-          <UserManagement data-oid="n3q0j_3" />
+          <UserManagement />
 
           {/* Featured Section Editor */}
-          <Card
-            className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
-            data-oid="1j4-4xe"
-          >
-            <CardHeader data-oid="1274t8i">
-              <CardTitle className="text-2xl text-golden" data-oid="76yaomv">
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl text-golden">
                 Editar Destaques
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4" data-oid="7bs.fxb">
-              <div className="flex gap-2 mb-4" data-oid="gio881t">
+            <CardContent className="space-y-4">
+              <div className="flex gap-2 mb-4">
                 <Button
                   onClick={addNewPage}
                   className="bg-golden text-deep-black hover:bg-golden/90"
-                  data-oid="3-q71c:"
                 >
                   Adicionar Página
                 </Button>
@@ -586,17 +505,13 @@ const Settings = () => {
                   <Button
                     onClick={() => removePage(currentPage)}
                     variant="destructive"
-                    data-oid="x_.brmr"
                   >
                     Remover Página Atual
                   </Button>
                 )}
               </div>
 
-              <div
-                className="flex gap-2 mb-4 overflow-x-auto pb-2"
-                data-oid="q-cr443"
-              >
+              <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                 {allPages.map((_, index) => (
                   <Button
                     key={index}
@@ -607,24 +522,19 @@ const Settings = () => {
                         ? "bg-golden text-deep-black hover:bg-golden/90"
                         : ""
                     }
-                    data-oid="j8291g8"
                   >
                     Página {index + 1}
                   </Button>
                 ))}
               </div>
 
-              <div className="space-y-4" data-oid="onl:ep1">
+              <div className="space-y-4">
                 {allPages[currentPage]?.map((item, index) => (
                   <div
                     key={item.id}
                     className="space-y-2 p-4 border border-golden/20 rounded-lg"
-                    data-oid="d:65if9"
                   >
-                    <Label
-                      className="text-sm font-medium text-golden"
-                      data-oid="gftjm8u"
-                    >
+                    <Label className="text-sm font-medium text-golden">
                       Destaque {index + 1}
                     </Label>
                     <Input
@@ -639,7 +549,6 @@ const Settings = () => {
                         )
                       }
                       className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="lvds0t7"
                     />
 
                     <Input
@@ -654,7 +563,6 @@ const Settings = () => {
                         )
                       }
                       className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="zge6bpj"
                     />
 
                     <select
@@ -668,27 +576,17 @@ const Settings = () => {
                         )
                       }
                       className="flex h-10 w-full rounded-md border border-golden/20 bg-background/50 px-3 py-2 text-sm text-foreground focus:border-golden"
-                      data-oid="n2p8c.b"
                     >
-                      <option value="video" data-oid="f1c3_-c">
-                        Vídeo
-                      </option>
-                      <option value="audio" data-oid="1eok0f2">
-                        Áudio
-                      </option>
-                      <option value="image" data-oid="x1j42q:">
-                        Imagem
-                      </option>
+                      <option value="video">Vídeo</option>
+                      <option value="audio">Áudio</option>
+                      <option value="image">Imagem</option>
                     </select>
 
-                    <div className="mt-2 space-y-2" data-oid="bqn914h">
-                      <Label
-                        className="text-xs text-muted-foreground"
-                        data-oid="wby:.vv"
-                      >
+                    <div className="mt-2 space-y-2">
+                      <Label className="text-xs text-muted-foreground">
                         Imagem Thumbnail
                       </Label>
-                      <div className="flex gap-2" data-oid="errfqgp">
+                      <div className="flex gap-2">
                         <Input
                           placeholder="URL da imagem thumbnail"
                           value={item.thumbnail || ""}
@@ -701,7 +599,6 @@ const Settings = () => {
                             )
                           }
                           className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
-                          data-oid="p_kh0x_"
                         />
 
                         <Button
@@ -721,21 +618,16 @@ const Settings = () => {
                             input.click();
                           }}
                           className="border-golden/20 hover:bg-golden/10"
-                          data-oid="ji242qj"
                         >
-                          <Upload className="w-4 h-4" data-oid="pnd8atk" />
+                          <Upload className="w-4 h-4" />
                         </Button>
                       </div>
                       {item.thumbnail && (
-                        <div
-                          className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden"
-                          data-oid="16o5s4f"
-                        >
+                        <div className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden">
                           <img
                             src={item.thumbnail}
                             alt="Thumbnail"
                             className="w-full h-full object-cover"
-                            data-oid="l638dp4"
                           />
                         </div>
                       )}
@@ -746,7 +638,6 @@ const Settings = () => {
               <Button
                 onClick={saveFeatured}
                 className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-                data-oid="ni5czla"
               >
                 Salvar Destaques
               </Button>
@@ -754,22 +645,15 @@ const Settings = () => {
           </Card>
 
           {/* Audio Visualizer Settings */}
-          <Card
-            className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
-            data-oid="wbffq7r"
-          >
-            <CardHeader data-oid="_f-g:5k">
-              <CardTitle className="text-2xl text-golden" data-oid="46nvzkg">
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl text-golden">
                 Configurações do Visualizador de Áudio
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4" data-oid="_4qr7g6">
-              <div className="space-y-2" data-oid="_ucfxx9">
-                <Label
-                  htmlFor="waveformStyle"
-                  className="text-foreground"
-                  data-oid="tbxn6dv"
-                >
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="waveformStyle" className="text-foreground">
                   Estilo do Waveform
                 </Label>
                 <Select
@@ -777,45 +661,24 @@ const Settings = () => {
                   onValueChange={(value) =>
                     setAudioSettings({ ...audioSettings, waveformStyle: value })
                   }
-                  data-oid="elqpa_3"
                 >
-                  <SelectTrigger
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="vq1js7_"
-                  >
-                    <SelectValue
-                      placeholder="Selecione o estilo"
-                      data-oid=":tr15kf"
-                    />
+                  <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                    <SelectValue placeholder="Selecione o estilo" />
                   </SelectTrigger>
-                  <SelectContent
-                    className="bg-popover border-golden/20"
-                    data-oid="fh_nnoh"
-                  >
-                    <SelectItem value="bars" data-oid="b-gjd1n">
-                      Barras (Padrão)
-                    </SelectItem>
-                    <SelectItem value="wave" data-oid="klcurk0">
-                      Onda Contínua
-                    </SelectItem>
-                    <SelectItem value="mirror" data-oid="l0__yq9">
-                      Espelho
-                    </SelectItem>
-                    <SelectItem value="animatedBars" data-oid="3hnnoyb">
+                  <SelectContent className="bg-popover border-golden/20">
+                    <SelectItem value="bars">Barras (Padrão)</SelectItem>
+                    <SelectItem value="wave">Onda Contínua</SelectItem>
+                    <SelectItem value="mirror">Espelho</SelectItem>
+                    <SelectItem value="animatedBars">
                       Barras Animadas (Ao Vivo)
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                data-oid="25t64:c"
-              >
-                <div className="space-y-2" data-oid="mti3opw">
-                  <Label className="text-foreground" data-oid="4cmo49y">
-                    Altura (px)
-                  </Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground">Altura (px)</Label>
                   <Input
                     type="number"
                     value={audioSettings.height}
@@ -826,13 +689,10 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="xy.f54y"
                   />
                 </div>
-                <div className="space-y-2" data-oid="qf.w.kq">
-                  <Label className="text-foreground" data-oid="bz9ub7w">
-                    Largura da Barra
-                  </Label>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Largura da Barra</Label>
                   <Input
                     type="number"
                     value={audioSettings.barWidth}
@@ -843,13 +703,10 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="aeihu8r"
                   />
                 </div>
-                <div className="space-y-2" data-oid="xs7xpqz">
-                  <Label className="text-foreground" data-oid="fv.hger">
-                    Espaço da Barra
-                  </Label>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Espaço da Barra</Label>
                   <Input
                     type="number"
                     value={audioSettings.barGap}
@@ -860,13 +717,10 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="v8vgxr3"
                   />
                 </div>
-                <div className="space-y-2" data-oid="ig6wv3_">
-                  <Label className="text-foreground" data-oid="ibcf69f">
-                    Raio da Barra
-                  </Label>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Raio da Barra</Label>
                   <Input
                     type="number"
                     value={audioSettings.barRadius}
@@ -877,13 +731,10 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="rku0syf"
                   />
                 </div>
-                <div className="space-y-2" data-oid="yx.fgnn">
-                  <Label className="text-foreground" data-oid="n:9qy.7">
-                    Cursor (px)
-                  </Label>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cursor (px)</Label>
                   <Input
                     type="number"
                     value={audioSettings.cursorWidth}
@@ -894,19 +745,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="1rldqnp"
                   />
                 </div>
               </div>
 
-              <div
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                data-oid="ulg2yxn"
-              >
-                <div className="space-y-2" data-oid=".sdrqcy">
-                  <Label className="text-foreground" data-oid="r9jr-xp">
-                    Cor da Onda
-                  </Label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor da Onda</Label>
                   <Input
                     value={audioSettings.waveColor}
                     onChange={(e) =>
@@ -916,13 +761,10 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="eu8y:2n"
                   />
                 </div>
-                <div className="space-y-2" data-oid="p8ks4wn">
-                  <Label className="text-foreground" data-oid="b.a.v27">
-                    Cor do Progresso
-                  </Label>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor do Progresso</Label>
                   <Input
                     value={audioSettings.progressColor}
                     onChange={(e) =>
@@ -932,13 +774,10 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="-b4rje."
                   />
                 </div>
-                <div className="space-y-2" data-oid=".34c3n_">
-                  <Label className="text-foreground" data-oid="71:pq6i">
-                    Cor do Cursor
-                  </Label>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor do Cursor</Label>
                   <Input
                     value={audioSettings.cursorColor}
                     onChange={(e) =>
@@ -948,16 +787,13 @@ const Settings = () => {
                       })
                     }
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="-07r_3g"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2" data-oid="1.px0qq">
-                <Label className="text-foreground" data-oid="f3tw2af">
-                  Espectrograma
-                </Label>
-                <div className="flex items-center gap-3" data-oid="atr-1i1">
+              <div className="space-y-2">
+                <Label className="text-foreground">Espectrograma</Label>
+                <div className="flex items-center gap-3">
                   <input
                     type="checkbox"
                     checked={audioSettings.enableSpectrogram}
@@ -967,20 +803,14 @@ const Settings = () => {
                         enableSpectrogram: e.target.checked,
                       })
                     }
-                    data-oid="ko..jg:"
                   />
 
-                  <span
-                    className="text-sm text-muted-foreground"
-                    data-oid="h730_qv"
-                  >
+                  <span className="text-sm text-muted-foreground">
                     Ativar espectrograma (WaveSurfer)
                   </span>
                 </div>
-                <div className="mt-2" data-oid="4va.71g">
-                  <Label className="text-foreground" data-oid="kjasmej">
-                    FFT Samples
-                  </Label>
+                <div className="mt-2">
+                  <Label className="text-foreground">FFT Samples</Label>
                   <Select
                     value={String(audioSettings.spectrogramFftSamples)}
                     onValueChange={(value) =>
@@ -989,47 +819,25 @@ const Settings = () => {
                         spectrogramFftSamples: Number(value),
                       })
                     }
-                    data-oid="svz2a0j"
                   >
-                    <SelectTrigger
-                      className="bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="57qamhs"
-                    >
-                      <SelectValue placeholder="FFT" data-oid=":zqr_9z" />
+                    <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                      <SelectValue placeholder="FFT" />
                     </SelectTrigger>
-                    <SelectContent
-                      className="bg-popover border-golden/20"
-                      data-oid="hypa8yh"
-                    >
-                      <SelectItem value="128" data-oid="g1xk.y.">
-                        128
-                      </SelectItem>
-                      <SelectItem value="256" data-oid="b6ski6n">
-                        256
-                      </SelectItem>
-                      <SelectItem value="512" data-oid="lo67:wh">
-                        512
-                      </SelectItem>
-                      <SelectItem value="1024" data-oid="z5tvne3">
-                        1024
-                      </SelectItem>
+                    <SelectContent className="bg-popover border-golden/20">
+                      <SelectItem value="128">128</SelectItem>
+                      <SelectItem value="256">256</SelectItem>
+                      <SelectItem value="512">512</SelectItem>
+                      <SelectItem value="1024">1024</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-2" data-oid="-07mqmm">
-                <Label className="text-foreground" data-oid="ws0t.5e">
-                  Visualizador ao vivo
-                </Label>
-                <div
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                  data-oid=":p9hqix"
-                >
-                  <div className="space-y-2" data-oid="sqnyr:x">
-                    <Label className="text-foreground" data-oid="tda1fbn">
-                      FFT Size
-                    </Label>
+              <div className="space-y-2">
+                <Label className="text-foreground">Visualizador ao vivo</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-foreground">FFT Size</Label>
                     <Select
                       value={String(audioSettings.liveAnalyzerFftSize)}
                       onValueChange={(value) =>
@@ -1038,40 +846,21 @@ const Settings = () => {
                           liveAnalyzerFftSize: Number(value),
                         })
                       }
-                      data-oid="h0xqxdp"
                     >
-                      <SelectTrigger
-                        className="bg-background/50 border-golden/20 focus:border-golden"
-                        data-oid="a8kp9is"
-                      >
-                        <SelectValue placeholder="FFT" data-oid="rt_8bbs" />
+                      <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                        <SelectValue placeholder="FFT" />
                       </SelectTrigger>
-                      <SelectContent
-                        className="bg-popover border-golden/20"
-                        data-oid="g5pqz2o"
-                      >
-                        <SelectItem value="64" data-oid="exm4-n-">
-                          64
-                        </SelectItem>
-                        <SelectItem value="128" data-oid=":smf..d">
-                          128
-                        </SelectItem>
-                        <SelectItem value="256" data-oid="yn_493m">
-                          256
-                        </SelectItem>
-                        <SelectItem value="512" data-oid="agzs4kr">
-                          512
-                        </SelectItem>
-                        <SelectItem value="1024" data-oid="natz26-">
-                          1024
-                        </SelectItem>
+                      <SelectContent className="bg-popover border-golden/20">
+                        <SelectItem value="64">64</SelectItem>
+                        <SelectItem value="128">128</SelectItem>
+                        <SelectItem value="256">256</SelectItem>
+                        <SelectItem value="512">512</SelectItem>
+                        <SelectItem value="1024">1024</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2" data-oid="5kln442">
-                    <Label className="text-foreground" data-oid="ehm5geh">
-                      Suavização
-                    </Label>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Suavização</Label>
                     <Input
                       type="number"
                       step="0.05"
@@ -1085,13 +874,10 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="4pqrarn"
                     />
                   </div>
-                  <div className="space-y-2" data-oid="c1w2gy7">
-                    <Label className="text-foreground" data-oid="lk8ox-c">
-                      Altura (px)
-                    </Label>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Altura (px)</Label>
                     <Input
                       type="number"
                       value={audioSettings.liveHeight}
@@ -1102,13 +888,10 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="yzx_sra"
                     />
                   </div>
-                  <div className="space-y-2" data-oid="1-2rzyx">
-                    <Label className="text-foreground" data-oid="-6qr:b5">
-                      Largura da Barra
-                    </Label>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Largura da Barra</Label>
                     <Input
                       type="number"
                       value={audioSettings.liveBarWidth}
@@ -1119,13 +902,10 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="07ynuse"
                     />
                   </div>
-                  <div className="space-y-2" data-oid="9aq.2ly">
-                    <Label className="text-foreground" data-oid="iqa5k-h">
-                      Cor da Barra
-                    </Label>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Cor da Barra</Label>
                     <Input
                       value={audioSettings.liveBarColor}
                       onChange={(e) =>
@@ -1135,7 +915,6 @@ const Settings = () => {
                         })
                       }
                       className="bg-background/50 border-golden/20 focus:border-golden"
-                      data-oid="a491xcu"
                     />
                   </div>
                 </div>
@@ -1143,7 +922,6 @@ const Settings = () => {
               <Button
                 onClick={saveAudioSettings}
                 className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-                data-oid="c339ak4"
               >
                 Salvar Configurações de Áudio
               </Button>
@@ -1151,31 +929,23 @@ const Settings = () => {
           </Card>
 
           {/* Social Links Editor */}
-          <Card
-            className="bg-deep-black/50 border-golden/20 backdrop-blur-sm"
-            data-oid="m63ira3"
-          >
-            <CardHeader data-oid="5e-0wrl">
-              <CardTitle className="text-2xl text-golden" data-oid="28.ycr9">
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl text-golden">
                 Redes Sociais
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4" data-oid="mtra815">
-              <div
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                data-oid="0q99j0w"
-              >
-                <div className="space-y-2" data-oid="8lg1cz.">
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label
                     htmlFor="whatsapp"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="cnqt7f6"
                   >
                     <img
                       src="/favicon-whatsapp.svg"
                       alt="WhatsApp"
                       className="w-5 h-5"
-                      data-oid="0b_4ma8"
                     />{" "}
                     WhatsApp
                   </Label>
@@ -1187,17 +957,14 @@ const Settings = () => {
                     }
                     placeholder="https://wa.me/message/SEU_CODIGO"
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="11--t.z"
                   />
                 </div>
-                <div className="space-y-2" data-oid="d4p81dt">
+                <div className="space-y-2">
                   <Label
                     htmlFor="instagram"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="6-ddibo"
                   >
-                    <Instagram className="w-4 h-4" data-oid="h2xjv8-" />{" "}
-                    Instagram
+                    <Instagram className="w-4 h-4" /> Instagram
                   </Label>
                   <Input
                     id="instagram"
@@ -1207,17 +974,15 @@ const Settings = () => {
                     }
                     placeholder="https://instagram.com/seu_perfil"
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="--1ov7u"
                   />
                 </div>
 
-                <div className="space-y-2" data-oid="ezl63va">
+                <div className="space-y-2">
                   <Label
                     htmlFor="tiktok"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="d0akfbm"
                   >
-                    <Music className="w-4 h-4" data-oid="5s3kicb" /> TikTok
+                    <Music className="w-4 h-4" /> TikTok
                   </Label>
                   <Input
                     id="tiktok"
@@ -1227,17 +992,15 @@ const Settings = () => {
                     }
                     placeholder="https://tiktok.com/@seu_perfil"
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="8dmmj79"
                   />
                 </div>
 
-                <div className="space-y-2" data-oid="cmf8i-.">
+                <div className="space-y-2">
                   <Label
                     htmlFor="youtube"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="06.7c.h"
                   >
-                    <Youtube className="w-4 h-4" data-oid="x9zd8l-" /> YouTube
+                    <Youtube className="w-4 h-4" /> YouTube
                   </Label>
                   <Input
                     id="youtube"
@@ -1247,17 +1010,15 @@ const Settings = () => {
                     }
                     placeholder="https://youtube.com/@seu_canal"
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="5w6lwz1"
                   />
                 </div>
 
-                <div className="space-y-2" data-oid="szl5.yi">
+                <div className="space-y-2">
                   <Label
                     htmlFor="spotify"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="x94x8v_"
                   >
-                    <Radio className="w-4 h-4" data-oid="7lc4olc" /> Spotify
+                    <Radio className="w-4 h-4" /> Spotify
                   </Label>
                   <Input
                     id="spotify"
@@ -1267,18 +1028,15 @@ const Settings = () => {
                     }
                     placeholder="https://open.spotify.com/artist/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="9_vn55u"
                   />
                 </div>
 
-                <div className="space-y-2" data-oid="fba1k4x">
+                <div className="space-y-2">
                   <Label
                     htmlFor="youtubeMusic"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="qjoedgw"
                   >
-                    <Music className="w-4 h-4" data-oid="23-6jma" /> YouTube
-                    Music
+                    <Music className="w-4 h-4" /> YouTube Music
                   </Label>
                   <Input
                     id="youtubeMusic"
@@ -1288,18 +1046,15 @@ const Settings = () => {
                     }
                     placeholder="https://music.youtube.com/channel/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="by-og7o"
                   />
                 </div>
 
-                <div className="space-y-2" data-oid="gpkvvzd">
+                <div className="space-y-2">
                   <Label
                     htmlFor="amazonMusic"
                     className="text-foreground flex items-center gap-2"
-                    data-oid="nsshea:"
                   >
-                    <Radio className="w-4 h-4" data-oid="wfaezfp" /> Amazon
-                    Music
+                    <Radio className="w-4 h-4" /> Amazon Music
                   </Label>
                   <Input
                     id="amazonMusic"
@@ -1309,14 +1064,12 @@ const Settings = () => {
                     }
                     placeholder="https://music.amazon.com/..."
                     className="bg-background/50 border-golden/20 focus:border-golden"
-                    data-oid="nc3sju6"
                   />
                 </div>
               </div>
               <Button
                 onClick={saveSocial}
                 className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-                data-oid="mzmgvne"
               >
                 Salvar Redes Sociais
               </Button>
@@ -1324,13 +1077,13 @@ const Settings = () => {
           </Card>
 
           {/* Storage Management Section */}
-          <StorageManagement data-oid="bld2uj_" />
+          <StorageManagement />
 
           {/* Upload Section */}
-          <UploadSection data-oid="u46l20i" />
+          <UploadSection />
         </div>
       </div>
-      <Footer data-oid="qipum3o" />
+      <Footer />
     </div>
   );
 };

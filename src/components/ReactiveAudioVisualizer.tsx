@@ -336,7 +336,7 @@ export const ReactiveAudioVisualizer = ({
   const waveformHeight = Number(settings.liveHeight || 150);
 
   return (
-    <div className="space-y-4" data-oid="reactive-visualizer">
+    <div className="space-y-4">
       {/* Hidden audio element */}
       <audio
         ref={audioRef}
@@ -344,14 +344,12 @@ export const ReactiveAudioVisualizer = ({
         crossOrigin="anonymous"
         preload="auto"
         className="hidden"
-        data-oid="audio-element"
       />
 
       {/* Waveform Canvas */}
       <div
         className="relative w-full bg-deep-black/30 rounded-lg border border-golden/20 overflow-hidden cursor-pointer"
         onClick={handlePlayPause}
-        data-oid="waveform-container"
       >
         <canvas
           ref={waveformCanvasRef}
@@ -359,28 +357,15 @@ export const ReactiveAudioVisualizer = ({
           height={waveformHeight}
           className="w-full"
           style={{ height: `${waveformHeight}px` }}
-          data-oid="waveform-canvas"
         />
 
         {/* Play/Pause overlay */}
-        <div
-          className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/20"
-          data-oid="y0-t0h0"
-        >
-          <div
-            className="w-16 h-16 rounded-full bg-golden/90 flex items-center justify-center backdrop-blur-sm"
-            data-oid="u-.mpsb"
-          >
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/20">
+          <div className="w-16 h-16 rounded-full bg-golden/90 flex items-center justify-center backdrop-blur-sm">
             {isPlaying ? (
-              <Pause
-                className="w-8 h-8 text-deep-black"
-                data-oid="pause-icon"
-              />
+              <Pause className="w-8 h-8 text-deep-black" />
             ) : (
-              <Play
-                className="w-8 h-8 text-deep-black ml-1"
-                data-oid="play-icon"
-              />
+              <Play className="w-8 h-8 text-deep-black ml-1" />
             )}
           </div>
         </div>
@@ -388,10 +373,7 @@ export const ReactiveAudioVisualizer = ({
 
       {/* Spectrogram Canvas */}
       {showSpectrogram && (
-        <div
-          className="w-full rounded-lg border border-golden/20 overflow-hidden"
-          data-oid="spectrogram-container"
-        >
+        <div className="w-full rounded-lg border border-golden/20 overflow-hidden">
           <canvas
             ref={spectrogramCanvasRef}
             width={800}
@@ -401,39 +383,30 @@ export const ReactiveAudioVisualizer = ({
               height: "180px",
               background: "linear-gradient(to bottom, #1a0a2e, #0d0015)",
             }}
-            data-oid="spectrogram-canvas"
           />
         </div>
       )}
 
       {/* Progress bar and time */}
-      <div className="space-y-2" data-oid="controls">
+      <div className="space-y-2">
         <div
           className="h-2 bg-deep-black/50 rounded-full cursor-pointer overflow-hidden border border-golden/20"
           onClick={handleSeek}
-          data-oid="progress-bar"
         >
           <div
             className="h-full bg-gradient-to-r from-golden/80 to-golden rounded-full transition-all duration-100"
             style={{
               width: `${duration ? (currentTime / duration) * 100 : 0}%`,
             }}
-            data-oid="progress-fill"
           />
         </div>
-        <div
-          className="flex justify-between text-sm text-muted-foreground"
-          data-oid="w1hxpo_"
-        >
-          <span data-oid="current-time">{formatTime(currentTime)}</span>
-          <span data-oid="duration">{formatTime(duration)}</span>
+        <div className="flex justify-between text-sm text-muted-foreground">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
       </div>
 
-      <div
-        className="text-center text-muted-foreground text-sm"
-        data-oid="instructions"
-      >
+      <div className="text-center text-muted-foreground text-sm">
         Clique para reproduzir/pausar
       </div>
     </div>

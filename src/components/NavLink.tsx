@@ -22,7 +22,6 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
           )
         }
         {...props}
-        data-oid="._khywm"
       />
     );
   },

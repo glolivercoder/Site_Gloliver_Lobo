@@ -121,46 +121,30 @@ export const GenreLibraryDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} data-oid=".zci4vh">
-      <DialogContent
-        className="max-w-4xl bg-deep-black/95 border-golden/20"
-        data-oid="qkyfevd"
-      >
-        <DialogHeader data-oid="g2cfu:t">
-          <DialogTitle className="text-golden" data-oid="nt:baui">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl bg-deep-black/95 border-golden/20">
+        <DialogHeader>
+          <DialogTitle className="text-golden">
             {genreKey
               ? `Coleção: ${genreKey.charAt(0).toUpperCase() + genreKey.slice(1)}`
               : "Coleção por Gênero"}
           </DialogTitle>
         </DialogHeader>
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          data-oid="ibiw_y-"
-        >
-          <div className="space-y-3" data-oid="ufhdbp9">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
             {items.map((item) => (
               <Card
                 key={item.id}
                 className="p-4 bg-deep-black/50 border-golden/20 hover:border-golden/60 cursor-pointer"
                 onClick={() => handlePlay(item)}
-                data-oid="k7edx1v"
               >
-                <div
-                  className="flex items-center justify-between"
-                  data-oid="f06a04u"
-                >
-                  <div data-oid="8fvuu05">
-                    <div
-                      className="text-foreground font-medium truncate"
-                      data-oid="6o9.4rz"
-                    >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-foreground font-medium truncate">
                       {item.title}
                     </div>
-                    <div
-                      className="text-xs text-muted-foreground"
-                      data-oid="jsmh4bv"
-                    >
+                    <div className="text-xs text-muted-foreground">
                       {item.source === "local"
                         ? "Local (IndexedDB)"
                         : "Externo"}
@@ -169,7 +153,6 @@ export const GenreLibraryDialog = ({
                   <Button
                     size="sm"
                     className="bg-golden text-deep-black hover:bg-golden/90"
-                    data-oid="v0-3c52"
                   >
                     Reproduzir
                   </Button>
@@ -178,33 +161,26 @@ export const GenreLibraryDialog = ({
             ))}
 
             {items.length === 0 && (
-              <div className="text-sm text-muted-foreground" data-oid="m3799bk">
+              <div className="text-sm text-muted-foreground">
                 Nenhuma música salva para este gênero.
               </div>
             )}
           </div>
 
-          <div
-            className="rounded-lg border border-golden/20 bg-deep-black/50 p-4"
-            data-oid="ckesqqe"
-          >
+          <div className="rounded-lg border border-golden/20 bg-deep-black/50 p-4">
             {selected ? (
-              <div data-oid="0i8y8c4">
-                <div
-                  className="text-sm text-muted-foreground mb-2"
-                  data-oid="tc4nanx"
-                >
+              <div>
+                <div className="text-sm text-muted-foreground mb-2">
                   Reproduzindo: {selected.title}
                 </div>
                 <AudioVisualizer
                   url={selected.url}
                   autoPlay
                   waveformStyle="bars"
-                  data-oid="t.smol4"
                 />
               </div>
             ) : (
-              <div className="text-sm text-muted-foreground" data-oid="i2x7k1f">
+              <div className="text-sm text-muted-foreground">
                 Selecione uma faixa para reproduzir
               </div>
             )}
