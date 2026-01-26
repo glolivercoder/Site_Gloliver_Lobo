@@ -7,6 +7,7 @@ import {
 } from "react";
 import { supabase } from "../lib/supabase";
 import { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
@@ -14,6 +15,8 @@ interface AuthContextType {
   isLoading: boolean;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
+  signUpWithEmail: (email: string, password: string, fullName: string) => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -26,16 +29,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Configured Admin Email
   const ADMIN_EMAIL = "gloliverlobo@gmail.com";
 
+  const syncProfile = async (user: User) => {
+    if (!user) return;
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        // Create profile if it doesn't exist
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0];
+        await supabase.from("profiles").insert({
+          id: user.id,
+          email: user.email,
+          full_name: name,
+          username: user.email?.split('@')[0] + "_" + Math.random().toString(36).substring(7),
+        });
+      }
+    } catch (e) {
+      console.error("Error syncing profile:", e);
+    }
+  };
+
   useEffect(() => {
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) syncProfile(session.user);
       setIsLoading(false);
     });
 
     // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
+        syncProfile(currentUser);
+      }
       setIsLoading(false);
     });
 
@@ -82,8 +115,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signUpWithEmail = async (email: string, password: string, fullName: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
+        }
+      });
+      if (error) throw error;
+      toast.success("Cadastro realizado! Verifique seu e-mail para confirmar.");
+    } catch (error) {
+      toast.error("Erro ao cadastrar: " + (error as Error).message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+      toast.success("Login realizado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao entrar: " + (error as Error).message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
+    toast.success("Sessão encerrada.");
   };
 
   return (
@@ -94,6 +167,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         loginWithGoogle,
         loginWithFacebook,
+        signUpWithEmail,
+        signInWithEmail,
         logout,
       }}
     >

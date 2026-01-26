@@ -40,11 +40,33 @@ Antes de clicar em salvar, role para baixo até **Environment variables (advance
 2. A Cloudflare vai baixar seu código, instalar as dependências e gerar o site. Isso leva cerca de 2-3 minutos.
 3. Ao finalizar, você receberá um link temporário (ex: `gloliverlobo.pages.dev`).
 
-## Passo 6: Configurar o Domínio Próprio (`gloliverlobo.com`)
-1. No painel do seu projeto na Cloudflare Pages, vá na aba **Custom domains**.
-2. Clique em **Set up a custom domain**.
-3. Digite `gloliverlobo.com` e clique em **Continue**.
-4. Se o seu domínio já está na Cloudflare, ele vai configurar o DNS automaticamente. Se não estiver, ele te dará os registros CNAME para você colar no seu provedor de domínio.
+## Passo 6: Configurar o Domínio Próprio (`gloliverlobo.com`) - Método Recomendado
+
+Este método é o mais potente (Cloudflare DNS), pois acelera o site e protege seu domínio.
+
+### Parte A: No Cloudflare
+1. Na tela que você está agora, escolha **Cloudflare DNS** e toque em **Begin DNS transfer**.
+2. Digite `gloliverlobo.com`.
+3. Escolha o plano **Free** (Gratuito).
+4. O Cloudflare vai escanear seus registros atuais. Clique em **Continue**.
+5. Ele vai te mostrar dois endereços de "Nameservers". Exemplo:
+   - `alina.ns.cloudflare.com`
+   - `dave.ns.cloudflare.com`
+   *(Copie esses dois endereços)*.
+
+### Parte B: Na Hostinger (Onde está o seu domínio)
+1. Entre no painel da **Hostinger**.
+2. Vá em **Domínios** > Clique em `gloliverlobo.com`.
+3. Procure por **Nameservers** (ou Servidores de Nome) no menu lateral ou central.
+4. Clique no botão **Alterar Nameservers** (ou Change Nameservers).
+5. Selecione a opção para usar **Nameservers personalizados**.
+6. Apague os que estiverem lá e cole os dois que o Cloudflare te deu.
+7. **Salve as alterações**.
+
+### Parte C: Finalizar
+1. Volte ao Cloudflare e clique em **Done, check nameservers**.
+2. **Tempo de espera**: Pode levar de 15 minutos a algumas horas para a Hostinger avisar o mundo que agora o Cloudflare manda no domínio. 
+3. Assim que estiver ativo (você receberá um email do Cloudflare), o seu site `gloliverlobo.com` já estará apontando automaticamente para as suas Pages!
 
 ---
 
