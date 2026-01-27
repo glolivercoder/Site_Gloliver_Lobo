@@ -128,15 +128,23 @@ export const FeaturedSection = () => {
   // Debug log
   console.log("[FeaturedSection] loading:", loading, "allPages:", allPages);
 
-  const displayPages = allPages.map((page: any[]) =>
-    page.map((item: any, index: number) => ({
-      ...item,
-      image:
-        item.type === "image" && item.url
-          ? item.url
-          : defaultFeatured[index % 8]?.image || defaultFeatured[0].image,
-    }))
-  );
+  let displayPages: any[][] = [];
+  try {
+    if (Array.isArray(allPages)) {
+      displayPages = allPages.map((page: any[]) => {
+        if (!Array.isArray(page)) return [];
+        return page.map((item: any, index: number) => ({
+          ...item,
+          image:
+            item && item.type === "image" && item.url
+              ? item.url
+              : defaultFeatured[index % 8]?.image || defaultFeatured[0].image,
+        }));
+      });
+    }
+  } catch (err) {
+    console.error("FeaturedSection map error", err);
+  }
 
   const handleMediaClick = async (item: any) => {
     if (!item?.url) return;
@@ -219,6 +227,22 @@ export const FeaturedSection = () => {
               </TabsContent>
             ))}
           </Tabs>
+        </div>
+
+        {/* DEBUG VISUAL - REMOVE IN PRODUCTION */}
+        <div className="mt-8 p-4 bg-gray-900 border border-red-500 text-white text-xs overflow-auto max-h-[300px] z-50 relative mx-auto max-w-7xl rounded-lg">
+          <strong className="text-red-400 block mb-2 text-lg">🔧 PAINEL DE DEBUG (Técnico)</strong>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p><strong>Status:</strong> {loading ? 'Carregando...' : 'Carregado'}</p>
+              <p><strong>Config Key:</strong> featured_pages</p>
+              <p><strong>Páginas Encontradas:</strong> {allPages?.length || 0}</p>
+            </div>
+          </div>
+          <details className="mt-4">
+            <summary className="cursor-pointer text-golden hover:text-white mb-2">Clique para ver o JSON Completo (Dados Brutos)</summary>
+            <pre className="bg-black p-4 rounded">{JSON.stringify(allPages, null, 2)}</pre>
+          </details>
         </div>
       </section>
 
