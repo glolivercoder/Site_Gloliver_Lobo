@@ -120,10 +120,13 @@ const MediaPlayer = ({
 };
 
 export const FeaturedSection = () => {
-  const { data: allPages } = useSiteConfig<any[][]>("featured_pages", [defaultFeatured]);
+  const { data: allPages, loading } = useSiteConfig<any[][]>("featured_pages", [defaultFeatured]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const { data: audioSettings } = useSiteConfig<any>("audio_settings", { waveformStyle: "bars" });
   const waveformStyle = audioSettings?.waveformStyle || "bars";
+
+  // Debug log
+  console.log("[FeaturedSection] loading:", loading, "allPages:", allPages);
 
   const displayPages = allPages.map((page: any[]) =>
     page.map((item: any, index: number) => ({
@@ -234,8 +237,8 @@ export const FeaturedSection = () => {
           </DialogHeader>
           <div
             className={`w-full bg-black rounded-lg overflow-hidden ${selectedMedia?.type === "audio"
-                ? "max-h-[80vh] overflow-y-auto"
-                : "aspect-video"
+              ? "max-h-[80vh] overflow-y-auto"
+              : "aspect-video"
               }`}
           >
             {selectedMedia?.url && (

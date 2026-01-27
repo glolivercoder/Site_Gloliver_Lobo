@@ -124,7 +124,8 @@ export const UploadSection = () => {
 
   useEffect(() => {
     loadLibraryFromConfig();
-  }, [featuredPages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (selectedGenre) {

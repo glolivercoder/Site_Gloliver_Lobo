@@ -61,7 +61,7 @@ export const GenreLibraryDialog = ({
     }
     loadGenreItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, genreKey, featuredPages]);
+  }, [open, genreKey]);
 
   const loadGenreItems = async () => {
     try {
@@ -76,11 +76,15 @@ export const GenreLibraryDialog = ({
 
       // 1. Fetch from database media_files (Primary source)
       if (genreKey) {
+        console.log(`[GenreLibraryDialog] Loading genre: "${genreKey}"`);
         const { data: dbMedia, error: dbError } = await supabase
           .from("media_files")
           .select("*")
           .ilike("genre", genreKey) // Use ilike for case-insensitive matching
           .eq("type", "audio");
+
+        if (dbError) console.error("[GenreLibraryDialog] Error fetching media:", dbError);
+        else console.log(`[GenreLibraryDialog] Found ${dbMedia?.length} items for "${genreKey}"`);
 
         if (!dbError && dbMedia) {
           dbMedia.forEach((m) => {
