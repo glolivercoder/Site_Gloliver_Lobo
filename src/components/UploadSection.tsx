@@ -78,6 +78,7 @@ export const UploadSection = () => {
   const [mediaType, setMediaType] = useState<"image" | "audio" | "video">(
     "video",
   );
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState<{
     value: string;
@@ -238,6 +239,41 @@ export const UploadSection = () => {
     }
   };
 
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    // Validate image
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, selecione apenas arquivos de imagem.");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `thumb_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${user?.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const url = getSupabaseUrl("media", filePath);
+      if (url) {
+        setThumbnailUrl(url);
+        toast.success("Capa carregada!");
+      }
+    } catch (err: any) {
+      console.error("Erro upload thumbnail:", err);
+      toast.error("Erro ao carregar capa.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleAddToFeatured = async () => {
     if (!isAdmin) {
       toast.error("Apenas administradores podem gerenciar destaques.");
@@ -286,6 +322,7 @@ export const UploadSection = () => {
         genre: selectedGenre?.value,
         featuredKey: selectedFeatured?.value,
         pageKey: selectedPage?.value,
+        thumbnail: thumbnailUrl || null,
       };
 
       pages[pageIndex][slotIndex] = newItem;
@@ -561,6 +598,24 @@ export const UploadSection = () => {
                 </div>
               </div>
 
+              <div>
+                <Label className="text-foreground block mb-2">Capa do Destaque (Thumbnail) - Opcional</Label>
+                <div className="mt-2 flex items-center gap-4">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThumbnailUpload}
+                    className="bg-background/50 border-golden/20 flex-1"
+                  />
+                  {thumbnailUrl && (
+                    <div className="text-xs text-green-500 font-bold border border-green-500 px-2 py-1 rounded">
+                      Capa OK
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">Se não enviar, será usada a capa padrão.</p>
+              </div>
+
               <Button
                 onClick={handleAddToFeatured}
                 className="w-full mt-4 bg-primary hover:bg-primary/90 text-white"
@@ -611,6 +666,6 @@ export const UploadSection = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </section>
+    </section >
   );
 };

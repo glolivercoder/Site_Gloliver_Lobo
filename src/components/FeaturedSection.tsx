@@ -136,9 +136,11 @@ export const FeaturedSection = () => {
         return page.map((item: any, index: number) => ({
           ...item,
           image:
-            item && item.type === "image" && item.url
-              ? item.url
-              : defaultFeatured[index % 8]?.image || defaultFeatured[0].image,
+            item?.thumbnail
+              ? item.thumbnail
+              : item && item.type === "image" && item.url
+                ? item.url
+                : defaultFeatured[index % 8]?.image || defaultFeatured[0].image,
         }));
       });
     }
