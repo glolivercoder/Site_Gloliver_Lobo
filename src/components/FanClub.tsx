@@ -3,20 +3,17 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Pencil, X, Loader2 } from "lucide-react";
-import { pb, getPbImageUrl } from "@/lib/pocketbase";
+import { Pencil, X, Loader2, Upload } from "lucide-react"; // Added Upload icon import
 import { useAuth } from "@/contexts/AuthContext";
-import { ClientResponseError } from "pocketbase";
+import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 type GalleryItem = {
   id: string;
-  collectionId: string;
-  collectionName: string;
   title: string;
   type: "image" | "video";
-  media: string; // Filename in PB
+  media_path?: string; // Supabase Path
   external_url?: string;
-  created: string;
+  created_at: string;
 };
 
 export const FanClub = () => {
@@ -28,8 +25,8 @@ export const FanClub = () => {
   const [photoTitle, setPhotoTitle] = useState("");
   const [videoTitle, setVideoTitle] = useState("");
   const [loading, setLoading] = useState(false);
-  const [dragPhoto, setDragPhoto] = useState(false);
-  const [dragVideo, setDragVideo] = useState(false);
+  const [dragPhoto, setDragPhoto] = useState(false); // Define state
+  const [dragVideo, setDragVideo] = useState(false); // Define state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingType, setEditingType] = useState<"image" | "video" | null>(
     null,
@@ -38,34 +35,34 @@ export const FanClub = () => {
 
   const loadPosts = async () => {
     try {
-      // Ensure specific sorting
-      const resultList = await pb
-        .collection("fan_club_posts")
-        .getList<GalleryItem>(1, 200, {
-          sort: "-created",
-        });
+      const { data, error } = await supabase
+        .from("fan_club_posts")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      const p = resultList.items.filter((item) => item.type === "image");
-      const v = resultList.items.filter((item) => item.type === "video");
+      if (error) throw error;
 
-      setPhotos(p);
-      setVideos(v);
+      if (data) {
+        setPhotos(data.filter((i) => i.type === "image"));
+        setVideos(data.filter((i) => i.type === "video"));
+      }
     } catch (error) {
-      // Silent fail if collection doesn't exist yet (first run) or net error
       console.error("Error loading fan club posts:", error);
     }
   };
 
   useEffect(() => {
     loadPosts();
-    // Subscribe to realtime updates
-    pb.collection("fan_club_posts").subscribe("*", (e) => {
-      // Ideally optimistic update, but reloading is safer for now
-      loadPosts();
-    });
+    // Realtime subscription
+    const channel = supabase
+      .channel('fan_club_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fan_club_posts' }, () => {
+        loadPosts();
+      })
+      .subscribe();
 
     return () => {
-      pb.collection("fan_club_posts").unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -78,12 +75,17 @@ export const FanClub = () => {
   const saveEdit = async () => {
     if (!editingId) return;
     try {
-      await pb.collection("fan_club_posts").update(editingId, {
-        title: editingText,
-      });
+      const { error } = await supabase
+        .from("fan_club_posts")
+        .update({ title: editingText })
+        .eq('id', editingId);
+
+      if (error) throw error;
+
       toast.success("Legenda atualizada");
       setEditingId(null);
       setEditingText("");
+      loadPosts(); // Refresh manually just in case
     } catch (error) {
       toast.error("Erro ao atualizar legenda");
     }
@@ -92,8 +94,17 @@ export const FanClub = () => {
   const deleteItem = async (item: GalleryItem) => {
     if (!confirm("Deseja excluir este item?")) return;
     try {
-      await pb.collection("fan_club_posts").delete(item.id);
+      // Delete from DB
+      const { error } = await supabase.from("fan_club_posts").delete().eq('id', item.id);
+      if (error) throw error;
+
+      // Delete from Storage if it exists
+      if (item.media_path) {
+        await supabase.storage.from('fan_club').remove([item.media_path]);
+      }
+
       toast.success("Item excluído");
+      loadPosts();
     } catch (error) {
       toast.error("Erro ao excluir item");
     }
@@ -111,23 +122,34 @@ export const FanClub = () => {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("media", file);
-      formData.append("type", type);
-      formData.append("title", title || file.name.replace(/\.[^/.]+$/, ""));
-      formData.append("author", user?.id || "");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${type}s/${fileName}`; // Organize in folders
 
-      await pb.collection("fan_club_posts").create(formData);
+      const { error: uploadError } = await supabase.storage
+        .from('fan_club')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { error: dbError } = await supabase.from('fan_club_posts').insert({
+        title: title || file.name,
+        type: type,
+        author_id: user?.id,
+        media_path: filePath
+      });
+
+      if (dbError) throw dbError;
 
       toast.success(
         `${type === "image" ? "Imagem" : "Vídeo"} adicionado ao Fã Clube`,
       );
       if (type === "image") setPhotoTitle("");
       else setVideoTitle("");
-    } catch (e) {
-      const err = e as ClientResponseError;
-      console.error(err);
-      toast.error(`Falha ao enviar: ${err.message}`);
+      loadPosts();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(`Falha ao enviar: ${e.message}`);
     } finally {
       setLoading(false);
     }
@@ -145,12 +167,15 @@ export const FanClub = () => {
     if (!url) return;
 
     try {
-      await pb.collection("fan_club_posts").create({
+      const { error } = await supabase.from('fan_club_posts').insert({
         type,
         title: title || (type === "image" ? "Imagem" : "Vídeo"),
         external_url: url,
-        author: user?.id,
+        author_id: user?.id,
       });
+
+      if (error) throw error;
+
       toast.success(
         `${type === "image" ? "Imagem" : "Vídeo"} externa adicionada`,
       );
@@ -161,27 +186,23 @@ export const FanClub = () => {
         setVideoUrl("");
         setVideoTitle("");
       }
-    } catch (e) {
-      toast.error("Erro ao salvar URL: " + (e as Error).message);
+      loadPosts();
+    } catch (e: any) {
+      toast.error("Erro ao salvar URL: " + e.message);
     }
   };
 
   // --- RENDER HELPERS ---
 
   const ImageCard = ({ item }: { item: GalleryItem }) => {
-    // If external URL, use it. Else use PB URL.
-    const src =
-      item.external_url ||
-      (item.media
-        ? getPbImageUrl(item.collectionId, item.id, item.media, "500x500")
-        : null);
+    const src = item.external_url || (item.media_path ? getSupabaseUrl('fan_club', item.media_path) : "");
 
     return (
       <Card className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all">
         <div className="aspect-square relative">
           {src ? (
             <img
-              src={src || ""}
+              src={src}
               alt={item.title}
               className="w-full h-full object-cover"
             />
@@ -239,17 +260,12 @@ export const FanClub = () => {
   };
 
   const VideoCard = ({ item }: { item: GalleryItem }) => {
-    const src =
-      item.external_url ||
-      (item.media
-        ? getPbImageUrl(item.collectionId, item.id, item.media)
-        : null);
+    const src = item.external_url || (item.media_path ? getSupabaseUrl('fan_club', item.media_path) : "");
 
     return (
       <Card className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all">
         <div className="aspect-square relative">
           {src ? (
-            // Simple video tag for file uploads, iframe logic for external providers would be more complex but sticking to simple video/url for now
             item.external_url ? (
               <div className="w-full h-full flex items-center justify-center bg-black">
                 <a
@@ -263,7 +279,7 @@ export const FanClub = () => {
               </div>
             ) : (
               <video
-                src={src || ""}
+                src={src}
                 controls
                 className="w-full h-full object-cover"
               />

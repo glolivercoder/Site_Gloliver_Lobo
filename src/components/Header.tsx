@@ -125,15 +125,13 @@ export const Header = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-golden/20" />
 
-                  {isAdmin && (
-                    <DropdownMenuItem
-                      onClick={() => navigate("/settings")}
-                      className="cursor-pointer hover:bg-golden/10 hover:text-golden"
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Configurações</span>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem
+                    onClick={() => navigate("/settings")}
+                    className="cursor-pointer hover:bg-golden/10 hover:text-golden"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer hover:bg-destructive/10 hover:text-destructive"
@@ -200,18 +198,16 @@ export const Header = () => {
                     </button>
                   ) : (
                     <>
-                      {isAdmin && (
-                        <button
-                          onClick={() => {
-                            setIsOpen(false);
-                            navigate("/settings");
-                          }}
-                          className="text-left text-lg text-foreground/80 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-golden/10 flex items-center gap-2"
-                        >
-                          <Settings className="w-4 h-4" />
-                          Configurações
-                        </button>
-                      )}
+                      <button
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/settings");
+                        }}
+                        className="text-left text-lg text-foreground/80 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-golden/10 flex items-center gap-2"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Configurações
+                      </button>
                       <button
                         onClick={() => {
                           setIsOpen(false);

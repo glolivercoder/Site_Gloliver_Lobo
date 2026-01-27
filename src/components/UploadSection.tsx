@@ -20,12 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  saveMediaFile,
-  cleanupOldFilesByAge,
-  listMediaFilesMeta,
-  getMediaUrl,
-} from "@/utils/storage";
+// Removed legacy storage utils
 import {
   Dialog,
   DialogContent,
@@ -35,8 +30,8 @@ import {
 } from "@/components/ui/dialog";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSiteConfig } from "@/hooks/useSiteConfig";
-import { pb, getPbImageUrl } from "@/lib/pocketbase";
+// Removed useSiteConfig
+import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 // Define the genre options
 const genreOptions = [
@@ -71,13 +66,16 @@ const pageOptions = [
 ];
 
 export const UploadSection = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isBlocked } = useAuth(); // Using correct AuthContext
   const [dragActive, setDragActive] = useState(false);
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaTitle, setMediaTitle] = useState("");
   const [mediaType, setMediaType] = useState<"image" | "audio" | "video">(
     "video",
   );
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [currentFileId, setCurrentFileId] = useState<string | null>(null); // Track uploaded file ID
+
   const [isUploading, setIsUploading] = useState(false);
   const [selectedGenre, setSelectedGenre] = useState<{
     value: string;
@@ -92,36 +90,17 @@ export const UploadSection = () => {
     label: string;
   } | null>(null);
 
-  // Replace localStorage logic with useSiteConfig
-  // Assuming the structure is an array of arrays (pages -> slots)
-  const { data: featuredPages, save: saveFeaturedPages } = useSiteConfig<
-    any[][]
-  >("featured_pages", []);
-
-  const [libraryItems, setLibraryItems] = useState<
-    Array<{
-      id: string;
-      title: string;
-      type: string;
-      genre?: string;
-      fileId?: string;
-      externalUrl?: string;
-      isMissing?: boolean;
-    }>
-  >([]);
+  const [libraryItems, setLibraryItems] = useState<any[]>([]);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [selectedLibraryItem, setSelectedLibraryItem] = useState<any>(null);
 
-  // Clean up old files on component mount
   useEffect(() => {
-    // NOTA: Limpeza automática desativada
-    loadLibraryFromConfig();
-  }, [featuredPages]); // Reload library when config changes
+    loadLibrary();
+  }, [user]);
 
   // Ao selecionar um gênero, abrir a biblioteca diretamente para facilitar
   useEffect(() => {
     if (selectedGenre) {
-      // Abre a biblioteca se houver itens para o gênero selecionado
       const hasItems = libraryItems.some(
         (i) => i.genre === selectedGenre.value,
       );
@@ -150,10 +129,21 @@ export const UploadSection = () => {
   };
 
   const handleFile = async (file: File) => {
-    if (!isAdmin) {
-      toast.error("Apenas administradores podem fazer upload.");
+    if (!user) {
+      toast.error("Você precisa estar logado.");
       return;
     }
+    if (isBlocked) {
+      toast.error("Conta bloqueada.");
+      return;
+    }
+
+    // Check size limit for non-admin
+    if (!isAdmin && file.size > 10 * 1024 * 1024) {
+      toast.error("Limite de 10MB para uploads de fãs.");
+      return;
+    }
+
     const type = file.type.startsWith("image/")
       ? "image"
       : file.type.startsWith("audio/")
@@ -162,26 +152,43 @@ export const UploadSection = () => {
 
     setIsUploading(true);
     try {
-      // Upload to PocketBase 'media_files' collection
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("title", file.name.replace(/\.[^/.]+$/, ""));
-      formData.append("uploaded_by", user?.id || "");
-      formData.append("type", type); // If your schema supports it, strictly helpful for filtering
+      // 1. Upload to Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
-      const record = await pb.collection("media_files").create(formData);
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, file);
 
-      // Construct public URL
-      // Note: For audio/video, standard file serving works.
-      const url = getPbImageUrl(record.collectionId, record.id, record.file);
+      if (uploadError) throw uploadError;
 
-      setMediaUrl(url);
+      // 2. Insert into media_files
+      const { data: record, error: dbError } = await supabase
+        .from("media_files")
+        .insert({
+          file_path: filePath,
+          title: file.name.replace(/\.[^/.]+$/, ""),
+          uploaded_by: user.id,
+          type,
+          genre: selectedGenre?.value || null
+        })
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
+
+      // 3. Set state
+      const publicUrl = getSupabaseUrl('media', filePath);
+      setMediaUrl(publicUrl);
       setMediaType(type);
-      setMediaTitle(file.name.replace(/\.[^/.]+$/, ""));
-      toast.success(`${file.name} carregado! Adicione aos destaques abaixo.`);
-    } catch (error) {
-      console.error("Erro ao carregar arquivo:", error);
-      toast.error("Erro ao fazer upload para o servidor.");
+      setMediaTitle(record.title);
+      setCurrentFileId(record.id);
+
+      toast.success(`${file.name} carregado!`);
+    } catch (error: any) {
+      console.error("Erro upload:", error);
+      toast.error(`Erro: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -193,134 +200,99 @@ export const UploadSection = () => {
     }
   };
 
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+    const file = e.target.files[0];
+
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `thumb_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error } = await supabase.storage.from('media').upload(filePath, file);
+      if (error) throw error;
+
+      const url = getSupabaseUrl('media', filePath);
+      setThumbnailUrl(url);
+      toast.success("Capa carregada!");
+    } catch (e) {
+      toast.error("Erro na capa.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleAddToFeatured = async () => {
     if (!isAdmin) {
-      toast.error("Apenas administradores podem gerenciar destaques.");
+      toast.error("Administrador requerido.");
       return;
     }
     if (!mediaUrl || !mediaTitle) {
-      toast.error("Adicione uma URL e título primeiro.");
+      toast.error("Adicione URL e Título.");
       return;
     }
-
     if (!selectedGenre || !selectedFeatured || !selectedPage) {
-      toast.error("Preencha todos os campos obrigatórios.");
+      toast.error("Preencha todos os campos.");
       return;
     }
 
     setIsUploading(true);
 
     try {
-      // Clone current pages or initialize
-      let pages = [...(featuredPages || [])];
+      const pageIndex = Number((selectedPage?.value || "pagina1").replace("pagina", "")) - 1;
+      const slotIndex = Number((selectedFeatured?.value || "destaque1").replace("destaque", "")) - 1;
 
-      const pageIndex =
-        Number((selectedPage?.value || "pagina1").replace("pagina", "")) - 1;
-      const slotIndex =
-        Number(
-          (selectedFeatured?.value || "destaque1").replace("destaque", ""),
-        ) - 1;
-
-      // Garantir que a página exista com 8 slots (e páginas anteriores também)
-      for (let i = 0; i <= pageIndex; i++) {
-        if (!pages[i]) {
-          pages[i] = Array(8)
-            .fill(null)
-            .map((_, idx) => ({
-              id: i * 8 + idx + 1,
-              title: `Destaque ${i * 8 + idx + 1}`,
-              url: "",
-              type: "video",
-            }));
-        }
-      }
-
-      const newItem = {
-        id: pages[pageIndex][slotIndex]?.id ?? Date.now(),
-        title: mediaTitle.trim(),
-        url: mediaUrl.trim(),
+      // Insert into featured_slots
+      const payload = {
+        page_index: pageIndex,
+        slot_index: slotIndex,
+        custom_title: mediaTitle.trim(),
+        external_url: mediaUrl.trim(),
         type: mediaType,
-        genre: selectedGenre?.value,
-        featuredKey: selectedFeatured?.value,
-        pageKey: selectedPage?.value,
+        thumbnail_url: thumbnailUrl || null,
+        media_file_id: currentFileId || null // Try to link if we just uploaded it
+        // If User pastes YouTube URL, currentFileId is null, works as external_url
       };
 
-      pages[pageIndex][slotIndex] = newItem;
+      const { error } = await supabase.from('featured_slots').upsert(payload, {
+        onConflict: 'page_index, slot_index'
+      });
 
-      await saveFeaturedPages(pages);
+      if (error) throw error;
 
-      toast.success("Adicionado aos destaques com sucesso!");
-
-      // Limpar formulário (opcional, mantendo mediaUrl/Title)
-    } catch (error) {
-      console.error("Erro ao adicionar aos destaques:", error);
-      toast.error("Não foi possível adicionar aos destaques.");
+      toast.success("Destaque atualizado com sucesso!");
+      loadLibrary(); // Refresh library
+    } catch (error: any) {
+      console.error("Featured Error:", error);
+      toast.error(`Erro ao salvar destaque: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const loadLibraryFromConfig = async () => {
+  const loadLibrary = async () => {
     try {
-      const items: Array<{
-        id: string;
-        title: string;
-        type: string;
-        genre?: string;
-        fileId?: string;
-        externalUrl?: string;
-        isMissing?: boolean;
-      }> = [];
+      const { data, error } = await supabase
+        .from('media_files')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      // Obter lista de arquivos que realmente existem no IndexedDB
-      const meta = await listMediaFilesMeta();
-      const existingFileIds = new Set(meta.map((m) => m.id));
+      if (error) throw error;
 
-      if (featuredPages && Array.isArray(featuredPages)) {
-        featuredPages.forEach((page) => {
-          (page || []).forEach((item) => {
-            if (item && item.type === "audio" && item.url) {
-              const isLocal =
-                typeof item.url === "string" && item.url.startsWith("file_");
-              const isMissing = isLocal && !existingFileIds.has(item.url);
-              items.push({
-                id: String(item.id || item.url),
-                title: String(item.title || item.name || "Sem título"),
-                type: "audio",
-                genre: item.genre,
-                fileId: isLocal ? item.url : undefined,
-                externalUrl: !isLocal ? item.url : undefined,
-                isMissing,
-              });
-            }
-          });
-        });
+      if (data) {
+        const items = data.map(m => ({
+          id: m.id,
+          title: m.title,
+          type: m.type,
+          genre: m.genre,
+          externalUrl: getSupabaseUrl('media', m.file_path),
+          isMissing: false // Assumed false for DB items
+        }));
+        setLibraryItems(items);
       }
-
-      // Incluir arquivos de áudio do IndexedDB não listados nos destaques?
-      // Mantendo lógica original, mas agora usando dados do config
-      const audioMeta = meta.filter((m) => (m.type || "").startsWith("audio/"));
-      const knownIds = new Set(
-        items.map((i) => i.fileId).filter(Boolean) as string[],
-      );
-      audioMeta.forEach((m) => {
-        if (!knownIds.has(m.id)) {
-          items.push({
-            id: m.id,
-            title: (m.name || "").replace(/\.[^/.]+$/, "") || "Sem título",
-            type: "audio",
-            genre: undefined,
-            fileId: m.id,
-            isMissing: false,
-          });
-        }
-      });
-
-      // Ordenar por gênero
-      items.sort((a, b) => (a.genre || "").localeCompare(b.genre || ""));
-      setLibraryItems(items);
     } catch (error) {
-      console.error("Erro ao carregar biblioteca:", error);
+      console.error("Erro library:", error);
     }
   };
 
@@ -329,256 +301,235 @@ export const UploadSection = () => {
   };
 
   const handlePlayLibraryItem = async (item: any) => {
-    if (item.isMissing) {
-      toast.error(
-        "Este arquivo foi removido. Faça upload novamente na Área de Upload.",
-        { duration: 5000 },
-      );
-      return;
-    }
-
-    try {
-      let url = item.externalUrl || "";
-      if (item.fileId) {
-        const blobUrl = await getMediaUrl(item.fileId);
-        if (!blobUrl) {
-          toast.error(
-            "Arquivo não encontrado no navegador. Faça upload novamente.",
-            { duration: 5000 },
-          );
-          return;
-        }
-        url = blobUrl;
-      }
-      setSelectedLibraryItem({ ...item, url, type: "audio" });
-    } catch (e) {
-      console.error("Erro ao preparar reprodução da biblioteca:", e);
-      toast.error("Falha ao abrir música da biblioteca");
-    }
+    setSelectedLibraryItem({ ...item, url: item.externalUrl });
   };
 
-  if (!isAdmin && user) {
-    // User is logged in but not admin
-    return (
-      <section className="py-24 px-6 relative">
-        <div className="container mx-auto max-w-6xl text-center text-muted-foreground">
-          <h2 className="text-3xl text-golden mb-4">Área Restrita</h2>
-          <p>Apenas administradores podem acessar a área de upload.</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (!user) {
-    // Not logged in
-    return null;
-  }
+  // REMOVING EARLY RETURN to show Debug Panel
+  // if (!user) return null;
 
   return (
     <section className="py-24 px-6 relative">
       <div className="container mx-auto max-w-6xl">
         <h2 className="text-4xl md:text-5xl font-bold text-center mb-16 text-primary">
-          Área de Upload
+          {isAdmin ? "Área de Gerenciamento" : "Galeria dos Fãs"}
         </h2>
 
-        <Card
-          className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${dragActive ? "border-primary bg-primary/5" : "border-border/50"}`}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onDragOver={handleDrag}
-          onDrop={handleDrop}
-        >
-          <div className="text-center">
-            <Upload className="w-16 h-16 mx-auto mb-6 text-primary" />
-
-            <h3 className="text-2xl font-semibold mb-4 text-foreground">
-              Arraste arquivos aqui
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              ou clique para selecionar do seu computador
-            </p>
-            <Input
-              type="file"
-              accept="image/*,audio/*,video/*"
-              onChange={handleFileInput}
-              className="hidden"
-              id="file-upload"
-            />
-
-            <label htmlFor="file-upload">
-              <Button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                asChild
-              >
-                <span>Selecionar Arquivos</span>
-              </Button>
-            </label>
-            <p className="text-sm text-muted-foreground mt-4">
-              Suporta: JPG, PNG, MP3, WAV, MP4
-            </p>
+        {!user ? (
+          <div className="text-center p-12 border border-destructive/50 rounded-lg bg-destructive/10 mb-8">
+            <h3 className="text-2xl font-bold text-destructive mb-4">Acesso Restrito</h3>
+            <p className="text-muted-foreground">Você precisa estar logado para fazer uploads.</p>
+            <div className="mt-4 text-sm opacity-70">
+              Verifique o painel de debug abaixo para detalhes.
+            </div>
           </div>
-        </Card>
+        ) : (
+          <Card
+            className={`p-12 bg-card/50 backdrop-blur-sm border-2 border-dashed transition-all ${dragActive ? "border-primary bg-primary/5" : "border-border/50"}`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <div className="text-center">
+              <Upload className="w-16 h-16 mx-auto mb-6 text-primary" />
 
-        <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 mt-8">
-          <h3 className="text-2xl font-semibold mb-6 text-foreground">
-            Adicionar URL de Mídia
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="media-url" className="text-foreground">
-                URL (YouTube, Spotify, SoundCloud, etc.)
-              </Label>
-              <div className="flex gap-2 mt-2">
-                <LinkIcon className="w-5 h-5 text-muted-foreground mt-2.5" />
+              <h3 className="text-2xl font-semibold mb-4 text-foreground">
+                Arraste arquivos aqui
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                ou clique para selecionar do seu computador
+              </p>
+              <Input
+                type="file"
+                accept="image/*,audio/*,video/*"
+                onChange={handleFileInput}
+                className="hidden"
+                id="file-upload"
+              />
 
+              <label htmlFor="file-upload">
+                <Button
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  asChild
+                >
+                  <span>Selecionar Arquivos</span>
+                </Button>
+              </label>
+              <p className="text-sm text-muted-foreground mt-4">
+                Suporta: JPG, PNG, MP3, WAV, MP4
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {user && (
+          <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50 mt-8">
+            <h3 className="text-2xl font-semibold mb-6 text-foreground">
+              Adicionar URL de Mídia
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="media-url" className="text-foreground">
+                  URL (YouTube, Spotify, SoundCloud, etc.)
+                </Label>
+                <div className="flex gap-2 mt-2">
+                  <LinkIcon className="w-5 h-5 text-muted-foreground mt-2.5" />
+
+                  <Input
+                    id="media-url"
+                    placeholder="https://youtube.com/watch?v=... ou https://soundcloud.com/..."
+                    value={mediaUrl}
+                    onChange={(e) => setMediaUrl(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="media-title" className="text-foreground">
+                  Título da Música/Vídeo
+                </Label>
                 <Input
-                  id="media-url"
-                  placeholder="https://youtube.com/watch?v=... ou https://soundcloud.com/..."
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  className="flex-1"
+                  id="media-title"
+                  placeholder="Nome da faixa"
+                  value={mediaTitle}
+                  onChange={(e) => setMediaTitle(e.target.value)}
+                  className="mt-2"
                 />
               </div>
-            </div>
-            <div>
-              <Label htmlFor="media-title" className="text-foreground">
-                Título da Música/Vídeo
-              </Label>
-              <Input
-                id="media-title"
-                placeholder="Nome da faixa"
-                value={mediaTitle}
-                onChange={(e) => setMediaTitle(e.target.value)}
-                className="mt-2"
-              />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label className="text-foreground block mb-2">
-                  Gênero Musical
-                </Label>
-                <div className="flex gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-foreground block mb-2">
+                    Gênero Musical
+                  </Label>
+                  <div className="flex gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
+                          {selectedGenre
+                            ? selectedGenre.label
+                            : "Selecione um gênero"}
+                          <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[200px]">
+                        {genreOptions.map((genre) => (
+                          <DropdownMenuItem
+                            key={genre.value}
+                            onClick={() => setSelectedGenre(genre)}
+                            className="cursor-pointer"
+                          >
+                            {genre.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      className="text-primary"
+                      onClick={handleOpenLibraryFromGenre}
+                    >
+                      Ver músicas salvas
+                    </Button>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-foreground block mb-2">Destaque</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
                         className="w-full justify-between"
                       >
-                        {selectedGenre
-                          ? selectedGenre.label
-                          : "Selecione um gênero"}
+                        {selectedFeatured
+                          ? selectedFeatured.label
+                          : "Selecione o destaque"}
                         <ChevronDown className="ml-2 h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-[200px]">
-                      {genreOptions.map((genre) => (
+                      {featuredOptions.map((featured) => (
                         <DropdownMenuItem
-                          key={genre.value}
-                          onClick={() => setSelectedGenre(genre)}
+                          key={featured.value}
+                          onClick={() => setSelectedFeatured(featured)}
                           className="cursor-pointer"
                         >
-                          {genre.label}
+                          {featured.label}
                         </DropdownMenuItem>
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button
-                    variant="ghost"
-                    className="text-primary"
-                    onClick={handleOpenLibraryFromGenre}
-                  >
-                    Ver músicas salvas
-                  </Button>
+                </div>
+
+                <div>
+                  <Label className="text-foreground block mb-2">Página</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        {selectedPage ? selectedPage.label : "Selecione a página"}
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[200px]">
+                      {pageOptions.map((page) => (
+                        <DropdownMenuItem
+                          key={page.value}
+                          onClick={() => setSelectedPage(page)}
+                          className="cursor-pointer"
+                        >
+                          {page.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
               <div>
-                <Label className="text-foreground block mb-2">Destaque</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {selectedFeatured
-                        ? selectedFeatured.label
-                        : "Selecione o destaque"}
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[200px]">
-                    {featuredOptions.map((featured) => (
-                      <DropdownMenuItem
-                        key={featured.value}
-                        onClick={() => setSelectedFeatured(featured)}
-                        className="cursor-pointer"
-                      >
-                        {featured.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Label className="text-foreground block mb-2">Capa Personalizada (Thumbnail)</Label>
+                <Input type="file" accept="image/*" onChange={handleThumbnailUpload} />
+                {thumbnailUrl && <span className="text-xs text-green-500">Capa Carregada</span>}
               </div>
 
               <div>
-                <Label className="text-foreground block mb-2">Página</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {selectedPage ? selectedPage.label : "Selecione a página"}
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[200px]">
-                    {pageOptions.map((page) => (
-                      <DropdownMenuItem
-                        key={page.value}
-                        onClick={() => setSelectedPage(page)}
-                        className="cursor-pointer"
-                      >
-                        {page.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Label htmlFor="media-type" className="text-foreground">
+                  Tipo de Mídia
+                </Label>
+                <select
+                  id="media-type"
+                  value={mediaType}
+                  onChange={(e) => setMediaType(e.target.value as any)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2 text-foreground"
+                >
+                  <option value="video">Vídeo</option>
+                  <option value="audio">Áudio</option>
+                  <option value="image">Imagem</option>
+                </select>
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="media-type" className="text-foreground">
-                Tipo de Mídia
-              </Label>
-              <select
-                id="media-type"
-                value={mediaType}
-                onChange={(e) => setMediaType(e.target.value as any)}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2 text-foreground"
+              <Button
+                onClick={handleAddToFeatured}
+                className="w-full mt-4 bg-primary hover:bg-primary/90 text-white"
+                disabled={isUploading}
               >
-                <option value="video">Vídeo</option>
-                <option value="audio">Áudio</option>
-                <option value="image">Imagem</option>
-              </select>
+                {isUploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  "Adicionar aos Destaques / Enviar"
+                )}
+              </Button>
             </div>
-            <Button
-              onClick={handleAddToFeatured}
-              className="w-full mt-4 bg-primary hover:bg-primary/90 text-white"
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processando...
-                </>
-              ) : (
-                "Adicionar aos Destaques"
-              )}
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Biblioteca de Músicas Salvas */}
         <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
@@ -603,21 +554,15 @@ export const UploadSection = () => {
                   .map((item) => (
                     <Card
                       key={item.id}
-                      className={`p-3 border-border/50 cursor-pointer ${
-                        item.isMissing
-                          ? "bg-destructive/10 border-destructive/30 hover:border-destructive/50"
-                          : "bg-card/70 hover:border-primary/50"
-                      }`}
+                      className={`p-3 border-border/50 cursor-pointer ${"bg-card/70 hover:border-primary/50"
+                        }`}
                       onClick={() => handlePlayLibraryItem(item)}
                     >
                       <div className="flex items-center justify-between">
                         <div>
                           <div
-                            className={`font-medium truncate flex items-center gap-2 ${item.isMissing ? "text-destructive" : "text-foreground"}`}
+                            className={`font-medium truncate flex items-center gap-2 text-foreground`}
                           >
-                            {item.isMissing && (
-                              <AlertTriangle className="w-4 h-4" />
-                            )}
                             {item.title}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -685,6 +630,46 @@ export const UploadSection = () => {
             </div>
           </DialogContent>
         </Dialog>
+        {/* --- MONITORING SYSTEM (DEBUG PANEL) --- */}
+        <Card className="mt-16 p-6 border-destructive/50 bg-destructive/10">
+          <h3 className="text-xl font-bold text-destructive mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Sistema de Monitoramento (Debug)
+          </h3>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p><strong>Status da Sessão:</strong> {user ? "🟢 Logado via Supabase Auth" : "🔴 Desconectado"}</p>
+            <p><strong>Email Detectado:</strong> {user?.email || "N/A"}</p>
+            <p><strong>Admin Status:</strong> {isAdmin ? "🟢 Admin Confirmado" : `🔴 Não Admin (Esperado: gloliverlobo@gmail.com)`}</p>
+
+            <div className="mt-4 pt-4 border-t border-destructive/20">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.from('featured_slots').upsert({
+                      page_index: 99,
+                      slot_index: 0,
+                      custom_title: "DEBUG_WRITE_TEST",
+                      type: "video"
+                    });
+                    if (error) throw error;
+                    toast.success("✅ TESTE BEM SUCEDIDO! Permissão de Gravação OK.");
+                    await supabase.from('featured_slots').delete().match({ page_index: 99 });
+                  } catch (e: any) {
+                    toast.error(`❌ FALHA: ${e.message}`);
+                    console.error(e);
+                  }
+                }}
+              >
+                Testar Permissão de Gravação (Banco de Dados)
+              </Button>
+              <p className="mt-2 text-xs opacity-70">
+                Clique para tentar criar um registro de teste. Se falhar, é erro de RLS (SQL).
+              </p>
+            </div>
+          </div>
+        </Card>
       </div>
     </section>
   );

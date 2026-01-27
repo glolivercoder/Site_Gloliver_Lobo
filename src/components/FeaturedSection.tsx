@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { Play, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -10,8 +10,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { AudioVisualizer } from "./AudioVisualizer";
-import { getMediaUrl } from "@/utils/storage";
 import { toast } from "sonner";
+import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 import featured1 from "@/assets/featured-1.jpg";
 import featured2 from "@/assets/featured-2.jpg";
@@ -33,7 +33,6 @@ const defaultFeatured = [
   { id: 8, title: "Provocação", image: featured8 },
 ];
 
-// Helper to render embedded player
 const MediaPlayer = ({
   url,
   type,
@@ -43,7 +42,6 @@ const MediaPlayer = ({
   type: string;
   waveformStyle?: "bars" | "wave" | "mirror" | "animatedBars";
 }) => {
-  // YouTube
   if (url.includes("youtube.com") || url.includes("youtu.be")) {
     const videoId = url.includes("youtu.be")
       ? url.split("youtu.be/")[1]?.split("?")[0]
@@ -60,7 +58,6 @@ const MediaPlayer = ({
     );
   }
 
-  // Spotify
   if (url.includes("spotify.com")) {
     const spotifyId = url.split("/").pop()?.split("?")[0];
     const type = url.includes("/track/")
@@ -79,7 +76,6 @@ const MediaPlayer = ({
     );
   }
 
-  // SoundCloud
   if (url.includes("soundcloud.com")) {
     return (
       <iframe
@@ -93,7 +89,6 @@ const MediaPlayer = ({
     );
   }
 
-  // Direct video or audio files
   if (type === "video" || url.match(/\.(mp4|webm|ogg)$/i)) {
     return <video src={url} controls autoPlay className="w-full h-full" />;
   }
@@ -110,10 +105,9 @@ const MediaPlayer = ({
     );
   }
 
-  // Fallback
   return (
     <div className="flex items-center justify-center h-full text-muted-foreground">
-      <p>Formato não suportado. Tente YouTube, Spotify ou SoundCloud.</p>
+      <p>Formato não suportado: {type}</p>
     </div>
   );
 };
@@ -121,77 +115,97 @@ const MediaPlayer = ({
 export const FeaturedSection = () => {
   const [allPages, setAllPages] = useState<any[][]>([defaultFeatured]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [waveformStyle, setWaveformStyle] = useState<
     "bars" | "wave" | "mirror" | "animatedBars"
   >("bars");
 
   useEffect(() => {
-    const loadFeatured = () => {
-      const stored = localStorage.getItem("featuredPages");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setAllPages(
-            parsed.map((page: any[]) =>
-              page.map((item: any, index: number) => ({
-                ...item,
-                image:
-                  item.type === "image" && item.url
-                    ? item.url
-                    : defaultFeatured[index % 8]?.image ||
-                      defaultFeatured[0].image,
-              })),
-            ),
-          );
-        } catch (e) {
-          console.error("Error loading featured:", e);
-        }
-      }
-    };
-
-    loadFeatured();
-    const loadAudioSettings = () => {
-      try {
-        const stored = localStorage.getItem("audioSettings");
-        if (stored) {
-          const s = JSON.parse(stored);
-          if (s && s.waveformStyle) setWaveformStyle(s.waveformStyle);
-        }
-      } catch {}
-    };
-    loadAudioSettings();
-    window.addEventListener("storage", loadFeatured);
-    window.addEventListener("storage", loadAudioSettings);
-    return () => {
-      window.removeEventListener("storage", loadFeatured);
-      window.removeEventListener("storage", loadAudioSettings);
-    };
+    fetchFeatured();
   }, []);
 
-  const handleMediaClick = async (item: any) => {
-    if (!item?.url) return;
+  async function fetchFeatured() {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('featured_slots')
+        .select(`
+            *,
+            media:media_files (
+                id,
+                title,
+                file_path,
+                type,
+                genre
+            )
+        `)
+        .order('id'); // Or order by page_index/slot_index locally
 
-    // Resolver arquivos locais salvos via IndexedDB
-    let urlToUse = item.url as string;
-    if (typeof urlToUse === "string" && urlToUse.startsWith("file_")) {
-      try {
-        const blobUrl = await getMediaUrl(urlToUse);
-        if (!blobUrl) {
-          toast.error("Arquivo local não encontrado.");
-          return;
+      if (error) throw error;
+
+      // Map to pages structure
+      const slots = data || [];
+      const maxPage = slots.length > 0 ? Math.max(...slots.map(s => s.page_index)) : 0;
+      const totalPages = maxPage + 1; // At least page 0
+
+      const newPages = [];
+      for (let p = 0; p < totalPages; p++) {
+        const pageItems = [];
+        for (let s = 0; s < 8; s++) {
+          const slot = slots.find(item => item.page_index === p && item.slot_index === s);
+          const defaultItem = defaultFeatured[s] || defaultFeatured[0];
+
+          if (slot) {
+            // Determine URL
+            let finalUrl = slot.external_url;
+            if (!finalUrl && slot.media?.file_path) {
+              finalUrl = getSupabaseUrl('media', slot.media.file_path);
+            }
+
+            // Determine Title
+            let finalTitle = slot.custom_title || slot.media?.title || defaultItem.title;
+
+            // Determine Image
+            let finalImage = slot.custom_thumbnail || slot.thumbnail_url || defaultItem.image;
+
+            pageItems.push({
+              id: slot.id,
+              title: finalTitle,
+              image: finalImage,
+              url: finalUrl,
+              type: slot.type || slot.media?.type || "video"
+            });
+          } else {
+            // Use Default
+            pageItems.push(defaultItem);
+          }
         }
-        urlToUse = blobUrl;
-      } catch (e) {
-        console.error("Erro ao obter URL do arquivo local:", e);
-        toast.error("Falha ao carregar arquivo local.");
-        return;
+        newPages.push(pageItems);
       }
-    }
+      setAllPages(newPages);
 
-    if (item.type === "audio" || item.type === "video") {
-      setSelectedMedia({ ...item, url: urlToUse });
+    } catch (err) {
+      console.error("Erro loading featured:", err);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  const handleMediaClick = async (item: any) => {
+    if (!item?.url) {
+      toast.info("Nenhuma mídia configurada para este item.");
+      return;
+    }
+    setSelectedMedia(item);
   };
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-golden" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -217,9 +231,9 @@ export const FeaturedSection = () => {
             {allPages.map((page, pageIndex) => (
               <TabsContent key={pageIndex} value={`page-${pageIndex}`}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                  {page.map((item) => (
+                  {page.map((item, idx) => (
                     <Card
-                      key={item.id}
+                      key={item.id || idx}
                       onClick={() => handleMediaClick(item)}
                       className="group relative overflow-hidden bg-deep-black/50 border-golden/20 backdrop-blur-sm hover:border-golden/60 transition-all duration-300 hover:scale-105 cursor-pointer"
                     >
@@ -266,11 +280,10 @@ export const FeaturedSection = () => {
             </DialogDescription>
           </DialogHeader>
           <div
-            className={`w-full bg-black rounded-lg overflow-hidden ${
-              selectedMedia?.type === "audio"
-                ? "max-h-[80vh] overflow-y-auto"
-                : "aspect-video"
-            }`}
+            className={`w-full bg-black rounded-lg overflow-hidden ${selectedMedia?.type === "audio"
+              ? "max-h-[80vh] overflow-y-auto"
+              : "aspect-video"
+              }`}
           >
             {selectedMedia?.url && (
               <MediaPlayer

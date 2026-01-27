@@ -35,7 +35,7 @@ export const LiveAudioVisualizer = ({
         let s: any = {};
         try {
           s = stored ? JSON.parse(stored) : {};
-        } catch {}
+        } catch { }
         analyser.fftSize = Number(s.liveAnalyzerFftSize || 256);
         analyser.smoothingTimeConstant = Number(s.liveAnalyzerSmoothing || 0.8);
         const bufferLength = analyser.frequencyBinCount; // 128
@@ -56,7 +56,7 @@ export const LiveAudioVisualizer = ({
           let s2: any = {};
           try {
             s2 = stored2 ? JSON.parse(stored2) : {};
-          } catch {}
+          } catch { }
           const height = Number(s2.liveHeight || 128);
           canvas.height = height;
           ctx.clearRect(0, 0, width, height);
@@ -93,7 +93,7 @@ export const LiveAudioVisualizer = ({
         if (autoPlay) {
           try {
             await audioEl.play();
-          } catch {}
+          } catch { }
         }
       } catch (e) {
         console.error("LiveAudioVisualizer error:", e);
@@ -107,13 +107,13 @@ export const LiveAudioVisualizer = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       try {
         sourceNode?.disconnect();
-      } catch {}
+      } catch { }
       try {
         analyser?.disconnect();
-      } catch {}
+      } catch { }
       try {
         audioCtx?.close();
-      } catch {}
+      } catch { }
     };
   }, [url, autoPlay, settingsVersion]);
 
@@ -138,7 +138,7 @@ export const LiveAudioVisualizer = ({
   const handleToggle = () => {
     const audioEl = audioRef.current;
     if (!audioEl) return;
-    if (audioEl.paused) audioEl.play().catch(() => {});
+    if (audioEl.paused) audioEl.play().catch(() => { });
     else audioEl.pause();
   };
 
