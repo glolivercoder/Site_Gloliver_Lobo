@@ -85,11 +85,11 @@ Este método é o mais potente (Cloudflare DNS), pois acelera o site e protege s
 Se o site te levar para `localhost:3000` ou para um endereço estranho (como `supabase.co/site...`) após o login, verifique:
 
 1. No **Supabase Dashboard**, vá em **Authentication** > **URL Configuration**.
-2. No campo **Site URL**, altere para o endereço do seu site **OBRIGATÓRIO incluir o https://**.
-   - ✅ CORRETO: `https://site-gloliver-lobo.pages.dev`
-   - ❌ ERRADO: `site-gloliver-lobo.pages.dev`
-3. No campo **Redirect URIs**, adicione também (com `https://`):
-   - `https://site-gloliver-lobo.pages.dev/**`
+2. No campo **Site URL**, coloque o endereço LIMPO do seu site (Sem asteriscos `/**`).
+   - ✅ CORRETO: `https://sitegloliverlobo.pages.dev`
+   - ❌ ERRADO: `https://sitegloliverlobo.pages.dev/**`
+3. No campo **Redirect URIs**, aí sim você coloca a versão com asteriscos:
+   - `https://sitegloliverlobo.pages.dev/**`
    - `https://www.gloliverlobo.com/**`
 4. Clique em **Save**.
 
@@ -117,11 +117,33 @@ Para o Facebook funcionar no Supabase, os passos são parecidos com o Google:
 
 1. Acesse o [Meta for Developers](https://developers.facebook.com/).
 2. Crie um novo App do tipo **"Permitir que as pessoas façam login com a conta do Facebook"**.
-3. No menu lateral, adicione o produto **Facebook Login**.
-4. Em **Configurações do Login**, adicione a **Valid OAuth Redirect URI** (a mesma que você usou no Google):
+4. Dentro de **Facebook Login** > **Configurações**, procure o campo **"URIs de redirecionamento do OAuth válidos"** (Fica logo no início) e adicione:
    - `https://trgvxjbazxripssubgit.supabase.co/auth/v1/callback`
-5. Vá em **Configurações > Painel** para pegar o **App ID** e **App Secret**.
+5. **Acesso Avançado (Obrigatório)**:
+   - No menu lateral, vá em **Análise do app** > **Permissões e recursos**.
+   - Procure por `public_profile` e clique em **Get Advanced Access** (Obter acesso avançado).
+   - Faça o mesmo para a permissão `email`.
+6. Vá em **Configurações > Básico** para configurar os Domínios e pegar o **App ID**.
 6. No **Supabase Dashboard**, vá em **Authentication > Providers > Facebook** e cole os códigos.
+
+### ⚠️ Resolvendo domínios que desaparecem:
+Se você salvar e os domínios sumirem do campo **"Domínios do aplicativo"**, é porque falta configurar a Plataforma:
+1. No final da mesma página (**Configurações > Básico**), clique em **"+ Adicionar plataforma"**.
+2. Selecione **Site**.
+3. No campo **URL do site**, coloque `https://site-gloliver-lobo.pages.dev` (⚠️ Verifique se o seu tem o hífen `-` ou não).
+4. Agora sim, clique em **Salvar Alterações** no final da página.
+
+### 🚩 Erro "OAuth state parameter missing":
+Se você logar e o site voltar com esse erro na URL, significa que o endereço onde você começou o login é diferente do endereço para onde o site voltou.
+- **A Solução**: Escolha APENAS UM endereço para o seu site (ou o com hífen ou o sem hífen).
+- No **Supabase**, no **Google Console** e no **Meta for Developers**, use sempre o mesmo.
+- Se o seu site termina em `sitegloliverlobo.pages.dev` (sem hífen), use esse em todos os lugares.
+- Se você já tem o domínio `gloliverlobo.com` ativo, use ele em todos os lugares.
+
+### 🚩 Erro "Domínio não incluído" (O Hífen):
+No seu último erro, a URL estava sem hífen (`sitegloliverlobo`), mas na sua configuração você colocou com hífen (`site-gloliver-lobo`).
+- Verifique qual é o endereço **real** que aparece na barra do seu navegador quando você abre o site.
+- Se o seu site for `site-gloliver-lobo.pages.dev`, ele deve ter o hífen em **TODOS** os lugares (Supabase, Cloudflare e Meta).
 
 ### Sobre o "Portfólio de Empresa":
 - **Não é obrigatório para começar**. Você pode criar o App como um desenvolvedor individual.
