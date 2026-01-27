@@ -173,12 +173,14 @@ export const UploadSection = () => {
       return;
     }
 
-    const type = file.type.startsWith("image/")
-      ? "image"
-      : file.type.startsWith("audio/")
-        ? "audio"
-        : "video";
+    // Auto-detect type
+    const mimeType = file.type;
+    let type: "audio" | "video" | "image" = "video";
+    if (mimeType.startsWith("audio/")) type = "audio";
+    else if (mimeType.startsWith("image/")) type = "image";
+    else if (mimeType.startsWith("video/")) type = "video";
 
+    setMediaType(type);
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
@@ -201,7 +203,8 @@ export const UploadSection = () => {
           file_path: filePath,
           title: file.name.replace(/\.[^/.]+$/, ""),
           uploaded_by: user?.id,
-          type
+          type,
+          genre: selectedGenre?.value || null // Using .value correctly
         })
         .select()
         .single();

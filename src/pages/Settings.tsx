@@ -385,11 +385,30 @@ const MediaManagement = () => {
   const loadMedia = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.from("media_files").select("*, profiles(email)").order("created_at", { ascending: false });
-      if (error) throw error;
-      setMedia(data || []);
+      // Try to join with profiles for better display
+      const { data, error } = await supabase
+        .from("media_files")
+        .select("*, profiles(email)")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        if (error.code === 'PGRST200') {
+          console.warn("Foreign key relationship missing for profiles join. Falling back to simple select.");
+          const { data: simpleData, error: simpleError } = await supabase
+            .from("media_files")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (simpleError) throw simpleError;
+          setMedia(simpleData || []);
+        } else {
+          throw error;
+        }
+      } else {
+        setMedia(data || []);
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Error loading media:", e);
+      toast.error("Erro ao carregar lista de mídias.");
     } finally {
       setLoading(false);
     }

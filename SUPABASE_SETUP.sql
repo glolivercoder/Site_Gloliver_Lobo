@@ -25,7 +25,7 @@ CREATE TABLE fan_club_posts (
   type TEXT NOT NULL, -- 'image' or 'video'
   media_path TEXT,
   external_url TEXT,
-  author_id UUID REFERENCES auth.users,
+  author_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -34,15 +34,16 @@ CREATE TABLE media_files (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   type TEXT NOT NULL, -- 'image', 'audio', 'video'
+  genre TEXT,
   file_path TEXT NOT NULL,
-  uploaded_by UUID REFERENCES auth.users,
+  uploaded_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 4.1 Create activity_logs table for notifications
 CREATE TABLE public.activity_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
   action TEXT NOT NULL, -- 'post', 'delete', 'block'
   details TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
@@ -136,7 +137,7 @@ WITH CHECK (
   bucket_id = 'media' AND 
   (public.is_admin() OR (
     -- Non-admin check: Max 10.5M bytes (~10MB) for safety
-    (content_length < 10500000)
+    ((metadata->>'size')::int < 10500000)
   ))
 );
 

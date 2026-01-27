@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getMediaUrl } from "@/utils/storage";
+import { getSupabaseUrl, supabase } from "@/lib/supabase";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
 
@@ -38,9 +39,10 @@ export const GenreLibraryDialog = ({
     Array<{
       id: string;
       title: string;
-      source: "local" | "externo";
+      source: "local" | "externo" | "database";
       fileId?: string;
       url?: string;
+      genre?: string;
     }>
   >([]);
   const [selected, setSelected] = useState<{
@@ -60,33 +62,61 @@ export const GenreLibraryDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, genreKey, featuredPages]);
 
-  const loadGenreItems = () => {
+  const loadGenreItems = async () => {
     try {
       const result: Array<{
         id: string;
         title: string;
-        source: "local" | "externo";
+        source: "local" | "externo" | "database";
         fileId?: string;
         url?: string;
+        genre?: string;
       }> = [];
 
+      // 1. Fetch from database media_files (Primary source)
+      if (genreKey) {
+        const { data: dbMedia, error: dbError } = await supabase
+          .from("media_files")
+          .select("*")
+          .eq("genre", genreKey)
+          .eq("type", "audio");
+
+        if (!dbError && dbMedia) {
+          dbMedia.forEach((m) => {
+            const url = getSupabaseUrl("media", m.file_path);
+            if (url) {
+              result.push({
+                id: m.id,
+                title: m.title,
+                source: "database",
+                url,
+                genre: m.genre,
+              });
+            }
+          });
+        }
+      }
+
+      // 2. Fetch from featuredPages (Compatibility/External)
       if (featuredPages && Array.isArray(featuredPages)) {
+        const knownUrls = new Set(result.map(r => r.url));
+
         featuredPages.forEach((page) => {
           (page || []).forEach((item) => {
             if (!item) return;
             if (item.type === "audio" && item.genre && item.url) {
               const g = String(item.genre).toLowerCase();
               if (!genreKey || g === genreKey) {
-                // Determine source more accurately
-                const isSupabase = typeof item.url === "string" && item.url.includes("supabase.co");
-                const isLocal = typeof item.url === "string" && item.url.startsWith("file_");
+                if (knownUrls.has(item.url)) return;
 
+                const isLocal = typeof item.url === "string" && item.url.startsWith("file_");
                 result.push({
                   id: String(item.id || item.url),
                   title: String(item.title || "Sem título"),
                   source: isLocal ? "local" : "externo",
                   fileId: isLocal ? item.url : undefined,
                   url: item.url,
+                  genre: item.genre,
                 });
               }
             }
@@ -103,7 +133,7 @@ export const GenreLibraryDialog = ({
   const handlePlay = async (item: {
     id: string;
     title: string;
-    source: "local" | "externo";
+    source: "local" | "externo" | "database";
     fileId?: string;
     url?: string;
   }) => {
@@ -151,7 +181,9 @@ export const GenreLibraryDialog = ({
                     <div className="text-xs text-muted-foreground">
                       {item.source === "local"
                         ? "Local (IndexedDB)"
-                        : "Externo"}
+                        : item.source === "database"
+                          ? "Banco de Dados"
+                          : "Externo"}
                     </div>
                   </div>
                   <Button
