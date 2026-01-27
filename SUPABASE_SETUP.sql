@@ -14,6 +14,7 @@ CREATE TABLE profiles (
   full_name TEXT,
   username TEXT UNIQUE,
   avatar_url TEXT,
+  is_blocked BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -38,6 +39,36 @@ CREATE TABLE media_files (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 4.1 Create activity_logs table for notifications
+CREATE TABLE public.activity_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users,
+  action TEXT NOT NULL, -- 'post', 'delete', 'block'
+  details TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Function to log activity
+CREATE OR REPLACE FUNCTION public.log_activity()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.activity_logs (user_id, action, details)
+  VALUES (
+    COALESCE(auth.uid(), '00000000-0000-0000-0000-000000000000'::uuid), -- Use system UUID or auth.uid
+    TG_OP,
+    TG_TABLE_NAME || ': ' || COALESCE(NEW.title, OLD.title, 'Sem título')
+  );
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Triggers for notifications
+CREATE TRIGGER tr_log_fan_posts AFTER INSERT OR DELETE ON public.fan_club_posts
+FOR EACH ROW EXECUTE PROCEDURE public.log_activity();
+
+CREATE TRIGGER tr_log_media AFTER INSERT OR DELETE ON public.media_files
+FOR EACH ROW EXECUTE PROCEDURE public.log_activity();
+
 -- 5. Automate Profile Creation on Signup
 -- Use a trigger to ensure a profile is created as soon as a user signs up.
 
@@ -61,33 +92,57 @@ CREATE TRIGGER on_auth_user_created
 
 -- 6. RLS Policies
 
--- ADMIN ROLE CHECK: Replace 'gloliverlobo@gmail.com' with your actual admin email
--- Create a policy where only the admin can insert/update/delete
+-- Helper function to check if user is admin
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN (auth.jwt() ->> 'email' = 'gloliverlobo@gmail.com');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE POLICY "Admin only write" ON site_config FOR ALL 
-USING (auth.jwt() ->> 'email' = 'gloliverlobo@gmail.com');
+-- Site Config: Admin only write, Everyone read
+ALTER TABLE site_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Admin only write" ON site_config FOR ALL USING (public.is_admin());
+CREATE POLICY "Public read config" ON site_config FOR SELECT TO public USING (true);
 
-CREATE POLICY "Public read config" ON site_config FOR SELECT 
-TO public USING (true);
+-- Profiles: Public read, Users manage own, Admin manage all
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read profiles" ON profiles FOR SELECT TO public USING (true);
+CREATE POLICY "Users manage own profile" ON profiles FOR ALL USING (auth.uid() = id OR public.is_admin());
 
-CREATE POLICY "Admin only write posts" ON fan_club_posts FOR ALL 
-USING (auth.jwt() ->> 'email' = 'gloliverlobo@gmail.com');
+-- Fan Club Posts: Public read, Users can post, Admin/Owner can delete
+ALTER TABLE fan_club_posts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read posts" ON fan_club_posts FOR SELECT TO public USING (true);
+CREATE POLICY "Users can insert posts" ON fan_club_posts FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Owners or Admin can delete posts" ON fan_club_posts FOR DELETE USING (auth.uid() = author_id OR public.is_admin());
 
-CREATE POLICY "Public read posts" ON fan_club_posts FOR SELECT 
-TO public USING (true);
+-- Media Files: Public read, Users can upload, Admin/Owner can delete
+ALTER TABLE media_files ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read media" ON media_files FOR SELECT TO public USING (true);
+CREATE POLICY "Users can insert media" ON media_files FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Owners or Admin can delete media" ON media_files FOR DELETE USING (auth.uid() = uploaded_by OR public.is_admin());
 
-CREATE POLICY "Admin only media" ON media_files FOR ALL 
-USING (auth.jwt() ->> 'email' = 'gloliverlobo@gmail.com');
+-- 7. Storage Policies (Run these to secure the buckets)
+-- Secure the 'media' bucket
+-- Note: 'media' bucket must be created first in the dashboard.
 
-CREATE POLICY "Public read profiles" ON profiles FOR SELECT 
-TO public USING (true);
+-- Allow public viewing
+CREATE POLICY "Public viewing" ON storage.objects FOR SELECT TO public USING (bucket_id = 'media' OR bucket_id = 'fan_club');
 
-CREATE POLICY "Users can insert their own profile" ON profiles FOR INSERT 
-WITH CHECK (auth.uid() = id);
+-- Allow authenticated users to upload to 'media' bucket
+-- Enforce 10MB limit for non-admins if it's a video
+CREATE POLICY "Authenticated upload" ON storage.objects FOR INSERT TO authenticated 
+WITH CHECK (
+  bucket_id = 'media' AND 
+  (public.is_admin() OR (
+    -- Non-admin check: Max 10.5M bytes (~10MB) for safety
+    (content_length < 10500000)
+  ))
+);
 
-CREATE POLICY "Users can update their own profile" ON profiles FOR UPDATE 
-USING (auth.uid() = id);
-
--- 6. Storage Buckets (Run in Supabase Dashboard or via API)
--- Need to create buckets: 'fan_club' and 'media'
--- Set them to PUBLIC if you want everyone to see the content without signed URLs.
+-- Allow Admin or Owner to delete their files
+CREATE POLICY "Owner or Admin delete storage" ON storage.objects FOR DELETE TO authenticated
+USING (
+  bucket_id = 'media' AND 
+  (auth.uid() = owner OR public.is_admin())
+);

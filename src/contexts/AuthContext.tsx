@@ -18,12 +18,14 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, fullName: string) => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  isBlocked: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Configured Admin Email
@@ -39,7 +41,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("id", user.id)
         .single();
 
-      if (!profile) {
+      if (profile) {
+        setIsBlocked(!!profile.is_blocked);
+      } else {
         // Create profile if it doesn't exist
         const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0];
         await supabase.from("profiles").insert({
@@ -170,6 +174,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signUpWithEmail,
         signInWithEmail,
         logout,
+        isBlocked
       }}
     >
       {children}

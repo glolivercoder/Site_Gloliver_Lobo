@@ -222,10 +222,10 @@ const UserManagement = () => {
       <CardHeader>
         <CardTitle className="text-2xl text-golden flex items-center gap-2">
           <Users className="w-6 h-6" />
-          Gerenciamento de Fãs (Perfis)
+          Gerenciamento de Usuários
         </CardTitle>
         <CardDescription>
-          Visualize e gerencie os perfis registrados no sistema via Supabase.
+          Visualize e gerencie os perfis registrados (Fãs e Admins).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -234,7 +234,7 @@ const UserManagement = () => {
             <TableHeader>
               <TableRow className="border-golden/20">
                 <TableHead className="text-golden">Email</TableHead>
-                <TableHead className="text-golden">Nome</TableHead>
+                <TableHead className="text-golden">Status</TableHead>
                 <TableHead className="text-golden">Criado em</TableHead>
                 <TableHead className="text-golden">Role</TableHead>
                 <TableHead className="text-golden text-right">Ações</TableHead>
@@ -243,20 +243,14 @@ const UserManagement = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center py-8 text-muted-foreground"
-                  >
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                     Carregando...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    Nenhum usuário encontrado. Configure a tabela 'profiles' no Supabase.
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    Nenhum usuário encontrado.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -265,15 +259,17 @@ const UserManagement = () => {
                     <TableCell className="font-medium">
                       <div className="flex flex-col">
                         <span>{u.email}</span>
-                        {u.username && (
-                          <span className="text-xs text-muted-foreground">
-                            @{u.username}
-                          </span>
-                        )}
+                        {u.full_name && <span className="text-xs text-muted-foreground">{u.full_name}</span>}
                       </div>
                     </TableCell>
-                    <TableCell>{u.full_name || u.display_name || "-"}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell>
+                      {u.is_blocked ? (
+                        <span className="text-destructive text-xs font-bold uppercase">Bloqueado</span>
+                      ) : (
+                        <span className="text-green-500 text-xs font-bold uppercase">Ativo</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs">
                       {new Date(u.created_at).toLocaleDateString("pt-BR")}
                     </TableCell>
                     <TableCell>
@@ -282,19 +278,36 @@ const UserManagement = () => {
                           <Shield className="w-3 h-3 mr-1" /> Admin
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">Fã</span>
+                        <span className="text-muted-foreground text-xs">Fã</span>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
                       {u.email !== "gloliverlobo@gmail.com" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteUser(u.id, u.email)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`text-xs ${u.is_blocked ? "border-green-500 text-green-500" : "border-destructive text-destructive"}`}
+                            onClick={async () => {
+                              const { error } = await supabase.from('profiles').update({ is_blocked: !u.is_blocked }).eq('id', u.id);
+                              if (error) toast.error("Erro ao alterar status.");
+                              else {
+                                toast.success(u.is_blocked ? "Usuário desbloqueado!" : "Usuário bloqueado!");
+                                loadUsers();
+                              }
+                            }}
+                          >
+                            {u.is_blocked ? "Desbloquear" : "Bloquear"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteUser(u.id, u.email)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -303,7 +316,10 @@ const UserManagement = () => {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-end mt-4">
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-xs text-muted-foreground">
+            * A exclusão remove apenas o perfil. O bloqueio impede ações no site.
+          </p>
           <Button
             variant="outline"
             onClick={loadUsers}
@@ -318,7 +334,102 @@ const UserManagement = () => {
   );
 };
 
+// Media Management Component
+const MediaManagement = () => {
+  const { isAdmin } = useAuth();
+  const [media, setMedia] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const loadMedia = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.from("media_files").select("*, profiles(email)").order("created_at", { ascending: false });
+      if (error) throw error;
+      setMedia(data || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { if (isAdmin) loadMedia(); }, [isAdmin]);
+
+  const handleDeleteMedia = async (id: string, path: string) => {
+    if (!confirm("Excluir esta mídia permanentemente?")) return;
+    try {
+      await supabase.storage.from("media").remove([path]);
+      await supabase.from("media_files").delete().eq("id", id);
+      setMedia(media.filter(m => m.id !== id));
+      toast.success("Mídia removida.");
+    } catch (e) {
+      toast.error("Erro ao excluir.");
+    }
+  };
+
+  if (!isAdmin) return null;
+
+  return (
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="text-2xl text-golden flex items-center gap-2">
+          <Trash2 className="w-6 h-6" />
+          Gerenciar Todas as Mídias
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="max-h-96 overflow-y-auto rounded-md border border-golden/20">
+          <Table>
+            <TableHeader><TableRow><TableHead>Título</TableHead><TableHead>Autor</TableHead><TableHead>Ação</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {media.map((m) => (
+                <TableRow key={m.id}>
+                  <TableCell className="text-xs">{m.title}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{m.profiles?.email || 'N/A'}</TableCell>
+                  <TableCell><Button variant="ghost" size="icon" onClick={() => handleDeleteMedia(m.id, m.file_path)}><Trash2 className="w-4 h-4 text-destructive" /></Button></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Activity Logs Component
+const ActivityLogs = () => {
+  const { isAdmin } = useAuth();
+  const [logs, setLogs] = useState<any[]>([]);
+
+  const loadLogs = async () => {
+    const { data } = await supabase.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(20);
+    setLogs(data || []);
+  };
+
+  useEffect(() => { if (isAdmin) loadLogs(); }, [isAdmin]);
+
+  if (!isAdmin) return null;
+
+  return (
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+      <CardHeader><CardTitle className="text-lg text-golden">Registros de Atividade (Notificações)</CardTitle></CardHeader>
+      <CardContent>
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {logs.map((log) => (
+            <div key={log.id} className="text-xs p-2 border-b border-golden/10 flex justify-between">
+              <span><strong>{log.action}</strong>: {log.details}</span>
+              <span className="text-muted-foreground">{new Date(log.created_at).toLocaleTimeString()}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Settings = () => {
+  const { isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(0);
   const [allPages, setAllPages] = useState<any[][]>([
     Array(8)
@@ -360,97 +471,47 @@ const Settings = () => {
     liveBarWidth: 2,
   });
 
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
     const storedPages = localStorage.getItem("featuredPages");
-    if (storedPages) {
-      try {
-        setAllPages(JSON.parse(storedPages));
-      } catch (e) {
-        console.error("Error loading featured pages:", e);
-      }
-    }
+    if (storedPages) try { setAllPages(JSON.parse(storedPages)); } catch (e) { }
 
     const storedSocial = localStorage.getItem("socialLinks");
-    const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
-    if (storedSocial) {
-      try {
-        const parsed = JSON.parse(storedSocial);
-        setSocialLinks({
-          instagram: parsed.instagram || "",
-          tiktok: parsed.tiktok || "",
-          youtube: parsed.youtube || "",
-          spotify: parsed.spotify || "",
-          youtubeMusic: parsed.youtubeMusic || "",
-          amazonMusic: parsed.amazonMusic || "",
-          whatsapp: parsed.whatsapp ?? envWhatsapp,
-        });
-      } catch (e) {
-        console.error("Error loading social links:", e);
-        setSocialLinks((prev) => ({ ...prev, whatsapp: envWhatsapp }));
-      }
-    } else {
-      // Sem dados salvos: inicializa WhatsApp com valor de ambiente
-      setSocialLinks((prev) => ({ ...prev, whatsapp: envWhatsapp }));
-    }
+    if (storedSocial) try { setSocialLinks(JSON.parse(storedSocial)); } catch (e) { }
 
     const storedAudioSettings = localStorage.getItem("audioSettings");
-    if (storedAudioSettings) {
-      try {
-        setAudioSettings(JSON.parse(storedAudioSettings));
-      } catch (e) {
-        console.error("Error loading audio settings:", e);
-      }
-    }
+    if (storedAudioSettings) try { setAudioSettings(JSON.parse(storedAudioSettings)); } catch (e) { }
   }, []);
 
-  const handleFeaturedChange = (
-    pageIndex: number,
-    itemIndex: number,
-    field: string,
-    value: string,
-  ) => {
+  const handleFeaturedChange = (pageIndex: number, itemIndex: number, field: string, value: string) => {
     const updated = [...allPages];
     updated[pageIndex] = [...updated[pageIndex]];
-    updated[pageIndex][itemIndex] = {
-      ...updated[pageIndex][itemIndex],
-      [field]: value,
-    };
+    updated[pageIndex][itemIndex] = { ...updated[pageIndex][itemIndex], [field]: value };
     setAllPages(updated);
   };
 
   const saveFeatured = () => {
     localStorage.setItem("featuredPages", JSON.stringify(allPages));
     window.dispatchEvent(new Event("storage"));
-    toast.success("Destaques salvos com sucesso!");
+    toast.success("Destaques salvos!");
   };
 
   const addNewPage = () => {
-    const newPage = Array(8)
-      .fill(null)
-      .map((_, i) => ({
-        id: allPages.length * 8 + i + 1,
-        title: `Destaque ${allPages.length * 8 + i + 1}`,
-        url: "",
-        type: "video",
-      }));
+    const newPage = Array(8).fill(null).map((_, i) => ({
+      id: allPages.length * 8 + i + 1,
+      title: `Destaque ${allPages.length * 8 + i + 1}`,
+      url: "",
+      type: "video",
+    }));
     setAllPages([...allPages, newPage]);
     setCurrentPage(allPages.length);
-    toast.success("Nova página adicionada!");
   };
 
   const removePage = (pageIndex: number) => {
-    if (allPages.length === 1) {
-      toast.error("Não é possível remover a última página!");
-      return;
-    }
+    if (allPages.length === 1) return;
     const updated = allPages.filter((_, i) => i !== pageIndex);
     setAllPages(updated);
-    setCurrentPage(Math.max(0, currentPage - 1));
+    setCurrentPage(0);
     localStorage.setItem("featuredPages", JSON.stringify(updated));
-    window.dispatchEvent(new Event("storage"));
-    toast.success("Página removida!");
   };
 
   const handleSocialChange = (platform: string, value: string) => {
@@ -459,30 +520,22 @@ const Settings = () => {
 
   const saveSocial = () => {
     localStorage.setItem("socialLinks", JSON.stringify(socialLinks));
-    toast.success("Links das redes sociais atualizados com sucesso!");
-  };
-
-  const handleThumbnailUpload = (
-    pageIndex: number,
-    itemIndex: number,
-    file: File,
-  ) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      handleFeaturedChange(pageIndex, itemIndex, "thumbnail", base64String);
-      toast.success("Imagem do thumbnail carregada!");
-    };
-    reader.onerror = () => {
-      toast.error("Erro ao carregar imagem.");
-    };
-    reader.readAsDataURL(file);
+    toast.success("Redes sociais atualizadas!");
   };
 
   const saveAudioSettings = () => {
     localStorage.setItem("audioSettings", JSON.stringify(audioSettings));
     window.dispatchEvent(new Event("storage"));
-    toast.success("Configurações de áudio salvas!");
+    toast.success("Visualizador atualizado!");
+  };
+
+  const handleThumbnailUpload = (pageIndex: number, itemIndex: number, file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      handleFeaturedChange(pageIndex, itemIndex, "thumbnail", reader.result as string);
+      toast.success("Thumbnail pronto!");
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -490,605 +543,73 @@ const Settings = () => {
       <Header />
       <div className="pt-20 px-4 md:px-8 pb-16">
         <div className="max-w-7xl mx-auto space-y-8">
-          <h1 className="text-4xl font-bold text-golden mb-8">Configurações</h1>
+          <h1 className="text-4xl font-bold text-golden mb-8">Administração</h1>
 
-          {/* User Management */}
-          <UserManagement />
+          {isAdmin && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <UserManagement />
+              <ActivityLogs />
+              <MediaManagement />
+              <StorageManagement />
+            </div>
+          )}
 
-          {/* Featured Section Editor */}
           <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl text-golden">
-                Editar Destaques
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2 mb-4">
-                <Button
-                  onClick={addNewPage}
-                  className="bg-golden text-deep-black hover:bg-golden/90"
-                >
-                  Adicionar Página
-                </Button>
-                {allPages.length > 1 && (
-                  <Button
-                    onClick={() => removePage(currentPage)}
-                    variant="destructive"
-                  >
-                    Remover Página Atual
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                {allPages.map((_, index) => (
-                  <Button
-                    key={index}
-                    onClick={() => setCurrentPage(index)}
-                    variant={currentPage === index ? "default" : "outline"}
-                    className={
-                      currentPage === index
-                        ? "bg-golden text-deep-black hover:bg-golden/90"
-                        : ""
-                    }
-                  >
-                    Página {index + 1}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                {allPages[currentPage]?.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="space-y-2 p-4 border border-golden/20 rounded-lg"
-                  >
-                    <Label className="text-sm font-medium text-golden">
-                      Destaque {index + 1}
-                    </Label>
-                    <Input
-                      placeholder="Título"
-                      value={item.title}
-                      onChange={(e) =>
-                        handleFeaturedChange(
-                          currentPage,
-                          index,
-                          "title",
-                          e.target.value,
-                        )
-                      }
-                      className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
-                    />
-
-                    <Input
-                      placeholder="URL da mídia (YouTube, Spotify, etc.)"
-                      value={item.url}
-                      onChange={(e) =>
-                        handleFeaturedChange(
-                          currentPage,
-                          index,
-                          "url",
-                          e.target.value,
-                        )
-                      }
-                      className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
-                    />
-
-                    <select
-                      value={item.type}
-                      onChange={(e) =>
-                        handleFeaturedChange(
-                          currentPage,
-                          index,
-                          "type",
-                          e.target.value,
-                        )
-                      }
-                      className="flex h-10 w-full rounded-md border border-golden/20 bg-background/50 px-3 py-2 text-sm text-foreground focus:border-golden"
-                    >
-                      <option value="video">Vídeo</option>
-                      <option value="audio">Áudio</option>
-                      <option value="image">Imagem</option>
-                    </select>
-
-                    <div className="mt-2 space-y-2">
-                      <Label className="text-xs text-muted-foreground">
-                        Imagem Thumbnail
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="URL da imagem thumbnail"
-                          value={item.thumbnail || ""}
-                          onChange={(e) =>
-                            handleFeaturedChange(
-                              currentPage,
-                              index,
-                              "thumbnail",
-                              e.target.value,
-                            )
-                          }
-                          className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
-                        />
-
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="outline"
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "image/*";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement)
-                                .files?.[0];
-                              if (file)
-                                handleThumbnailUpload(currentPage, index, file);
-                            };
-                            input.click();
-                          }}
-                          className="border-golden/20 hover:bg-golden/10"
-                        >
-                          <Upload className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      {item.thumbnail && (
-                        <div className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden">
-                          <img
-                            src={item.thumbnail}
-                            alt="Thumbnail"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button
-                onClick={saveFeatured}
-                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-              >
-                Salvar Destaques
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Audio Visualizer Settings */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl text-golden">
-                Configurações do Visualizador de Áudio
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="waveformStyle" className="text-foreground">
-                  Estilo do Waveform
-                </Label>
-                <Select
-                  value={audioSettings.waveformStyle}
-                  onValueChange={(value) =>
-                    setAudioSettings({ ...audioSettings, waveformStyle: value })
-                  }
-                >
-                  <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                    <SelectValue placeholder="Selecione o estilo" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-golden/20">
-                    <SelectItem value="bars">Barras (Padrão)</SelectItem>
-                    <SelectItem value="wave">Onda Contínua</SelectItem>
-                    <SelectItem value="mirror">Espelho</SelectItem>
-                    <SelectItem value="animatedBars">
-                      Barras Animadas (Ao Vivo)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-foreground">Altura (px)</Label>
-                  <Input
-                    type="number"
-                    value={audioSettings.height}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        height: Number(e.target.value || 0),
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Largura da Barra</Label>
-                  <Input
-                    type="number"
-                    value={audioSettings.barWidth}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        barWidth: Number(e.target.value || 0),
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Espaço da Barra</Label>
-                  <Input
-                    type="number"
-                    value={audioSettings.barGap}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        barGap: Number(e.target.value || 0),
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Raio da Barra</Label>
-                  <Input
-                    type="number"
-                    value={audioSettings.barRadius}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        barRadius: Number(e.target.value || 0),
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cursor (px)</Label>
-                  <Input
-                    type="number"
-                    value={audioSettings.cursorWidth}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        cursorWidth: Number(e.target.value || 0),
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cor da Onda</Label>
-                  <Input
-                    value={audioSettings.waveColor}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        waveColor: e.target.value,
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cor do Progresso</Label>
-                  <Input
-                    value={audioSettings.progressColor}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        progressColor: e.target.value,
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-foreground">Cor do Cursor</Label>
-                  <Input
-                    value={audioSettings.cursorColor}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        cursorColor: e.target.value,
-                      })
-                    }
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-foreground">Espectrograma</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={audioSettings.enableSpectrogram}
-                    onChange={(e) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        enableSpectrogram: e.target.checked,
-                      })
-                    }
-                  />
-
-                  <span className="text-sm text-muted-foreground">
-                    Ativar espectrograma (WaveSurfer)
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <Label className="text-foreground">FFT Samples</Label>
-                  <Select
-                    value={String(audioSettings.spectrogramFftSamples)}
-                    onValueChange={(value) =>
-                      setAudioSettings({
-                        ...audioSettings,
-                        spectrogramFftSamples: Number(value),
-                      })
-                    }
-                  >
-                    <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                      <SelectValue placeholder="FFT" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border-golden/20">
-                      <SelectItem value="128">128</SelectItem>
-                      <SelectItem value="256">256</SelectItem>
-                      <SelectItem value="512">512</SelectItem>
-                      <SelectItem value="1024">1024</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-foreground">Visualizador ao vivo</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-foreground">FFT Size</Label>
-                    <Select
-                      value={String(audioSettings.liveAnalyzerFftSize)}
-                      onValueChange={(value) =>
-                        setAudioSettings({
-                          ...audioSettings,
-                          liveAnalyzerFftSize: Number(value),
-                        })
-                      }
-                    >
-                      <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                        <SelectValue placeholder="FFT" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover border-golden/20">
-                        <SelectItem value="64">64</SelectItem>
-                        <SelectItem value="128">128</SelectItem>
-                        <SelectItem value="256">256</SelectItem>
-                        <SelectItem value="512">512</SelectItem>
-                        <SelectItem value="1024">1024</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Suavização</Label>
-                    <Input
-                      type="number"
-                      step="0.05"
-                      min="0"
-                      max="0.99"
-                      value={audioSettings.liveAnalyzerSmoothing}
-                      onChange={(e) =>
-                        setAudioSettings({
-                          ...audioSettings,
-                          liveAnalyzerSmoothing: Number(e.target.value || 0),
-                        })
-                      }
-                      className="bg-background/50 border-golden/20 focus:border-golden"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Altura (px)</Label>
-                    <Input
-                      type="number"
-                      value={audioSettings.liveHeight}
-                      onChange={(e) =>
-                        setAudioSettings({
-                          ...audioSettings,
-                          liveHeight: Number(e.target.value || 0),
-                        })
-                      }
-                      className="bg-background/50 border-golden/20 focus:border-golden"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Largura da Barra</Label>
-                    <Input
-                      type="number"
-                      value={audioSettings.liveBarWidth}
-                      onChange={(e) =>
-                        setAudioSettings({
-                          ...audioSettings,
-                          liveBarWidth: Number(e.target.value || 0),
-                        })
-                      }
-                      className="bg-background/50 border-golden/20 focus:border-golden"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-foreground">Cor da Barra</Label>
-                    <Input
-                      value={audioSettings.liveBarColor}
-                      onChange={(e) =>
-                        setAudioSettings({
-                          ...audioSettings,
-                          liveBarColor: e.target.value,
-                        })
-                      }
-                      className="bg-background/50 border-golden/20 focus:border-golden"
-                    />
-                  </div>
-                </div>
-              </div>
-              <Button
-                onClick={saveAudioSettings}
-                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-              >
-                Salvar Configurações de Áudio
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Social Links Editor */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl text-golden">
-                Redes Sociais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardHeader><CardTitle className="text-2xl text-golden">Destaques e Redes Sociais</CardTitle></CardHeader>
+            <CardContent className="space-y-8">
+              {/* Redes Sociais Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="whatsapp"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <img
-                      src="/favicon-whatsapp.svg"
-                      alt="WhatsApp"
-                      className="w-5 h-5"
-                    />{" "}
-                    WhatsApp
-                  </Label>
-                  <Input
-                    id="whatsapp"
-                    value={socialLinks.whatsapp}
-                    onChange={(e) =>
-                      handleSocialChange("whatsapp", e.target.value)
-                    }
-                    placeholder="https://wa.me/message/SEU_CODIGO"
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="instagram"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <Instagram className="w-4 h-4" /> Instagram
-                  </Label>
-                  <Input
-                    id="instagram"
-                    value={socialLinks.instagram}
-                    onChange={(e) =>
-                      handleSocialChange("instagram", e.target.value)
-                    }
-                    placeholder="https://instagram.com/seu_perfil"
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="tiktok"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <Music className="w-4 h-4" /> TikTok
-                  </Label>
-                  <Input
-                    id="tiktok"
-                    value={socialLinks.tiktok}
-                    onChange={(e) =>
-                      handleSocialChange("tiktok", e.target.value)
-                    }
-                    placeholder="https://tiktok.com/@seu_perfil"
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="youtube"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <Youtube className="w-4 h-4" /> YouTube
-                  </Label>
-                  <Input
-                    id="youtube"
-                    value={socialLinks.youtube}
-                    onChange={(e) =>
-                      handleSocialChange("youtube", e.target.value)
-                    }
-                    placeholder="https://youtube.com/@seu_canal"
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="spotify"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <Radio className="w-4 h-4" /> Spotify
-                  </Label>
-                  <Input
-                    id="spotify"
-                    value={socialLinks.spotify}
-                    onChange={(e) =>
-                      handleSocialChange("spotify", e.target.value)
-                    }
-                    placeholder="https://open.spotify.com/artist/..."
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="youtubeMusic"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <Music className="w-4 h-4" /> YouTube Music
-                  </Label>
-                  <Input
-                    id="youtubeMusic"
-                    value={socialLinks.youtubeMusic}
-                    onChange={(e) =>
-                      handleSocialChange("youtubeMusic", e.target.value)
-                    }
-                    placeholder="https://music.youtube.com/channel/..."
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="amazonMusic"
-                    className="text-foreground flex items-center gap-2"
-                  >
-                    <Radio className="w-4 h-4" /> Amazon Music
-                  </Label>
-                  <Input
-                    id="amazonMusic"
-                    value={socialLinks.amazonMusic}
-                    onChange={(e) =>
-                      handleSocialChange("amazonMusic", e.target.value)
-                    }
-                    placeholder="https://music.amazon.com/..."
-                    className="bg-background/50 border-golden/20 focus:border-golden"
-                  />
-                </div>
+                {Object.entries(socialLinks).map(([key, val]) => (
+                  <div key={key} className="space-y-1">
+                    <Label className="capitalize text-xs text-muted-foreground">{key}</Label>
+                    <Input value={val} onChange={(e) => handleSocialChange(key, e.target.value)} className="bg-background/50 border-golden/20 h-8 text-xs" />
+                  </div>
+                ))}
               </div>
-              <Button
-                onClick={saveSocial}
-                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-              >
-                Salvar Redes Sociais
-              </Button>
+              <Button onClick={saveSocial} className="bg-golden text-deep-black h-8 text-xs">Salvar Links</Button>
+
+              <hr className="border-golden/10" />
+
+              {/* Destaques Editor */}
+              <div className="flex gap-2 mb-4">
+                <Button onClick={addNewPage} size="sm" className="bg-golden text-deep-black">Nova Página</Button>
+                <Button onClick={() => removePage(currentPage)} size="sm" variant="destructive">Apagar Página</Button>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1 mb-4">
+                {allPages.map((_, i) => (
+                  <Button key={i} onClick={() => setCurrentPage(i)} variant={currentPage === i ? "default" : "outline"} size="sm" className={currentPage === i ? "bg-golden text-deep-black" : ""}>{i + 1}</Button>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {allPages[currentPage]?.map((item, index) => (
+                  <div key={item.id} className="p-3 border border-golden/10 rounded">
+                    <Label className="text-[10px] text-golden uppercase">Destaque {index + 1}</Label>
+                    <Input placeholder="Título" value={item.title} onChange={(e) => handleFeaturedChange(currentPage, index, "title", e.target.value)} className="h-8 text-xs mb-1" />
+                    <Input placeholder="URL" value={item.url} onChange={(e) => handleFeaturedChange(currentPage, index, "url", e.target.value)} className="h-8 text-xs" />
+                  </div>
+                ))}
+              </div>
+              <Button onClick={saveFeatured} className="bg-golden text-deep-black h-8 text-xs">Salvar Destaques</Button>
             </CardContent>
           </Card>
 
-          {/* Storage Management Section */}
-          <StorageManagement />
+          {isAdmin && (
+            <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+              <CardHeader><CardTitle className="text-xl text-golden">Visualizador de Áudio</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {Object.entries(audioSettings).filter(([k, v]) => typeof v === 'number' || typeof v === 'string').map(([k, v]) => (
+                    <div key={k} className="space-y-1">
+                      <Label className="text-[10px] capitalize">{k}</Label>
+                      <Input value={String(v)} onChange={(e) => setAudioSettings({ ...audioSettings, [k]: e.target.value })} className="h-8 text-xs" />
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={saveAudioSettings} className="mt-4 bg-golden text-deep-black h-8 text-xs">Salvar Visualizador</Button>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Upload Section */}
           <UploadSection />
         </div>
       </div>
