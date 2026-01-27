@@ -292,46 +292,30 @@ export const UploadSection = () => {
     setIsUploading(true);
 
     try {
-      let pages = [...(featuredPages || [])];
+      const pageIndex = Number((selectedPage?.value || "pagina1").replace("pagina", "")) - 1;
+      const slotIndex = Number((selectedFeatured?.value || "destaque1").replace("destaque", "")) - 1;
 
-      const pageIndex =
-        Number((selectedPage?.value || "pagina1").replace("pagina", "")) - 1;
-      const slotIndex =
-        Number(
-          (selectedFeatured?.value || "destaque1").replace("destaque", ""),
-        ) - 1;
-
-      for (let i = 0; i <= pageIndex; i++) {
-        if (!pages[i]) {
-          pages[i] = Array(8)
-            .fill(null)
-            .map((_, idx) => ({
-              id: i * 8 + idx + 1,
-              title: `Destaque ${i * 8 + idx + 1}`,
-              url: "",
-              type: "video",
-            }));
-        }
-      }
-
-      const newItem = {
-        id: pages[pageIndex][slotIndex]?.id ?? Date.now(),
-        title: mediaTitle.trim(),
-        url: mediaUrl.trim(),
+      // Upsert to featured_slots table (Relational)
+      const payload = {
+        page_index: pageIndex,
+        slot_index: slotIndex,
+        custom_title: mediaTitle.trim(),
+        external_url: mediaUrl.trim(),
         type: mediaType,
-        genre: selectedGenre?.value,
-        featuredKey: selectedFeatured?.value,
-        pageKey: selectedPage?.value,
-        thumbnail: thumbnailUrl || null,
+        thumbnail_url: thumbnailUrl || null
+        // Note: If we had the media_file_id from handleFile, we would save it here.
+        // For now, storing as external_url works for both YouTube and Supabase Storage URLs.
       };
 
-      pages[pageIndex][slotIndex] = newItem;
+      const { error } = await supabase.from('featured_slots').upsert(payload, {
+        onConflict: 'page_index, slot_index'
+      });
 
-      await saveFeaturedPages(pages);
-      toast.success("Adicionado aos destaques com sucesso!");
-    } catch (error) {
+      if (error) throw error;
+      toast.success("Adicionado aos destaques com sucesso! (Nova Tabela)");
+    } catch (error: any) {
       console.error("Erro ao adicionar aos destaques:", error);
-      toast.error("Não foi possível adicionar aos destaques.");
+      toast.error(`Erro: ${error.message}`);
     } finally {
       setIsUploading(false);
     }

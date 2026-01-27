@@ -493,51 +493,11 @@ const Settings = () => {
   const { isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(0);
 
-  // REFACTORED: Using featured_slots table (Supabase Relational)
-  const [allPages, setAllPages] = useState<any[][]>([defaultFeaturedPages[0]]);
-  const [loadingScreens, setLoadingScreens] = useState(false);
-
-  // Load Slots from DB
-  useEffect(() => {
-    async function loadSlots() {
-      setLoadingScreens(true);
-      try {
-        const { data, error } = await supabase.from('featured_slots').select('*');
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          // Reconstruct pages array
-          const maxPage = Math.max(...data.map(d => d.page_index));
-          const totalPages = maxPage + 1;
-          const newPages = [];
-
-          for (let p = 0; p < totalPages; p++) {
-            const pageItems = [];
-            for (let s = 0; s < 8; s++) {
-              const slot = data.find(d => d.page_index === p && d.slot_index === s);
-              pageItems.push({
-                id: slot?.id || Date.now() + Math.random(),
-                title: slot?.custom_title || "",
-                url: slot?.external_url || "",
-                type: slot?.type || "video",
-                page_index: p,
-                slot_index: s,
-                // Preserve DB ID for upsert
-                db_id: slot?.id
-              });
-            }
-            newPages.push(pageItems);
-          }
-          setAllPages(newPages);
-        }
-      } catch (err) {
-        console.error("Error loading slots:", err);
-      } finally {
-        setLoadingScreens(false);
-      }
-    }
-    loadSlots();
-  }, []);
+  // Using Supabase site_config instead of localStorage
+  const { data: allPages, save: saveFeaturedPages, setData: setAllPages } = useSiteConfig<any[][]>(
+    "featured_pages",
+    defaultFeaturedPages
+  );
 
   const { data: socialLinks, save: saveSocialLinks, setData: setSocialLinks } = useSiteConfig<any>(
     "social_links",
@@ -552,42 +512,15 @@ const Settings = () => {
   const handleFeaturedChange = (pageIndex: number, itemIndex: number, field: string, value: string) => {
     const updated = [...allPages];
     updated[pageIndex] = [...updated[pageIndex]];
-    // If id is missing, assign one temporary
-    const current = updated[pageIndex][itemIndex] || {};
-    updated[pageIndex][itemIndex] = { ...current, [field]: value, page_index: pageIndex, slot_index: itemIndex };
+    updated[pageIndex][itemIndex] = { ...updated[pageIndex][itemIndex], [field]: value };
     setAllPages(updated);
   };
 
   const saveFeatured = async () => {
     try {
-      // Flatten all pages to updated items
-      const upserts = [];
-      for (let p = 0; p < allPages.length; p++) {
-        for (let s = 0; s < 8; s++) {
-          const item = allPages[p][s];
-          // Only save if it has content or had a DB ID (to clear it?)
-          // For simplicity, we upsert slots that have 'something'
-          if (item.title || item.url || item.db_id) {
-            upserts.push({
-              // If db_id exists, use it? Or upsert by (page_index, slot_index) UNIQUE constraint
-              page_index: p,
-              slot_index: s,
-              custom_title: item.title,
-              external_url: item.url,
-              type: item.type
-            });
-          }
-        }
-      }
-
-      const { error } = await supabase.from('featured_slots').upsert(upserts, {
-        onConflict: 'page_index, slot_index'
-      });
-
-      if (error) throw error;
+      await saveFeaturedPages(allPages);
       toast.success("Destaques salvos no servidor!");
     } catch (e) {
-      console.error(e);
       toast.error("Erro ao salvar destaques.");
     }
   };

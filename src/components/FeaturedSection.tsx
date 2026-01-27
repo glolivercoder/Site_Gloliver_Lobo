@@ -13,6 +13,7 @@ import { AudioVisualizer } from "./AudioVisualizer";
 import { getMediaUrl } from "@/utils/storage";
 import { toast } from "sonner";
 import { useSiteConfig } from "@/hooks/useSiteConfig";
+import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 import featured1 from "@/assets/featured-1.jpg";
 import featured2 from "@/assets/featured-2.jpg";
@@ -120,32 +121,98 @@ const MediaPlayer = ({
 };
 
 export const FeaturedSection = () => {
-  const { data: allPages, loading } = useSiteConfig<any[][]>("featured_pages", [defaultFeatured]);
+  // NEW: Fetch from featured_slots relational table
+  const [dbSlots, setDbSlots] = useState<any[]>([]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
   const { data: audioSettings } = useSiteConfig<any>("audio_settings", { waveformStyle: "bars" });
   const waveformStyle = audioSettings?.waveformStyle || "bars";
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFeaturedSlots();
+  }, []);
+
+  async function fetchFeaturedSlots() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("featured_slots")
+        .select(`
+          *,
+          media:media_files (
+            id,
+            title,
+            file_path,
+            type,
+            genre
+          )
+        `);
+
+      if (error) throw error;
+      setDbSlots(data || []);
+      console.log("[FeaturedSection] Loaded slots:", data);
+    } catch (error) {
+      console.error("[FeaturedSection] Error loading slots:", error);
+      toast.error("Erro ao carregar destaques.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Debug log
-  console.log("[FeaturedSection] loading:", loading, "allPages:", allPages);
+  // console.log("[FeaturedSection] loading:", loading, "slots:", dbSlots);
 
+  // Construct Display Pages from Relational Data
+  // We need to map dbSlots (sparse) to the 8xN grid
   let displayPages: any[][] = [];
-  try {
-    if (Array.isArray(allPages)) {
-      displayPages = allPages.map((page: any[]) => {
-        if (!Array.isArray(page)) return [];
-        return page.map((item: any, index: number) => ({
-          ...item,
-          image:
-            item?.thumbnail
-              ? item.thumbnail
-              : item && item.type === "image" && item.url
-                ? item.url
-                : defaultFeatured[index % 8]?.image || defaultFeatured[0].image,
-        }));
+
+  // Find max page index to know how many pages to render
+  const maxPage = dbSlots.length > 0
+    ? Math.max(...dbSlots.map(s => s.page_index))
+    : 0;
+
+  // Ensure at least 1 page
+  const totalPages = maxPage + 1;
+
+  for (let p = 0; p < totalPages; p++) {
+    const pageItems = [];
+    for (let s = 0; s < 8; s++) {
+      // Find slot in DB
+      const slot = dbSlots.find(d => d.page_index === p && d.slot_index === s);
+
+      // Determine content
+      let finalItem = null;
+      const defaultItem = defaultFeatured[s] || defaultFeatured[0];
+
+      if (slot) {
+        // Resolve URL
+        let url = slot.external_url;
+        if (!url && slot.media?.file_path) {
+          // use getSupabaseUrl helper from imports (Need to make sure it is imported or available)
+          // If not available in scope, we need to import or replicate. 
+          // Assuming getMediaUrl is for IndexedDB?
+        }
+
+        // Better URL resolution logic will be handled below or using a helper
+        // Ideally we use the public URL if it is a media file
+      }
+
+      // Simplified mapping logic for now, using defaults if slot missing
+      // We will enhance this to properly merge DB data + defaults
+
+      const mediaUrl = slot?.external_url || (slot?.media?.file_path ? getSupabaseUrl("media", slot.media.file_path) : "");
+
+      pageItems.push({
+        id: slot?.id || `default-${p}-${s}`,
+        title: slot?.custom_title || slot?.media?.title || defaultItem.title,
+        image: slot?.custom_thumbnail || slot?.thumbnail_url || defaultItem.image,
+        url: mediaUrl,
+        type: slot?.type || slot?.media?.type || "video",
+        // Keep raw slot data for debug
+        _slot: slot
       });
     }
-  } catch (err) {
-    console.error("FeaturedSection map error", err);
+    displayPages.push(pageItems);
   }
 
   const handleMediaClick = async (item: any) => {
@@ -237,13 +304,13 @@ export const FeaturedSection = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p><strong>Status:</strong> {loading ? 'Carregando...' : 'Carregado'}</p>
-              <p><strong>Config Key:</strong> featured_pages</p>
-              <p><strong>Páginas Encontradas:</strong> {allPages?.length || 0}</p>
+              <p><strong>Config Source:</strong> Table 'featured_slots'</p>
+              <p><strong>Slots Encontrados:</strong> {dbSlots?.length || 0}</p>
             </div>
           </div>
           <details className="mt-4">
             <summary className="cursor-pointer text-golden hover:text-white mb-2">Clique para ver o JSON Completo (Dados Brutos)</summary>
-            <pre className="bg-black p-4 rounded">{JSON.stringify(allPages, null, 2)}</pre>
+            <pre className="bg-black p-4 rounded">{JSON.stringify(dbSlots, null, 2)}</pre>
           </details>
         </div>
       </section>
