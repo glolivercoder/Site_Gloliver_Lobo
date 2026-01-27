@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { getMediaUrl } from "@/utils/storage";
 import { toast } from "sonner";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 
 import featured1 from "@/assets/featured-1.jpg";
 import featured2 from "@/assets/featured-2.jpg";
@@ -119,54 +120,20 @@ const MediaPlayer = ({
 };
 
 export const FeaturedSection = () => {
-  const [allPages, setAllPages] = useState<any[][]>([defaultFeatured]);
+  const { data: allPages } = useSiteConfig<any[][]>("featured_pages", [defaultFeatured]);
   const [selectedMedia, setSelectedMedia] = useState<any>(null);
-  const [waveformStyle, setWaveformStyle] = useState<
-    "bars" | "wave" | "mirror" | "animatedBars"
-  >("bars");
+  const { data: audioSettings } = useSiteConfig<any>("audio_settings", { waveformStyle: "bars" });
+  const waveformStyle = audioSettings?.waveformStyle || "bars";
 
-  useEffect(() => {
-    const loadFeatured = () => {
-      const stored = localStorage.getItem("featuredPages");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setAllPages(
-            parsed.map((page: any[]) =>
-              page.map((item: any, index: number) => ({
-                ...item,
-                image:
-                  item.type === "image" && item.url
-                    ? item.url
-                    : defaultFeatured[index % 8]?.image ||
-                      defaultFeatured[0].image,
-              })),
-            ),
-          );
-        } catch (e) {
-          console.error("Error loading featured:", e);
-        }
-      }
-    };
-
-    loadFeatured();
-    const loadAudioSettings = () => {
-      try {
-        const stored = localStorage.getItem("audioSettings");
-        if (stored) {
-          const s = JSON.parse(stored);
-          if (s && s.waveformStyle) setWaveformStyle(s.waveformStyle);
-        }
-      } catch {}
-    };
-    loadAudioSettings();
-    window.addEventListener("storage", loadFeatured);
-    window.addEventListener("storage", loadAudioSettings);
-    return () => {
-      window.removeEventListener("storage", loadFeatured);
-      window.removeEventListener("storage", loadAudioSettings);
-    };
-  }, []);
+  const displayPages = allPages.map((page: any[]) =>
+    page.map((item: any, index: number) => ({
+      ...item,
+      image:
+        item.type === "image" && item.url
+          ? item.url
+          : defaultFeatured[index % 8]?.image || defaultFeatured[0].image,
+    }))
+  );
 
   const handleMediaClick = async (item: any) => {
     if (!item?.url) return;
@@ -203,7 +170,7 @@ export const FeaturedSection = () => {
 
           <Tabs defaultValue="page-0" className="w-full">
             <TabsList className="mb-8 bg-deep-black/50 border border-golden/20">
-              {allPages.map((_, index) => (
+              {displayPages.map((_, index) => (
                 <TabsTrigger
                   key={index}
                   value={`page-${index}`}
@@ -214,7 +181,7 @@ export const FeaturedSection = () => {
               ))}
             </TabsList>
 
-            {allPages.map((page, pageIndex) => (
+            {displayPages.map((page, pageIndex) => (
               <TabsContent key={pageIndex} value={`page-${pageIndex}`}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                   {page.map((item) => (
@@ -266,11 +233,10 @@ export const FeaturedSection = () => {
             </DialogDescription>
           </DialogHeader>
           <div
-            className={`w-full bg-black rounded-lg overflow-hidden ${
-              selectedMedia?.type === "audio"
+            className={`w-full bg-black rounded-lg overflow-hidden ${selectedMedia?.type === "audio"
                 ? "max-h-[80vh] overflow-y-auto"
                 : "aspect-video"
-            }`}
+              }`}
           >
             {selectedMedia?.url && (
               <MediaPlayer

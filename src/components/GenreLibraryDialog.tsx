@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getMediaUrl } from "@/utils/storage";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 
 type GenreKey =
   | "rock"
@@ -48,6 +49,8 @@ export const GenreLibraryDialog = ({
     url: string;
   } | null>(null);
 
+  const { data: featuredPages } = useSiteConfig<any[][]>("featured_pages", []);
+
   useEffect(() => {
     if (!open) {
       setSelected(null);
@@ -55,11 +58,10 @@ export const GenreLibraryDialog = ({
     }
     loadGenreItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, genreKey]);
+  }, [open, genreKey, featuredPages]);
 
   const loadGenreItems = () => {
     try {
-      const stored = localStorage.getItem("featuredPages");
       const result: Array<{
         id: string;
         title: string;
@@ -67,22 +69,22 @@ export const GenreLibraryDialog = ({
         fileId?: string;
         url?: string;
       }> = [];
-      if (stored) {
-        const pages = JSON.parse(stored) as any[][];
-        pages.forEach((page) => {
+
+      if (featuredPages && Array.isArray(featuredPages)) {
+        featuredPages.forEach((page) => {
           (page || []).forEach((item) => {
             if (!item) return;
             if (item.type === "audio" && item.genre && item.url) {
               const g = String(item.genre).toLowerCase();
               if (!genreKey || g === genreKey) {
                 const isLocal =
-                  typeof item.url === "string" && item.url.startsWith("file_");
+                  typeof item.url === "string" && (item.url.startsWith("file_") || item.url.includes("supabase.co"));
                 result.push({
                   id: String(item.id || item.url),
                   title: String(item.title || "Sem título"),
                   source: isLocal ? "local" : "externo",
-                  fileId: isLocal ? item.url : undefined,
-                  url: !isLocal ? item.url : undefined,
+                  fileId: typeof item.url === "string" && item.url.startsWith("file_") ? item.url : undefined,
+                  url: !isLocal ? item.url : item.url,
                 });
               }
             }

@@ -1,14 +1,14 @@
 import { Music, Instagram, Youtube, Facebook } from "lucide-react";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 
 export const Footer = () => {
-  const social =
-    typeof window !== "undefined" ? localStorage.getItem("socialLinks") : null;
+  const { data: socialLinks } = useSiteConfig<any>("social_links", {});
   const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
   let whatsappLink = envWhatsapp || "https://wa.me/";
-  try {
-    const parsed = social ? JSON.parse(social) : {};
-    if (parsed && parsed.whatsapp) whatsappLink = parsed.whatsapp;
-  } catch {}
+
+  if (socialLinks && socialLinks.whatsapp) {
+    whatsappLink = socialLinks.whatsapp;
+  }
   return (
     <footer className="bg-muted/20 border-t border-border/50 py-12 px-6">
       <div className="container mx-auto">

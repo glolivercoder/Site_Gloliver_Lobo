@@ -45,6 +45,48 @@ import {
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
+
+// Default values for configurations
+const defaultFeaturedPages = [
+  Array(8)
+    .fill(null)
+    .map((_, i) => ({
+      id: i + 1,
+      title: `Destaque ${i + 1}`,
+      url: "",
+      type: "video",
+    })),
+];
+
+const defaultSocialLinks = {
+  instagram: "",
+  tiktok: "",
+  youtube: "",
+  spotify: "",
+  youtubeMusic: "",
+  amazonMusic: "",
+  whatsapp: "",
+};
+
+const defaultAudioSettings = {
+  waveformStyle: "bars",
+  height: 128,
+  barWidth: 3,
+  barGap: 2,
+  barRadius: 3,
+  cursorWidth: 2,
+  waveColor: "hsl(40 20% 30%)",
+  progressColor: "hsl(40 90% 55%)",
+  cursorColor: "hsl(0 0% 98%)",
+  enableSpectrogram: false,
+  spectrogramFftSamples: 256,
+  liveAnalyzerFftSize: 256,
+  liveAnalyzerSmoothing: 0.8,
+  liveBarColor: "hsl(var(--golden))",
+  liveHeight: 128,
+  liveBarWidth: 2,
+};
 
 // Storage Management Component
 const StorageManagement = () => {
@@ -431,56 +473,22 @@ const ActivityLogs = () => {
 const Settings = () => {
   const { isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(0);
-  const [allPages, setAllPages] = useState<any[][]>([
-    Array(8)
-      .fill(null)
-      .map((_, i) => ({
-        id: i + 1,
-        title: `Destaque ${i + 1}`,
-        url: "",
-        type: "video",
-      })),
-  ]);
 
-  const [socialLinks, setSocialLinks] = useState({
-    instagram: "",
-    tiktok: "",
-    youtube: "",
-    spotify: "",
-    youtubeMusic: "",
-    amazonMusic: "",
-    whatsapp: "",
-  });
+  // Using Supabase site_config instead of localStorage
+  const { data: allPages, save: saveFeaturedPages, setData: setAllPages } = useSiteConfig<any[][]>(
+    "featured_pages",
+    defaultFeaturedPages
+  );
 
-  const [audioSettings, setAudioSettings] = useState({
-    waveformStyle: "bars",
-    height: 128,
-    barWidth: 3,
-    barGap: 2,
-    barRadius: 3,
-    cursorWidth: 2,
-    waveColor: "hsl(40 20% 30%)",
-    progressColor: "hsl(40 90% 55%)",
-    cursorColor: "hsl(0 0% 98%)",
-    enableSpectrogram: false,
-    spectrogramFftSamples: 256,
-    liveAnalyzerFftSize: 256,
-    liveAnalyzerSmoothing: 0.8,
-    liveBarColor: "hsl(var(--golden))",
-    liveHeight: 128,
-    liveBarWidth: 2,
-  });
+  const { data: socialLinks, save: saveSocialLinks, setData: setSocialLinks } = useSiteConfig<any>(
+    "social_links",
+    defaultSocialLinks
+  );
 
-  useEffect(() => {
-    const storedPages = localStorage.getItem("featuredPages");
-    if (storedPages) try { setAllPages(JSON.parse(storedPages)); } catch (e) { }
-
-    const storedSocial = localStorage.getItem("socialLinks");
-    if (storedSocial) try { setSocialLinks(JSON.parse(storedSocial)); } catch (e) { }
-
-    const storedAudioSettings = localStorage.getItem("audioSettings");
-    if (storedAudioSettings) try { setAudioSettings(JSON.parse(storedAudioSettings)); } catch (e) { }
-  }, []);
+  const { data: audioSettings, save: saveAudioSettingsInDb, setData: setAudioSettings } = useSiteConfig<any>(
+    "audio_settings",
+    defaultAudioSettings
+  );
 
   const handleFeaturedChange = (pageIndex: number, itemIndex: number, field: string, value: string) => {
     const updated = [...allPages];
@@ -489,10 +497,13 @@ const Settings = () => {
     setAllPages(updated);
   };
 
-  const saveFeatured = () => {
-    localStorage.setItem("featuredPages", JSON.stringify(allPages));
-    window.dispatchEvent(new Event("storage"));
-    toast.success("Destaques salvos!");
+  const saveFeatured = async () => {
+    try {
+      await saveFeaturedPages(allPages);
+      toast.success("Destaques salvos no servidor!");
+    } catch (e) {
+      toast.error("Erro ao salvar destaques.");
+    }
   };
 
   const addNewPage = () => {
@@ -518,15 +529,22 @@ const Settings = () => {
     setSocialLinks((prev) => ({ ...prev, [platform]: value }));
   };
 
-  const saveSocial = () => {
-    localStorage.setItem("socialLinks", JSON.stringify(socialLinks));
-    toast.success("Redes sociais atualizadas!");
+  const saveSocial = async () => {
+    try {
+      await saveSocialLinks(socialLinks);
+      toast.success("Redes sociais atualizadas!");
+    } catch (e) {
+      toast.error("Erro ao salvar links sociais.");
+    }
   };
 
-  const saveAudioSettings = () => {
-    localStorage.setItem("audioSettings", JSON.stringify(audioSettings));
-    window.dispatchEvent(new Event("storage"));
-    toast.success("Visualizador atualizado!");
+  const saveAudioSettings = async () => {
+    try {
+      await saveAudioSettingsInDb(audioSettings);
+      toast.success("Visualizador atualizado!");
+    } catch (e) {
+      toast.error("Erro ao salvar visualizador.");
+    }
   };
 
   const handleThumbnailUpload = (pageIndex: number, itemIndex: number, file: File) => {
@@ -562,7 +580,7 @@ const Settings = () => {
                 {Object.entries(socialLinks).map(([key, val]) => (
                   <div key={key} className="space-y-1">
                     <Label className="capitalize text-xs text-muted-foreground">{key}</Label>
-                    <Input value={val} onChange={(e) => handleSocialChange(key, e.target.value)} className="bg-background/50 border-golden/20 h-8 text-xs" />
+                    <Input value={val as string} onChange={(e) => handleSocialChange(key, e.target.value)} className="bg-background/50 border-golden/20 h-8 text-xs" />
                   </div>
                 ))}
               </div>
