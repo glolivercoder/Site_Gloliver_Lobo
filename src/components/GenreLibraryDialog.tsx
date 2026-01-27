@@ -77,14 +77,27 @@ export const GenreLibraryDialog = ({
       // 1. Fetch from database media_files (Primary source)
       if (genreKey) {
         console.log(`[GenreLibraryDialog] Loading genre: "${genreKey}"`);
-        const { data: dbMedia, error: dbError } = await supabase
+
+        // Fetch ALL and filter client-side (more robust)
+        const { data: allMedia, error: dbError } = await supabase
           .from("media_files")
           .select("*")
-          .ilike("genre", genreKey) // Use ilike for case-insensitive matching
-          .eq("type", "audio");
+          .order("created_at", { ascending: false });
 
         if (dbError) console.error("[GenreLibraryDialog] Error fetching media:", dbError);
-        else console.log(`[GenreLibraryDialog] Found ${dbMedia?.length} items for "${genreKey}"`);
+
+        // Filter locally
+        const dbMedia = allMedia
+          ? allMedia.filter(m => {
+            const g = String(m.genre || "").toLowerCase();
+            const k = String(genreKey).toLowerCase();
+            // Check genre match AND type (audio)
+            // Also accept 'music' or undefined type if it looks like audio to be safe
+            return (g === k || g.includes(k)) && (m.type === 'audio' || !m.type || m.type === 'music');
+          })
+          : [];
+
+        console.log(`[GenreLibraryDialog] Found ${dbMedia.length} items for "${genreKey}" (Local Filter)`);
 
         if (!dbError && dbMedia) {
           dbMedia.forEach((m) => {
