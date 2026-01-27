@@ -77,14 +77,16 @@ export const GenreLibraryDialog = ({
             if (item.type === "audio" && item.genre && item.url) {
               const g = String(item.genre).toLowerCase();
               if (!genreKey || g === genreKey) {
-                const isLocal =
-                  typeof item.url === "string" && (item.url.startsWith("file_") || item.url.includes("supabase.co"));
+                // Determine source more accurately
+                const isSupabase = typeof item.url === "string" && item.url.includes("supabase.co");
+                const isLocal = typeof item.url === "string" && item.url.startsWith("file_");
+
                 result.push({
                   id: String(item.id || item.url),
                   title: String(item.title || "Sem título"),
                   source: isLocal ? "local" : "externo",
-                  fileId: typeof item.url === "string" && item.url.startsWith("file_") ? item.url : undefined,
-                  url: !isLocal ? item.url : item.url,
+                  fileId: isLocal ? item.url : undefined,
+                  url: item.url,
                 });
               }
             }

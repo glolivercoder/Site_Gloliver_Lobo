@@ -601,8 +601,19 @@ const Settings = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {allPages[currentPage]?.map((item, index) => (
                   <div key={item.id} className="p-3 border border-golden/10 rounded">
-                    <Label className="text-[10px] text-golden uppercase">Destaque {index + 1}</Label>
-                    <Input placeholder="Título" value={item.title} onChange={(e) => handleFeaturedChange(currentPage, index, "title", e.target.value)} className="h-8 text-xs mb-1" />
+                    <div className="flex gap-1 mb-1">
+                      <Input placeholder="Título" value={item.title} onChange={(e) => handleFeaturedChange(currentPage, index, "title", e.target.value)} className="h-8 text-xs flex-1" />
+                      <Select value={item.type || "video"} onValueChange={(val) => handleFeaturedChange(currentPage, index, "type", val)}>
+                        <SelectTrigger className="w-[80px] h-8 text-[10px] bg-background/50 border-golden/20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="video">Vídeo</SelectItem>
+                          <SelectItem value="audio">Áudio</SelectItem>
+                          <SelectItem value="image">Imagem</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Input placeholder="URL" value={item.url} onChange={(e) => handleFeaturedChange(currentPage, index, "url", e.target.value)} className="h-8 text-xs" />
                   </div>
                 ))}

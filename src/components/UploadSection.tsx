@@ -92,9 +92,21 @@ export const UploadSection = () => {
     label: string;
   } | null>(null);
 
+  // Ensure consistent default structure
+  const defaultStructure = [
+    Array(8)
+      .fill(null)
+      .map((_, i) => ({
+        id: i + 1,
+        title: `Destaque ${i + 1}`,
+        url: "",
+        type: "video",
+      })),
+  ];
+
   const { data: featuredPages, save: saveFeaturedPages } = useSiteConfig<
     any[][]
-  >("featured_pages", []);
+  >("featured_pages", defaultStructure);
 
   const [libraryItems, setLibraryItems] = useState<
     Array<{
@@ -170,14 +182,18 @@ export const UploadSection = () => {
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${user?.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('media')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Storage upload error:", uploadError);
+        toast.error(`Erro no upload: ${uploadError.message}`);
+        return;
+      }
 
       const { data: record, error: dbError } = await supabase
         .from("media_files")
@@ -190,7 +206,11 @@ export const UploadSection = () => {
         .select()
         .single();
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database insert error:", dbError);
+        toast.error(`Erro ao salvar metadados: ${dbError.message}`);
+        return;
+      }
 
       const url = getSupabaseUrl("media", record.file_path);
 
@@ -198,11 +218,11 @@ export const UploadSection = () => {
         setMediaUrl(url);
         setMediaType(type);
         setMediaTitle(file.name.replace(/\.[^/.]+$/, ""));
-        toast.success(`${file.name} carregado! Adicione aos destaques abaixo.`);
+        toast.success(`${file.name} carregado com sucesso!`);
       }
-    } catch (error) {
-      console.error("Erro ao carregar arquivo:", error);
-      toast.error("Erro ao fazer upload para o servidor.");
+    } catch (error: any) {
+      console.error("Erro inesperado no upload:", error);
+      toast.error(`Erro inesperado: ${error.message || "Falha ao processar arquivo"}`);
     } finally {
       setIsUploading(false);
     }
@@ -288,26 +308,37 @@ export const UploadSection = () => {
         isMissing?: boolean;
       }> = [];
 
-      const meta = await listMediaFilesMeta();
-      const existingFileIds = new Set(meta.map((m) => m.id));
+      // Fetch all media files from Supabase instead of IndexedDB
+      const { data: dbMedia, error: dbError } = await supabase
+        .from("media_files")
+        .select("*")
+        .order("created_at", { ascending: false });
 
+      if (dbError) throw dbError;
+
+      const existingFilePaths = new Set((dbMedia || []).map((m) => m.file_path));
+
+      // 1. First add items that are already in featured sections
       if (featuredPages && Array.isArray(featuredPages)) {
         featuredPages.forEach((page) => {
           (page || []).forEach((item) => {
             if (item && item.type === "audio" && item.url) {
-              const isLocal =
-                typeof item.url === "string" && (item.url.startsWith("file_") || item.url.includes("supabase.co"));
+              const isSupabase = typeof item.url === "string" && item.url.includes("supabase.co");
 
-              // Local indexeddb check
-              const isMissing = typeof item.url === "string" && item.url.startsWith("file_") && !existingFileIds.has(item.url);
+              // Find matching path in URL to check if it still exists
+              let isMissing = false;
+              if (isSupabase) {
+                const pathMatch = item.url.match(/\/storage\/v1\/object\/public\/media\/(.+)$/);
+                const path = pathMatch ? decodeURIComponent(pathMatch[1]) : null;
+                isMissing = path ? !existingFilePaths.has(path) : false;
+              }
 
               items.push({
                 id: String(item.id || item.url),
-                title: String(item.title || item.name || "Sem título"),
+                title: String(item.title || "Sem título"),
                 type: "audio",
                 genre: item.genre,
-                fileId: typeof item.url === "string" && item.url.startsWith("file_") ? item.url : undefined,
-                externalUrl: !isLocal ? item.url : item.url,
+                externalUrl: item.url,
                 isMissing,
               });
             }
@@ -315,20 +346,22 @@ export const UploadSection = () => {
         });
       }
 
-      const audioMeta = meta.filter((m) => (m.type || "").startsWith("audio/"));
-      const knownIds = new Set(
-        items.map((i) => i.fileId).filter(Boolean) as string[],
-      );
-      audioMeta.forEach((m) => {
-        if (!knownIds.has(m.id)) {
-          items.push({
-            id: m.id,
-            title: (m.name || "").replace(/\.[^/.]+$/, "") || "Sem título",
-            type: "audio",
-            genre: undefined,
-            fileId: m.id,
-            isMissing: false,
-          });
+      // 2. Add other audio files from database that are NOT in featured yet
+      const knownUrls = new Set(items.map(i => i.externalUrl));
+
+      (dbMedia || []).forEach((m) => {
+        if (m.type === "audio") {
+          const url = getSupabaseUrl("media", m.file_path);
+          if (url && !knownUrls.has(url)) {
+            items.push({
+              id: m.id,
+              title: m.title || "Sem título",
+              type: "audio",
+              genre: undefined,
+              externalUrl: url,
+              isMissing: false,
+            });
+          }
         }
       });
 
@@ -343,29 +376,17 @@ export const UploadSection = () => {
     setLibraryOpen(true);
   };
 
-  const handlePlayLibraryItem = async (item: any) => {
+  const handlePlayLibraryItem = (item: any) => {
     if (item.isMissing) {
       toast.error(
-        "Este arquivo foi removido. Faça upload novamente na Área de Upload.",
+        "Este arquivo não foi encontrado no servidor.",
         { duration: 5000 },
       );
       return;
     }
 
     try {
-      let url = item.externalUrl || "";
-      if (item.fileId) {
-        const blobUrl = await getMediaUrl(item.fileId);
-        if (!blobUrl) {
-          toast.error(
-            "Arquivo não encontrado no navegador. Faça upload novamente.",
-            { duration: 5000 },
-          );
-          return;
-        }
-        url = blobUrl;
-      }
-      setSelectedLibraryItem({ ...item, url, type: "audio" });
+      setSelectedLibraryItem({ ...item, url: item.externalUrl, type: "audio" });
     } catch (e) {
       console.error("Erro ao preparar reprodução da biblioteca:", e);
       toast.error("Falha ao abrir música da biblioteca");
@@ -445,17 +466,38 @@ export const UploadSection = () => {
                   />
                 </div>
               </div>
-              <div>
-                <Label htmlFor="media-title" className="text-foreground">
-                  Título
-                </Label>
-                <Input
-                  id="media-title"
-                  placeholder="Nome da faixa"
-                  value={mediaTitle}
-                  onChange={(e) => setMediaTitle(e.target.value)}
-                  className="mt-2"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="media-title" className="text-foreground">
+                    Título
+                  </Label>
+                  <Input
+                    id="media-title"
+                    placeholder="Nome da faixa"
+                    value={mediaTitle}
+                    onChange={(e) => setMediaTitle(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label className="text-foreground block mb-2">Tipo de Mídia</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between mt-2 h-10">
+                        <div className="flex items-center gap-2">
+                          {mediaType === "audio" ? <Music className="w-4 h-4" /> : mediaType === "image" ? <ImageIcon className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+                          {mediaType === "audio" ? "Áudio" : mediaType === "image" ? "Imagem" : "Vídeo"}
+                        </div>
+                        <ChevronDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[200px]">
+                      <DropdownMenuItem onClick={() => setMediaType("video")}>Vídeo</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setMediaType("audio")}>Áudio</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setMediaType("image")}>Imagem</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
