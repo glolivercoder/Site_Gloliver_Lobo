@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Play, Pause } from "lucide-react";
+import { isMobile } from "@/utils/device";
 
 interface ReactiveAudioVisualizerProps {
   url: string;
   autoPlay?: boolean;
   showSpectrogram?: boolean;
+  settings?: any;
 }
 
 export const ReactiveAudioVisualizer = ({
   url,
   autoPlay = false,
   showSpectrogram = true,
+  settings: propSettings,
 }: ReactiveAudioVisualizerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -26,15 +29,10 @@ export const ReactiveAudioVisualizer = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // Get audio settings from localStorage
+  // Get audio settings
   const getSettings = useCallback(() => {
-    try {
-      const stored = localStorage.getItem("audioSettings");
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  }, []);
+    return propSettings || {};
+  }, [propSettings]);
 
   // Initialize audio context and analyser
   const initAudioContext = useCallback(async () => {
@@ -48,10 +46,10 @@ export const ReactiveAudioVisualizer = ({
       const analyser = audioCtx.createAnalyser();
 
       const settings = getSettings();
-      analyser.fftSize = Math.max(
-        256,
-        Number(settings.liveAnalyzerFftSize || 512),
-      );
+      const mobile = isMobile();
+      analyser.fftSize = mobile
+        ? 256
+        : Math.max(256, Number(settings.liveAnalyzerFftSize || 512));
       analyser.smoothingTimeConstant = Number(
         settings.liveAnalyzerSmoothing || 0.7,
       );
@@ -129,11 +127,13 @@ export const ReactiveAudioVisualizer = ({
         `hsl(${hue + 10}, ${saturation}%, ${lightness + 10}%)`,
       );
 
-      // Glow effect
-      ctx.shadowColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-      ctx.shadowBlur = value > 128 ? 15 : 5;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+      // Glow effect (Expensive - Disable on mobile)
+      if (!isMobile()) {
+        ctx.shadowColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        ctx.shadowBlur = value > 128 ? 15 : 5;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -179,9 +179,8 @@ export const ReactiveAudioVisualizer = ({
     analyser.getByteFrequencyData(dataArray);
 
     // Shift existing image left by 1 pixel (waterfall effect)
-    if (spectrogramDataRef.current) {
-      ctx.putImageData(spectrogramDataRef.current, -1, 0);
-    }
+    // Using drawImage instead of putImageData is much faster on mobile
+    ctx.drawImage(canvas, -1, 0);
 
     // Draw new column on the right
     for (let i = 0; i < bufferLength; i++) {
@@ -216,8 +215,7 @@ export const ReactiveAudioVisualizer = ({
       ctx.fillRect(width - 1, y, 1, height / bufferLength);
     }
 
-    // Save current image for next frame
-    spectrogramDataRef.current = ctx.getImageData(0, 0, width, height);
+    // No need to save data when using drawImage shift
   }, [showSpectrogram]);
 
   // Main render loop
@@ -281,7 +279,7 @@ export const ReactiveAudioVisualizer = ({
     const audioEl = audioRef.current;
     if (autoPlay && isReady && audioEl) {
       initAudioContext().then(() => {
-        audioEl.play().catch(() => {});
+        audioEl.play().catch(() => { });
       });
     }
   }, [autoPlay, isReady, initAudioContext]);

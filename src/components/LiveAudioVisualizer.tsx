@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
+import { isMobile } from "@/utils/device";
 
 interface LiveAudioVisualizerProps {
   url: string;
   autoPlay?: boolean;
+  settings?: any;
 }
 
 export const LiveAudioVisualizer = ({
   url,
   autoPlay = false,
+  settings: propSettings,
 }: LiveAudioVisualizerProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -28,17 +31,16 @@ export const LiveAudioVisualizer = ({
 
     const setup = async () => {
       try {
-        audioCtx = new (window.AudioContext ||
-          (window as any).webkitAudioContext)();
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        audioCtx = new AudioContextClass();
         analyser = audioCtx.createAnalyser();
-        const stored = localStorage.getItem("audioSettings");
-        let s: any = {};
-        try {
-          s = stored ? JSON.parse(stored) : {};
-        } catch {}
-        analyser.fftSize = Number(s.liveAnalyzerFftSize || 256);
+
+        const s: any = propSettings || {};
+
+        const mobile = isMobile();
+        analyser.fftSize = mobile ? 256 : Number(s.liveAnalyzerFftSize || 256);
         analyser.smoothingTimeConstant = Number(s.liveAnalyzerSmoothing || 0.8);
-        const bufferLength = analyser.frequencyBinCount; // 128
+        const bufferLength = analyser.frequencyBinCount;
         dataArray = new Uint8Array(bufferLength);
 
         sourceNode = audioCtx.createMediaElementSource(audioEl);
@@ -47,29 +49,30 @@ export const LiveAudioVisualizer = ({
 
         ctx = canvas.getContext("2d");
         if (!ctx) return;
+
         const render = () => {
-          if (!analyser || !dataArray) return;
+          if (!analyser || !dataArray || !ctx || !canvas) return;
           if (audioEl.paused) return;
-          analyser.getByteFrequencyData(dataArray);
+
+          analyser.getByteFrequencyData(dataArray as any);
+
           const width = canvas.width;
-          const stored2 = localStorage.getItem("audioSettings");
-          let s2: any = {};
-          try {
-            s2 = stored2 ? JSON.parse(stored2) : {};
-          } catch {}
-          const height = Number(s2.liveHeight || 128);
-          canvas.height = height;
+          const height = Number(s.liveHeight || 128);
+          // Set canvas height if it changed
+          if (canvas.height !== height) canvas.height = height;
+
           ctx.clearRect(0, 0, width, height);
 
           const barCount = dataArray.length;
           const barWidth = Math.max(
-            Number(s2.liveBarWidth || 2),
-            Math.floor(width / barCount),
+            Number(s.liveBarWidth || 2),
+            Math.floor(width / barCount)
           );
+
           for (let i = 0; i < barCount; i++) {
             const value = dataArray[i];
             const barHeight = (value / 255) * height;
-            ctx.fillStyle = s2.liveBarColor || `hsl(var(--golden))`;
+            ctx.fillStyle = s.liveBarColor || `hsl(var(--golden))`;
             ctx.fillRect(
               i * barWidth,
               height - barHeight,
@@ -79,21 +82,29 @@ export const LiveAudioVisualizer = ({
           }
           animationRef.current = requestAnimationFrame(render);
         };
+
         const startRender = () => {
           if (animationRef.current) cancelAnimationFrame(animationRef.current);
           animationRef.current = requestAnimationFrame(render);
         };
+
         const stopRender = () => {
           if (animationRef.current) cancelAnimationFrame(animationRef.current);
         };
+
         audioEl.addEventListener("play", startRender);
         audioEl.addEventListener("pause", stopRender);
-        startRender();
+
+        if (!audioEl.paused) {
+          startRender();
+        }
 
         if (autoPlay) {
           try {
             await audioEl.play();
-          } catch {}
+          } catch (e) {
+            console.warn("Autoplay blocked:", e);
+          }
         }
       } catch (e) {
         console.error("LiveAudioVisualizer error:", e);
@@ -107,13 +118,11 @@ export const LiveAudioVisualizer = ({
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       try {
         sourceNode?.disconnect();
-      } catch {}
-      try {
         analyser?.disconnect();
-      } catch {}
-      try {
-        audioCtx?.close();
-      } catch {}
+        if (audioCtx?.state !== 'closed') audioCtx?.close();
+      } catch (e) {
+        console.warn("Cleanup error:", e);
+      }
     };
   }, [url, autoPlay, settingsVersion]);
 
@@ -128,18 +137,28 @@ export const LiveAudioVisualizer = ({
   if (error) {
     return (
       <div className="space-y-4">
-        <audio src={url} controls autoPlay={autoPlay} className="w-full" />
-
+        <audio src={url} controls autoPlay={autoPlay} className="w-full h-12" />
         <div className="text-center text-muted-foreground text-sm">{error}</div>
       </div>
     );
   }
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     const audioEl = audioRef.current;
     if (!audioEl) return;
-    if (audioEl.paused) audioEl.play().catch(() => {});
-    else audioEl.pause();
+
+    // In many mobile browsers, we need to resume AudioContext on user interaction
+    // The current setup creates a context per effect, which isn't ideal but works here.
+
+    if (audioEl.paused) {
+      try {
+        await audioEl.play();
+      } catch (e) {
+        console.error("Playback failed:", e);
+      }
+    } else {
+      audioEl.pause();
+    }
   };
 
   return (
@@ -152,7 +171,7 @@ export const LiveAudioVisualizer = ({
         onClick={handleToggle}
       />
 
-      <audio ref={audioRef} src={url} className="hidden" />
+      <audio ref={audioRef} src={url} className="hidden" crossOrigin="anonymous" />
       <div className="text-center text-muted-foreground text-sm">
         Clique nas barras para reproduzir/pausar
       </div>

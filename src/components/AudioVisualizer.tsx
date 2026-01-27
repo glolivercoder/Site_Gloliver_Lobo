@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { toast } from "sonner";
+import { isMobile } from "@/utils/device";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
 import { LiveAudioVisualizer } from "./LiveAudioVisualizer";
 import { ReactiveAudioVisualizer } from "./ReactiveAudioVisualizer";
 
@@ -21,14 +23,10 @@ export const AudioVisualizer = ({
   const [loadError, setLoadError] = useState(false);
 
   // Check if reactive mode is enabled
-  const stored = localStorage.getItem("audioSettings");
-  let audioSettings: any = {};
-  try {
-    audioSettings = stored ? JSON.parse(stored) : {};
-  } catch {}
+  const { data: audioSettings } = useSiteConfig<any>("audio_settings", {});
 
   const useReactiveVisualizer =
-    waveformStyle === "animatedBars" || audioSettings.enableSpectrogram;
+    waveformStyle === "animatedBars" || audioSettings?.enableSpectrogram;
 
   // Use ReactiveAudioVisualizer for animated/spectrogram modes
   if (useReactiveVisualizer) {
@@ -36,7 +34,8 @@ export const AudioVisualizer = ({
       <ReactiveAudioVisualizer
         url={url}
         autoPlay={autoPlay}
-        showSpectrogram={audioSettings.enableSpectrogram}
+        showSpectrogram={audioSettings?.enableSpectrogram}
+        settings={audioSettings}
       />
     );
   }
@@ -46,18 +45,15 @@ export const AudioVisualizer = ({
     if (!waveformRef.current) return;
 
     // Configure waveform based on style
-    const stored = localStorage.getItem("audioSettings");
-    let s: any = {};
-    try {
-      s = stored ? JSON.parse(stored) : {};
-    } catch {}
+    const s: any = audioSettings || {};
 
+    const mobile = isMobile();
     const waveConfig: any = {
       container: waveformRef.current,
       waveColor: s.waveColor || "hsl(40 20% 30%)",
       progressColor: s.progressColor || "hsl(40 90% 55%)",
       cursorColor: s.cursorColor || "hsl(0 0% 98%)",
-      height: Number(s.height) || 128,
+      height: mobile ? (Number(s.height) || 64) * 0.7 : Number(s.height) || 128,
       normalize: true,
       responsive: true,
     };
@@ -65,7 +61,7 @@ export const AudioVisualizer = ({
     // Apply style-specific configurations
     switch (waveformStyle) {
       case "bars":
-        waveConfig.barWidth = Number(s.barWidth ?? 3);
+        waveConfig.barWidth = mobile ? Math.max(1, Number(s.barWidth ?? 3) - 1) : Number(s.barWidth ?? 3);
         waveConfig.barRadius = Number(s.barRadius ?? 3);
         waveConfig.barGap = Number(s.barGap ?? 2);
         break;
@@ -115,9 +111,9 @@ export const AudioVisualizer = ({
             });
             // @ts-ignore
             wavesurfer.registerPlugin(plugin);
-          } catch {}
+          } catch { }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
 
     const loadAudio = async () => {
@@ -152,7 +148,7 @@ export const AudioVisualizer = ({
     return () => {
       try {
         wavesurfer.pause();
-      } catch {}
+      } catch { }
       wavesurfer.destroy();
     };
   }, [url, autoPlay, waveformStyle]);
@@ -163,7 +159,7 @@ export const AudioVisualizer = ({
 
   // Fallback to a live animated bars visualizer if WaveSurfer fails
   if (loadError) {
-    return <LiveAudioVisualizer url={url} autoPlay={autoPlay} />;
+    return <LiveAudioVisualizer url={url} autoPlay={autoPlay} settings={audioSettings} />;
   }
 
   return (
