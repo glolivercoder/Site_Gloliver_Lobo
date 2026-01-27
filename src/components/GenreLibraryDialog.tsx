@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Music2 } from "lucide-react";
 import { toast } from "sonner";
 import { getMediaUrl } from "@/utils/storage";
 import { getSupabaseUrl, supabase } from "@/lib/supabase";
@@ -78,7 +79,7 @@ export const GenreLibraryDialog = ({
         const { data: dbMedia, error: dbError } = await supabase
           .from("media_files")
           .select("*")
-          .eq("genre", genreKey)
+          .ilike("genre", genreKey) // Use ilike for case-insensitive matching
           .eq("type", "audio");
 
         if (!dbError && dbMedia) {
@@ -197,8 +198,10 @@ export const GenreLibraryDialog = ({
             ))}
 
             {items.length === 0 && (
-              <div className="text-sm text-muted-foreground">
-                Nenhuma música salva para este gênero.
+              <div className="text-sm text-center py-8 text-muted-foreground bg-deep-black/30 rounded-lg border border-dashed border-golden/10">
+                <Music2 className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                <p>Nenhuma música encontrada para "{genreKey}".</p>
+                <p className="text-xs mt-2">Dica: Verifique se você definiu o gênero ao fazer o upload no painel de administração.</p>
               </div>
             )}
           </div>
