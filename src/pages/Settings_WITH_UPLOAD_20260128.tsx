@@ -215,8 +215,6 @@ const Settings = () => {
     waveformStyle: "bars", height: 128, barWidth: 3, barGap: 2, barRadius: 3, cursorWidth: 2,
     waveColor: "hsl(40 20% 30%)", progressColor: "hsl(40 90% 55%)", cursorColor: "hsl(0 0% 98%)",
     enableSpectrogram: false, spectrogramFftSamples: 256,
-    liveAnalyzerFftSize: 256, liveAnalyzerSmoothing: 0.8,
-    liveHeight: 128, liveBarWidth: 2, liveBarColor: "hsl(var(--golden))"
   });
 
   useEffect(() => {
@@ -497,112 +495,37 @@ const Settings = () => {
           </div>
 
           {/* Audio Visualizer Settings (Screenshot Logic) */}
-          {/* Audio Visualizer Settings (Restored Detailed Version) */}
           <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
             <CardHeader>
               <CardTitle className="text-2xl text-golden flex items-center gap-2 uppercase tracking-tighter">
-                Visualizador de Áudio (Preferências Avançadas)
+                Visualizador de Áudio (Preferências)
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-foreground">Estilo do Waveform</Label>
-                <Select value={audioSettings.waveformStyle} onValueChange={(v) => setAudioSettings({ ...audioSettings, waveformStyle: v })}>
-                  <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
-                    <SelectValue placeholder="Selecione o estilo" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-golden/20">
-                    <SelectItem value="bars">Barras (Padrão)</SelectItem>
-                    <SelectItem value="wave">Onda Contínua</SelectItem>
-                    <SelectItem value="mirror">Espelho</SelectItem>
-                    <SelectItem value="animatedBars">Barras Animadas (Ao Vivo)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <CardContent className="space-y-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {[
-                  { label: "Altura (px)", key: "height" },
-                  { label: "Largura Barra", key: "barWidth" },
-                  { label: "Espaço Barra", key: "barGap" },
-                  { label: "Raio Barra", key: "barRadius" },
-                  { label: "Cursor (px)", key: "cursorWidth" },
-                ].map((f) => (
-                  <div key={f.key} className="space-y-2">
-                    <Label className="text-foreground">{f.label}</Label>
-                    <Input
-                      type="number"
-                      value={audioSettings[f.key]}
-                      onChange={(e) => setAudioSettings({ ...audioSettings, [f.key]: Number(e.target.value) })}
-                      className="bg-background/50 border-golden/20 focus:border-golden"
-                    />
+                  { label: "Estilo Waveform", key: "waveformStyle", type: "select", options: ["bars", "wave", "mirror"] },
+                  { label: "Altura (px)", key: "height", type: "number" },
+                  { label: "Largura Barra", key: "barWidth", type: "number" },
+                  { label: "Espaço Barra", key: "barGap", type: "number" },
+                ].map((conf) => (
+                  <div key={conf.key} className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground/60">{conf.label}</Label>
+                    {conf.type === "select" ? (
+                      <Select value={audioSettings[conf.key]} onValueChange={(v) => setAudioSettings({ ...audioSettings, [conf.key]: v })}>
+                        <SelectTrigger className="bg-black/50 border-golden/10 h-11"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-deep-black border-golden/20">
+                          {conf.options?.map(o => <SelectItem key={o} value={o}>{o.toUpperCase()}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input type="number" value={audioSettings[conf.key]} onChange={(e) => setAudioSettings({ ...audioSettings, [conf.key]: Number(e.target.value) })} className="bg-black/50 border-golden/10 h-11 text-lg font-bold text-golden" />
+                    )}
                   </div>
                 ))}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                  { label: "Cor da Onda", key: "waveColor" },
-                  { label: "Cor do Progresso", key: "progressColor" },
-                  { label: "Cor do Cursor", key: "cursorColor" },
-                ].map((f) => (
-                  <div key={f.key} className="space-y-2">
-                    <Label className="text-foreground">{f.label}</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="color"
-                        value={audioSettings[f.key]}
-                        onChange={(e) => setAudioSettings({ ...audioSettings, [f.key]: e.target.value })}
-                        className="w-12 h-10 p-1 bg-black border-golden/20 cursor-pointer"
-                      />
-                      <Input
-                        value={audioSettings[f.key]}
-                        onChange={(e) => setAudioSettings({ ...audioSettings, [f.key]: e.target.value })}
-                        className="flex-1 bg-background/50 border-golden/20 focus:border-golden font-mono text-xs"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-4 pt-4 border-t border-golden/10">
-                <h4 className="text-golden font-bold uppercase text-sm">Espectrograma & Live Analyzer</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" checked={audioSettings.enableSpectrogram} onChange={(e) => setAudioSettings({ ...audioSettings, enableSpectrogram: e.target.checked })} className="rounded border-golden/30 bg-black/50" />
-                      <Label>Ativar Espectrograma</Label>
-                    </div>
-                    <Label className="text-xs text-muted-foreground mt-2 block">FFT Samples</Label>
-                    <Select value={String(audioSettings.spectrogramFftSamples)} onValueChange={(v) => setAudioSettings({ ...audioSettings, spectrogramFftSamples: Number(v) })}>
-                      <SelectTrigger className="bg-background/50 border-golden/20 h-8"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-deep-black border-golden/20">
-                        {[128, 256, 512, 1024].map(v => <SelectItem key={v} value={String(v)}>{v}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Live FFT Size</Label>
-                    <Select value={String(audioSettings.liveAnalyzerFftSize || 256)} onValueChange={(v) => setAudioSettings({ ...audioSettings, liveAnalyzerFftSize: Number(v) })}>
-                      <SelectTrigger className="bg-background/50 border-golden/20 h-8"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-deep-black border-golden/20">
-                        {[64, 128, 256, 512, 1024].map(v => <SelectItem key={v} value={String(v)}>{v}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-
-                    <Label className="text-xs text-muted-foreground mt-2 block">Suavização ({audioSettings.liveAnalyzerSmoothing})</Label>
-                    <Input
-                      type="range" min="0" max="0.99" step="0.01"
-                      value={audioSettings.liveAnalyzerSmoothing}
-                      onChange={(e) => setAudioSettings({ ...audioSettings, liveAnalyzerSmoothing: Number(e.target.value) })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Button onClick={saveAllConfig} className="bg-golden text-black hover:bg-amber-400 font-black px-12 h-12 rounded-lg w-full">
-                SALVAR PREFERÊNCIAS DE ÁUDIO
+              <Button onClick={saveAllConfig} className="bg-golden text-black hover:bg-amber-400 font-black px-12 h-12 rounded-lg">
+                ATUALIZAR VISUALIZADOR
               </Button>
             </CardContent>
           </Card>
