@@ -122,7 +122,24 @@ export const FeaturedSection = () => {
 
   useEffect(() => {
     fetchFeatured();
+    fetchAudioSettings();
   }, []);
+
+  async function fetchAudioSettings() {
+    try {
+      const { data } = await supabase
+        .from('site_config')
+        .select('value')
+        .eq('key', 'audio_settings')
+        .single();
+
+      if (data?.value?.waveformStyle) {
+        setWaveformStyle(data.value.waveformStyle);
+      }
+    } catch (err) {
+      console.error("Error loading audio settings:", err);
+    }
+  }
 
   async function fetchFeatured() {
     setLoading(true);

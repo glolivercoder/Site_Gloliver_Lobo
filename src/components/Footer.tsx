@@ -1,14 +1,32 @@
 import { Music, Instagram, Youtube, Facebook } from "lucide-react";
 
+import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+
 export const Footer = () => {
-  const social =
-    typeof window !== "undefined" ? localStorage.getItem("socialLinks") : null;
-  const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
-  let whatsappLink = envWhatsapp || "https://wa.me/";
-  try {
-    const parsed = social ? JSON.parse(social) : {};
-    if (parsed && parsed.whatsapp) whatsappLink = parsed.whatsapp;
-  } catch {}
+  const [socialLinks, setSocialLinks] = useState<any>({});
+
+  useEffect(() => {
+    fetchSocialLinks();
+  }, []);
+
+  const fetchSocialLinks = async () => {
+    try {
+      const { data } = await supabase
+        .from('site_config')
+        .select('value')
+        .eq('key', 'social_links')
+        .single();
+
+      if (data?.value) {
+        setSocialLinks(data.value);
+      }
+    } catch (error) {
+      console.error("Error fetching social links:", error);
+    }
+  };
+
+  const whatsappLink = socialLinks.whatsapp || import.meta.env.VITE_WHATSAPP_URL || "https://wa.me/";
   return (
     <footer className="bg-muted/20 border-t border-border/50 py-12 px-6">
       <div className="container mx-auto">
@@ -77,24 +95,36 @@ export const Footer = () => {
               Redes Sociais
             </h3>
             <div className="flex gap-4">
-              <a
-                href="#"
-                className="p-2 rounded-lg bg-card/50 hover:bg-primary/10 border border-border/50 hover:border-primary/50 transition-all"
-              >
-                <Instagram className="w-5 h-5 text-muted-foreground hover:text-primary" />
-              </a>
-              <a
-                href="#"
-                className="p-2 rounded-lg bg-card/50 hover:bg-primary/10 border border-border/50 hover:border-primary/50 transition-all"
-              >
-                <Youtube className="w-5 h-5 text-muted-foreground hover:text-primary" />
-              </a>
-              <a
-                href="#"
-                className="p-2 rounded-lg bg-card/50 hover:bg-primary/10 border border-border/50 hover:border-primary/50 transition-all"
-              >
-                <Facebook className="w-5 h-5 text-muted-foreground hover:text-primary" />
-              </a>
+              {socialLinks.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-card/50 hover:bg-primary/10 border border-border/50 hover:border-primary/50 transition-all"
+                >
+                  <Instagram className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                </a>
+              )}
+              {socialLinks.youtube && (
+                <a
+                  href={socialLinks.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-card/50 hover:bg-primary/10 border border-border/50 hover:border-primary/50 transition-all"
+                >
+                  <Youtube className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                </a>
+              )}
+              {socialLinks.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-card/50 hover:bg-primary/10 border border-border/50 hover:border-primary/50 transition-all"
+                >
+                  <Facebook className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                </a>
+              )}
             </div>
           </div>
         </div>
