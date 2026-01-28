@@ -1,0 +1,411 @@
+[
+  {
+    "id": "TC001",
+    "title": "Admin Dashboard Load and Visual Fidelity",
+    "description": "Verify that the admin dashboard loads correctly with full functionality and matches the expected dark/gold theme with proper visual fidelity.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as an admin user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the admin dashboard page"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the dashboard UI elements are fully loaded and functional"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the theme is dark/gold as specified"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm all configuration options are accessible"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Authentication - Admin Role Identification and Badge Display",
+    "description": "Ensure that the authentication system correctly identifies admin users and displays admin badges on their profiles.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in using Google OAuth with an admin user account"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the user is authenticated successfully"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the user role is identified as admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the admin badge is displayed on the user profile and relevant UI elements"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Authentication - Regular User Login",
+    "description": "Validate that a non-admin user can successfully log in via Google OAuth and the user does not have admin privileges or badges.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in using Google OAuth with a regular user account"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm successful login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the user role is non-admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that no admin badge is present on the profile or UI"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Database Row Level Security - Admin Permissions",
+    "description": "Verify that database Row Level Security policies allow admin users to insert, update, and delete media and configuration records.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to insert a new media record into the database"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm insert operation is successful"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to update an existing configuration record"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm update operation is successful"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to delete a media record"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm delete operation is successful"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Database Row Level Security - Public Read Access",
+    "description": "Ensure that public (non-authenticated) users have read-only access to public content as enforced by database policies.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access the application without logging in"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to read featured content and music genre data"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the content loads successfully"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to insert or update data without authentication"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that insert/update operations are denied"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Media Upload - Successful Upload by Admin",
+    "description": "Test that an admin can successfully upload media files via the upload section with integration to Supabase storage.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Upload Section"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid media file for upload"
+      },
+      {
+        "type": "action",
+        "description": "Click on the upload button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the upload completes successfully without errors"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the media is available in Supabase storage and listed in the media database"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Media Upload - Permission Error Handling for Non-Admin",
+    "description": "Verify that a non-admin user attempting to upload media receives proper permission error messages.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a regular (non-admin) user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access the Upload Section"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm access is denied or upload functionality is disabled"
+      },
+      {
+        "type": "action",
+        "description": "If allowed to attempt upload, try uploading a media file"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that a permission error message is displayed and upload does not proceed"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Media Upload - Network Error Handling",
+    "description": "Simulate network failure during media upload and ensure proper error messages are shown and upload does not corrupt data.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to Upload Section and select a valid media file"
+      },
+      {
+        "type": "action",
+        "description": "Simulate network interruption during the upload process"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that upload terminates with a network error message"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm partial or corrupted files are not stored or listed in the media database"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Featured Content Pagination and Dynamic Update",
+    "description": "Validate that the featured content section displays content with pagination and dynamically updates when new content is added.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Access the featured content section as a logged-in user"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the first page of featured content loads correctly"
+      },
+      {
+        "type": "action",
+        "description": "Navigate between pages using pagination controls"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm correct featured content is displayed for each page"
+      },
+      {
+        "type": "action",
+        "description": "As admin, add new featured content via admin dashboard"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the new content appears in the featured section dynamically without page reload"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Featured Content - Media Playback Functionality",
+    "description": "Ensure that media playback in the featured section works correctly with functional audio visualizations.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the featured content section"
+      },
+      {
+        "type": "action",
+        "description": "Select a featured media item and start playback"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that audio plays without interruption"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the audio visualization components display reactive and live visuals synchronized with the audio"
+      },
+      {
+        "type": "action",
+        "description": "Pause and resume playback"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify playback controls respond correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Genre Library - Local Storage Integration",
+    "description": "Confirm that the genre library page loads music by genre and caches data using local storage to enhance browsing experience.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the genre library page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that genre lists and music items load correctly"
+      },
+      {
+        "type": "action",
+        "description": "Select a genre and browse music entries"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that data is cached in local storage after loading"
+      },
+      {
+        "type": "action",
+        "description": "Reload the page or revisit the genre library"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that cached data is used to load genres quickly without a full server fetch"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Fan Club - Posting and Media Sharing Persistence",
+    "description": "Test that the fan club feature allows users to create posts and share media with persistent storage and correct display.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as a regular user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the fan club section"
+      },
+      {
+        "type": "action",
+        "description": "Create a new text post"
+      },
+      {
+        "type": "action",
+        "description": "Share a media item in the post"
+      },
+      {
+        "type": "action",
+        "description": "Submit the post"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the post and media appear immediately in the fan club feed"
+      },
+      {
+        "type": "action",
+        "description": "Reload the application"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the post and media remain visible and persisted"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Settings Page - Site Configuration Management",
+    "description": "Verify that admin users can access the Settings page to manage site-wide configurations and featured slots correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Log in as admin user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the Settings page"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that all configuration options and featured slot management features are displayed"
+      },
+      {
+        "type": "action",
+        "description": "Modify a site configuration setting and save changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify changes are applied and persisted after refreshing the page"
+      },
+      {
+        "type": "action",
+        "description": "Update featured slots and verify updates are reflected in the featured content section"
+      }
+    ]
+  }
+]

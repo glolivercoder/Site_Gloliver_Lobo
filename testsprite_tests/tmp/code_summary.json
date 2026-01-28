@@ -1,0 +1,81 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React",
+    "Vite",
+    "Tailwind CSS",
+    "Shadcn UI",
+    "Supabase",
+    "PocketBase"
+  ],
+  "features": [
+    {
+      "name": "Authentication System",
+      "description": "Complete authentication system with Google OAuth, user profiles, and admin privileges",
+      "files": [
+        "src/contexts/AuthContext.tsx",
+        "src/components/LoginDialog.tsx",
+        "src/lib/supabase.ts",
+        "src/lib/pocketbase.ts"
+      ]
+    },
+    {
+      "name": "Featured Section",
+      "description": "Dynamic featured content display with pagination and media playback",
+      "files": [
+        "src/components/FeaturedSection.tsx",
+        "src/components/AudioVisualizer.tsx",
+        "src/components/ReactiveAudioVisualizer.tsx",
+        "src/components/LiveAudioVisualizer.tsx"
+      ]
+    },
+    {
+      "name": "Genre Library",
+      "description": "Music library organized by genres with local storage integration",
+      "files": [
+        "src/components/GenreLibraryDialog.tsx",
+        "src/utils/storage.ts"
+      ]
+    },
+    {
+      "name": "Upload Section",
+      "description": "Media upload interface with Supabase storage integration and admin controls",
+      "files": [
+        "src/components/UploadSection.tsx"
+      ]
+    },
+    {
+      "name": "Fan Club",
+      "description": "Fan club functionality with posts and media sharing",
+      "files": [
+        "src/components/FanClub.tsx"
+      ]
+    },
+    {
+      "name": "Settings Page",
+      "description": "Admin settings for site configuration and user management",
+      "files": [
+        "src/pages/Settings.tsx"
+      ]
+    },
+    {
+      "name": "Main Application",
+      "description": "Main app component with routing and layout",
+      "files": [
+        "src/App.tsx",
+        "src/components/Header.tsx",
+        "src/components/Footer.tsx",
+        "src/components/Hero.tsx"
+      ]
+    },
+    {
+      "name": "Database Schema",
+      "description": "Supabase database schema with tables and policies",
+      "files": [
+        "SUPABASE_SETUP.sql",
+        "FINAL_FIX_ALL.sql",
+        "FIX_FEATURED_SLOTS.sql"
+      ]
+    }
+  ]
+}

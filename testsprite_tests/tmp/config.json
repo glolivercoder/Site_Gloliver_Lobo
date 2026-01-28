@@ -1,9 +1,18 @@
 {
   "status": "commited",
-  "type": "backend",
+  "type": "frontend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:3000",
-  "backendAuthType": "API key",
-  "backendApiKey": "api",
-  "backendApiValue": "sk-user-PolhR2p6AmECbER69SM0vOOGHqEkfxpsYzLkNwE-YVcW_5sh9y4FZQFNNGoLSF9SQpIyDsx1P2IrDOpsdTGZZ7O0tKX4ET5mezSPZpbm2zhmnIVnNPVA5bnaZUcMs2kZfKg"
+  "localEndpoint": "http://localhost:3001",
+  "loginUser": "glolivercoder@gmail.com",
+  "loginPassword": "7LmIOgin7RJ7Aj",
+  "executionArgs": {
+    "projectName": "Site_Gloliver_lobo",
+    "projectPath": "f:/Projetos2025BKP/Site_Gloliver_lobo",
+    "testIds": [],
+    "additionalInstruction": "Testar especificamente as funcionalidades de Destaques e Gêneros para verificar se as músicas são carregadas corretamente após as correções de permissão do Supabase.",
+    "envs": {
+      "API_KEY": "sk-user-PolhR2p6AmECbER69SM0vOOGHqEkfxpsYzLkNwE-YVcW_5sh9y4FZQFNNGoLSF9SQpIyDsx1P2IrDOpsdTGZZ7O0tKX4ET5mezSPZpbm2zhmnIVnNPVA5bnaZUcMs2kZfKg"
+    }
+  },
+  "proxy": "http://dbcdaf35-25eb-4192-b1e9-c8e86750f50d:HT8wI52qWe7gJ58Rkf3hA8TjVPxhL8OV@tun.testsprite.com:8080"
 }
