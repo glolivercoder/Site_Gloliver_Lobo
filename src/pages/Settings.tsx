@@ -286,6 +286,34 @@ const Settings = () => {
     }
   };
 
+  const handleSlotUpload = async (e: React.ChangeEvent<HTMLInputElement>, pageIdx: number, slotIdx: number) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    try {
+      toast.info("Enviando arquivo...");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `destaques/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage.from('media').upload(fileName, file);
+      if (uploadError) throw uploadError;
+
+      const publicUrl = getSupabaseUrl('media', fileName);
+
+      handleFeaturedChange(pageIdx, slotIdx, 'url', publicUrl);
+      // Auto-set title if empty
+      const currentTitle = allPages[pageIdx][slotIdx].title;
+      if (!currentTitle || currentTitle.includes("Destaque")) {
+        handleFeaturedChange(pageIdx, slotIdx, 'title', file.name.replace(/\.[^/.]+$/, ""));
+      }
+
+      toast.success("Upload concluído! URL preenchida.");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(`Erro no upload: ${error.message}`);
+    }
+  };
+
   const handleFeaturedChange = (p: number, i: number, f: string, v: string) => {
     const updated = [...allPages];
     updated[p] = [...updated[p]];
@@ -496,7 +524,7 @@ const Settings = () => {
                   </div>
                 ))}
               </div>
-              <Button onClick={saveAudioSettings} className="bg-golden text-black hover:bg-amber-400 font-black px-12 h-12 rounded-lg">
+              <Button onClick={saveAllConfig} className="bg-golden text-black hover:bg-amber-400 font-black px-12 h-12 rounded-lg">
                 ATUALIZAR VISUALIZADOR
               </Button>
             </CardContent>
@@ -530,7 +558,20 @@ const Settings = () => {
                       <Music className="w-3 h-3 text-golden/30" />
                     </div>
                     <Input placeholder="Título" value={item.title} onChange={(e) => handleFeaturedChange(currentPage, idx, "title", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-sm font-bold focus-visible:ring-0 mb-3" />
-                    <Input placeholder="URL Media" value={item.url} onChange={(e) => handleFeaturedChange(currentPage, idx, "url", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-[10px] focus-visible:ring-0" />
+                    <div className="flex gap-2">
+                      <Input placeholder="URL Media" value={item.url} onChange={(e) => handleFeaturedChange(currentPage, idx, "url", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-[10px] focus-visible:ring-0 flex-1" />
+                      <div className="relative">
+                        <Input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          onChange={(e) => handleSlotUpload(e, currentPage, idx)}
+                          accept="audio/*,video/*,image/*"
+                        />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-golden hover:bg-golden/10 hover:text-golden">
+                          <Upload className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
