@@ -135,11 +135,10 @@ export const MusicManager = () => {
 
             if (storageError) throw storageError;
 
-            // 2. Remove from DB
-            const { error: dbError } = await supabase
-                .from('media_files')
-                .delete()
-                .eq('id', deleteId);
+            // 2. Remove from DB using RPC (Bypass RLS)
+            const { error: dbError } = await supabase.rpc('delete_media_file', {
+                media_id: deleteId
+            });
 
             if (dbError) throw dbError;
 
@@ -159,15 +158,17 @@ export const MusicManager = () => {
         setMediaFiles(prev => prev.map(f => f.id === id ? { ...f, genre: newGenre } : f));
 
         try {
-            const { error } = await supabase
-                .from('media_files')
-                .update({ genre: newGenre })
-                .eq('id', id);
+            // Use RPC to bypass RLS/Trigger issues
+            const { error } = await supabase.rpc('update_media_genre', {
+                media_id: id,
+                new_genre: newGenre
+            });
 
             if (error) throw error;
             toast.success("Gênero atualizado!");
-        } catch (e) {
-            toast.error("Falha ao salvar gênero.");
+        } catch (e: any) {
+            console.error("Erro detalhado:", e);
+            toast.error(`Erro: ${e.message || e.details || "Falha ao salvar gênero"}`);
             loadMedia(); // Revert
         }
     };

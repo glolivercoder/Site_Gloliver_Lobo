@@ -94,6 +94,9 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
                     <DialogTitle className="text-2xl text-golden flex items-center gap-2">
                         <Music className="w-6 h-6" /> Biblioteca de Músicas (Supabase)
                     </DialogTitle>
+                    <div className="hidden">
+                        <p id="music-library-desc">Selecione uma música da sua biblioteca para adicionar ao destaque.</p>
+                    </div>
                 </DialogHeader>
 
                 <div className="space-y-4">

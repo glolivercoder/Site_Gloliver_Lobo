@@ -113,6 +113,9 @@ export const GenreLibraryDialog = ({
               ? `Coleção: ${genreKey.charAt(0).toUpperCase() + genreKey.slice(1)}`
               : "Coleção por Gênero"}
           </DialogTitle>
+          <div className="hidden">
+            <p>Lista de músicas filtradas por gênero.</p>
+          </div>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
