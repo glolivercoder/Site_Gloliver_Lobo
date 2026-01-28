@@ -89,6 +89,66 @@ export const UploadSection = () => {
     if (user) loadLibrary();
   }, [user]);
 
+  const handleFiles = async (files: FileList | File[]) => {
+    if (!user) return toast.error("Você precisa estar logado.");
+    if (isBlocked) return toast.error("Conta bloqueada.");
+
+    setIsUploading(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    const fileArray = Array.from(files);
+
+    for (const file of fileArray) {
+      if (!isAdmin && file.size > 10 * 1024 * 1024) {
+        toast.error(`Arquivo ${file.name} excede 10MB.`);
+        failCount++;
+        continue;
+      }
+
+      try {
+        const type = file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "audio" : "video";
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        // Upload to Storage
+        const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
+        if (uploadError) throw uploadError;
+
+        // Insert to DB
+        const { data: record, error: dbError } = await supabase.from("media_files").insert({
+          file_path: filePath,
+          title: file.name.replace(/\.[^/.]+$/, ""), // Default title from filename
+          uploaded_by: user.id,
+          type,
+          genre: selectedGenre?.value || null // Apply selected genre to all if chosen
+        }).select().single();
+
+        if (dbError) throw dbError;
+
+        // Update local state for the *last* uploaded file (for immediate editing)
+        const publicUrl = getSupabaseUrl('media', filePath);
+        setMediaUrl(publicUrl);
+        setMediaType(type);
+        setMediaTitle(record.title);
+        setCurrentFileId(record.id);
+        successCount++;
+
+      } catch (error: any) {
+        console.error(error);
+        toast.error(`Erro em ${file.name}: ${error.message}`);
+        failCount++;
+      }
+    }
+
+    setIsUploading(false);
+    if (successCount > 0) {
+      toast.success(`${successCount} arquivo(s) carregado(s)!`);
+      loadLibrary();
+    }
+  };
+
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -100,48 +160,15 @@ export const UploadSection = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-  };
-
-  const handleFile = async (file: File) => {
-    if (!user) return toast.error("Você precisa estar logado.");
-    if (isBlocked) return toast.error("Conta bloqueada.");
-    if (!isAdmin && file.size > 10 * 1024 * 1024) return toast.error("Limite de 10MB para fãs.");
-
-    const type = file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "audio" : "video";
-    setIsUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
-      if (uploadError) throw uploadError;
-
-      const { data: record, error: dbError } = await supabase.from("media_files").insert({
-        file_path: filePath,
-        title: file.name.replace(/\.[^/.]+$/, ""),
-        uploaded_by: user.id,
-        type,
-        genre: selectedGenre?.value || null
-      }).select().single();
-      if (dbError) throw dbError;
-
-      const publicUrl = getSupabaseUrl('media', filePath);
-      setMediaUrl(publicUrl);
-      setMediaType(type);
-      setMediaTitle(record.title);
-      setCurrentFileId(record.id);
-      toast.success(`${file.name} carregado!`);
-      loadLibrary();
-    } catch (error: any) {
-      toast.error(`Erro: ${error.message}`);
-    } finally {
-      setIsUploading(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
   };
 
   const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -236,9 +263,9 @@ export const UploadSection = () => {
           >
             <div className="text-center">
               <Upload className="w-16 h-16 mx-auto mb-6 text-golden" />
-              <h3 className="text-2xl font-black text-golden uppercase tracking-tighter mb-2">Subir Nova Mídia</h3>
+              <h3 className="text-2xl font-black text-golden uppercase tracking-tighter mb-2">Subir Nova Mídia (Arrastar múltiplos)</h3>
               <p className="text-muted-foreground text-sm">Arraste ou clique para selecionar (MP3, MP4, JPG, PNG)</p>
-              <Input type="file" id="file-upload" className="hidden" onChange={handleFileInput} />
+              <Input type="file" id="file-upload" className="hidden" multiple onChange={handleFileInput} />
             </div>
           </Card>
 

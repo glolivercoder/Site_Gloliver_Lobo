@@ -40,12 +40,10 @@ import {
   Music,
   Youtube,
   Instagram,
-  Radio,
-  Music4
+  Radio
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
-import { MusicLibraryDialog } from "@/components/MusicLibraryDialog";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 // --- Functional Storage Management (Rich Backup Version) ---
@@ -282,35 +280,8 @@ const Settings = () => {
   ]);
 
   const [socialLinks, setSocialLinks] = useState({
-    instagram: "",
-    tiktok: "",
-    youtube: "",
-    spotify: "",
-    youtubeMusic: "",
-    amazonMusic: "",
-    whatsapp: "",
+    instagram: "", tiktok: "", youtube: "", spotify: "", youtubeMusic: "", amazonMusic: "", whatsapp: ""
   });
-
-  // Library Dialog State
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const [activeSlot, setActiveSlot] = useState<{ page: number, slot: number } | null>(null);
-
-  const openLibrary = (page: number, slot: number) => {
-    setActiveSlot({ page, slot });
-    setLibraryOpen(true);
-  };
-
-  const handleLibrarySelect = (url: string, filename: string) => {
-    if (activeSlot) {
-      handleFeaturedChange(activeSlot.page, activeSlot.slot, 'url', url);
-      // Auto-set title if empty or generic
-      const currentTitle = allPages[activeSlot.page][activeSlot.slot].title;
-      if (!currentTitle || currentTitle.includes("Destaque")) {
-        handleFeaturedChange(activeSlot.page, activeSlot.slot, 'title', filename.replace(/\.[^/.]+$/, ""));
-      }
-      toast.success("Música selecionada!");
-    }
-  };
 
   const [audioSettings, setAudioSettings] = useState({
     waveformStyle: "bars", height: 128, barWidth: 3, barGap: 2, barRadius: 3, cursorWidth: 2,
@@ -601,16 +572,6 @@ const Settings = () => {
                           <Upload className="w-3 h-3" />
                         </Button>
                       </div>
-
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => openLibrary(currentPage, index)}
-                        className="w-8 h-8 border-golden/20 text-golden hover:bg-golden/10 p-0"
-                        title="Selecionar da Biblioteca"
-                      >
-                        <Music4 className="w-3 h-3" />
-                      </Button>
                     </div>
 
                     <select
@@ -827,11 +788,6 @@ const Settings = () => {
         </div>
       </div>
       <Footer />
-      <MusicLibraryDialog
-        open={libraryOpen}
-        onOpenChange={setLibraryOpen}
-        onSelect={handleLibrarySelect}
-      />
     </div>
   );
 };
