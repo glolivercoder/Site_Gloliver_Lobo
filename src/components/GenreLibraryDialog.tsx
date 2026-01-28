@@ -8,8 +8,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getMediaUrl } from "@/utils/storage";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
+import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 type GenreKey =
   | "rock"
@@ -57,41 +57,29 @@ export const GenreLibraryDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, genreKey]);
 
-  const loadGenreItems = () => {
+  const loadGenreItems = async () => {
     try {
-      const stored = localStorage.getItem("featuredPages");
-      const result: Array<{
-        id: string;
-        title: string;
-        source: "local" | "externo";
-        fileId?: string;
-        url?: string;
-      }> = [];
-      if (stored) {
-        const pages = JSON.parse(stored) as any[][];
-        pages.forEach((page) => {
-          (page || []).forEach((item) => {
-            if (!item) return;
-            if (item.type === "audio" && item.genre && item.url) {
-              const g = String(item.genre).toLowerCase();
-              if (!genreKey || g === genreKey) {
-                const isLocal =
-                  typeof item.url === "string" && item.url.startsWith("file_");
-                result.push({
-                  id: String(item.id || item.url),
-                  title: String(item.title || "Sem título"),
-                  source: isLocal ? "local" : "externo",
-                  fileId: isLocal ? item.url : undefined,
-                  url: !isLocal ? item.url : undefined,
-                });
-              }
-            }
-          });
-        });
-      }
+      if (!genreKey) return;
+
+      const { data, error } = await supabase
+        .from('media_files')
+        .select('*')
+        .eq('genre', genreKey) // Exact match on genre key (rock, gospel, etc)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const result = (data || []).map((file: any) => ({
+        id: file.id,
+        title: file.title || "Sem Título",
+        source: "externo" as const,
+        url: getSupabaseUrl('media', file.file_path),
+      }));
+
       setItems(result);
     } catch (e) {
       console.error("Erro ao carregar itens do gênero:", e);
+      toast.error("Erro ao carregar lista do gênero");
       setItems([]);
     }
   };
@@ -104,16 +92,12 @@ export const GenreLibraryDialog = ({
     url?: string;
   }) => {
     try {
-      let urlToUse = item.url || "";
-      if (item.source === "local" && item.fileId) {
-        const blobUrl = await getMediaUrl(item.fileId);
-        if (!blobUrl) {
-          toast.error("Arquivo local não encontrado");
-          return;
-        }
-        urlToUse = blobUrl;
+      // Logic simplified: All items from DB have a valid public URL
+      if (item.url) {
+        setSelected({ id: item.id, title: item.title, url: item.url });
+      } else {
+        toast.error("URL da mídia não encontrada");
       }
-      setSelected({ id: item.id, title: item.title, url: urlToUse });
     } catch (e) {
       console.error("Erro ao preparar reprodução:", e);
       toast.error("Falha ao abrir música");

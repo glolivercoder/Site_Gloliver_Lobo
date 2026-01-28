@@ -31,25 +31,24 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
     const loadFiles = async () => {
         setLoading(true);
         try {
-            // List all files in the 'media' bucket (root and subfolders if needed, but 'destaques' folder preferred)
-            // For now, let's list root or broad search
-            const { data, error } = await supabase.storage.from('media').list('destaques', {
-                limit: 100,
-                offset: 0,
-                sortBy: { column: 'created_at', order: 'desc' },
-            });
+            // Fetch from 'media_files' table to get pretty titles and correct paths
+            const { data, error } = await supabase
+                .from('media_files')
+                .select('*')
+                .order('created_at', { ascending: false });
 
             if (error) throw error;
             setFiles(data || []);
         } catch (e) {
-            console.error("Error loading library:", e);
+            console.error("Error loading library from DB:", e);
         } finally {
             setLoading(false);
         }
     };
 
-    const handlePreview = (fileName: string) => {
-        const url = getSupabaseUrl('media', `destaques/${fileName}`);
+    const handlePreview = (file: any) => {
+        // file_path is stored in DB relative to bucket root (e.g. "user_id/123.mp3")
+        const url = getSupabaseUrl('media', file.file_path);
 
         if (previewUrl === url) {
             stopPreview();
@@ -71,16 +70,22 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
         setPreviewUrl(null);
     };
 
-    const handleSelect = (fileName: string) => {
-        const url = getSupabaseUrl('media', `destaques/${fileName}`);
-        onSelect(url, fileName);
+    const handleSelect = (file: any) => {
+        const url = getSupabaseUrl('media', file.file_path);
+        // Use the pretty title from DB, or fallback to filename if title is missing
+        const displayTitle = file.title || file.file_path.split('/').pop();
+        onSelect(url, displayTitle);
         onOpenChange(false);
     };
 
-    const filteredFiles = files.filter(f =>
-        f.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (f.metadata?.mimetype?.startsWith('audio/') || f.name.match(/\.(mp3|wav|ogg|m4a)$/i))
-    );
+    const filteredFiles = files.filter(f => {
+        const searchLower = searchTerm.toLowerCase();
+        const titleMatch = (f.title || "").toLowerCase().includes(searchLower);
+        const nameMatch = (f.file_path || "").toLowerCase().includes(searchLower);
+        // Filter by audio types or generic search
+        const isAudio = f.type === 'audio' || (f.file_path && f.file_path.match(/\.(mp3|wav|ogg|m4a)$/i));
+        return (titleMatch || nameMatch) && isAudio;
+    });
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,7 +100,7 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <Input
-                            placeholder="Buscar música..."
+                            placeholder="Buscar por título..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 bg-black/40 border-golden/20 focus:border-golden"
@@ -105,11 +110,11 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
                     <ScrollArea className="h-[300px] border border-golden/10 rounded-md bg-black/20 p-2">
                         {loading ? (
                             <div className="flex justify-center items-center h-full text-muted-foreground">
-                                <Loader2 className="w-6 h-6 animate-spin mr-2" /> Carregando...
+                                <Loader2 className="w-6 h-6 animate-spin mr-2" /> Carregando do Banco de Dados...
                             </div>
                         ) : filteredFiles.length === 0 ? (
                             <div className="text-center text-muted-foreground py-10">
-                                Nenhuma música encontrada em 'destaques/'.
+                                Nenhuma música encontrada no banco.
                             </div>
                         ) : (
                             <div className="space-y-1">
@@ -121,10 +126,10 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-sm font-medium truncate text-white group-hover:text-golden transition-colors">
-                                                    {file.name}
+                                                    {file.title || "Sem Título"}
                                                 </p>
                                                 <p className="text-[10px] text-muted-foreground">
-                                                    {(file.metadata?.size / 1024 / 1024).toFixed(2)} MB • {new Date(file.created_at).toLocaleDateString()}
+                                                    {new Date(file.created_at).toLocaleDateString()} • {file.genre || "Geral"}
                                                 </p>
                                             </div>
                                         </div>
@@ -133,15 +138,15 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => handlePreview(file.name)}
+                                                onClick={() => handlePreview(file)}
                                                 className="h-8 w-8 text-muted-foreground hover:text-golden"
                                                 title="Ouvir Preview"
                                             >
-                                                {previewUrl?.includes(file.name) ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                                {previewUrl?.includes(file.file_path) ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                onClick={() => handleSelect(file.name)}
+                                                onClick={() => handleSelect(file)}
                                                 className="bg-golden/10 hover:bg-golden text-golden hover:text-black border border-golden/20 h-8 text-xs font-bold"
                                             >
                                                 Selecionar

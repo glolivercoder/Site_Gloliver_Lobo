@@ -46,6 +46,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
 import { MusicLibraryDialog } from "@/components/MusicLibraryDialog";
+import { MusicManager } from "@/components/MusicManager";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
 // --- Functional Storage Management (Rich Backup Version) ---
@@ -293,6 +294,7 @@ const Settings = () => {
 
   // Library Dialog State
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [showMusicManager, setShowMusicManager] = useState(false);
   const [activeSlot, setActiveSlot] = useState<{ page: number, slot: number } | null>(null);
 
   const openLibrary = (page: number, slot: number) => {
@@ -630,6 +632,28 @@ const Settings = () => {
                 {loadingScreens ? "SALVANDO..." : "SALVAR DESTAQUES"}
               </Button>
             </CardContent>
+          </Card>
+
+          {/* Advanced Music Manager (Collapsible) */}
+          <Card className={`bg-deep-black/50 border-golden/20 backdrop-blur-md transition-all duration-500 ${showMusicManager ? "ring-2 ring-golden/30" : ""}`}>
+            <CardHeader className="cursor-pointer hover:bg-white/5 transition-colors rounded-t-lg" onClick={() => setShowMusicManager(!showMusicManager)}>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl text-golden flex items-center gap-3">
+                  <Music className="w-6 h-6" /> Gerenciador de Mídias e Gêneros <span className="text-xs bg-golden/20 px-2 py-0.5 rounded text-golden/80 border border-golden/10">PRO</span>
+                </CardTitle>
+                <Button variant="ghost" size="sm" className="text-golden">
+                  {showMusicManager ? "Ocultar Painel" : "Expandir Painel"}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Gerencie suas músicas, edite gêneros e exclua arquivos do banco de dados.
+              </p>
+            </CardHeader>
+            {showMusicManager && (
+              <CardContent className="animate-in slide-in-from-top-4 fade-in duration-300">
+                <MusicManager />
+              </CardContent>
+            )}
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
