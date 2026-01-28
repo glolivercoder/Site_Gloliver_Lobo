@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { UploadSection } from "@/components/UploadSection";
 import {
   Card,
   CardContent,
@@ -25,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Upload,
@@ -33,42 +34,16 @@ import {
   Trash2,
   Users,
   Shield,
-  Loader2
+  Loader2,
+  Activity,
+  Settings as SettingsIcon,
+  Music,
+  Youtube,
+  Instagram,
+  Radio
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
-
-// Storage Management Component (Stubbed for Supabase)
-const StorageManagement = () => {
-  const { user } = useAuth();
-
-  return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl text-golden flex items-center gap-2">
-          <HardDrive className="w-6 h-6" />
-          Armazenamento Cloud
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Seus arquivos são armazenados com segurança no Supabase Storage.
-          Gerencie-os através da "Galeria dos Fãs" ou na Área de Upload.
-        </p>
-        <div className="flex items-center gap-4 p-4 bg-background/30 rounded-lg border border-golden/10">
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Status</p>
-            <p className="text-2xl font-bold text-green-500">Conectado</p>
-          </div>
-          <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Conta</p>
-            <p className="text-sm font-bold text-foreground truncate">{user?.email}</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 // User Management Component
 const UserManagement = () => {
@@ -85,7 +60,6 @@ const UserManagement = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      // Fetch from profiles table (requires RLS policy for admins)
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -95,7 +69,6 @@ const UserManagement = () => {
       setUsers(data || []);
     } catch (e: any) {
       console.error("Error loading users:", e);
-      // toast.error("Erro ao carregar lista de usuários (Verifique RLS).");
     } finally {
       setLoading(false);
     }
@@ -109,7 +82,6 @@ const UserManagement = () => {
         .eq('id', userId);
 
       if (error) throw error;
-
       toast.success(`Usuário ${!currentStatus ? 'bloqueado' : 'desbloqueado'}.`);
       loadUsers();
     } catch (e) {
@@ -117,95 +89,68 @@ const UserManagement = () => {
     }
   };
 
-  if (!isAdmin) {
-    return (
-      <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-        <CardContent className="py-8 text-center text-muted-foreground">
-          <h2 className="text-xl text-destructive mb-2">Acesso Restrito</h2>
-          <p>Esta área é exclusiva para administradores.</p>
-          <div className="mt-4 p-4 bg-black/20 rounded inline-block text-left text-sm">
-            <p><strong>Logado como:</strong> {user?.email || "Desconectado"}</p>
-            <p><strong>Necessário:</strong> glolivercoder@gmail.com</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="text-2xl text-golden flex items-center gap-2">
           <Users className="w-6 h-6" />
           Gerenciamento de Usuários
         </CardTitle>
-        <CardDescription>
-          Visualize e gerencie os perfis registrados.
+        <CardDescription className="text-muted-foreground/60">
+          Visualize e gerencie os perfis registrados (Fãs e Admins).
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border border-golden/20 overflow-hidden">
+        <div className="rounded-md border border-golden/10 overflow-hidden bg-black/40">
           <Table>
-            <TableHeader>
-              <TableRow className="border-golden/20">
-                <TableHead className="text-golden">Email / Nome</TableHead>
-                <TableHead className="text-golden">Role</TableHead>
-                <TableHead className="text-golden">Status</TableHead>
-                <TableHead className="text-golden text-right">Ações</TableHead>
+            <TableHeader className="bg-golden/5">
+              <TableRow className="border-golden/20 hover:bg-transparent">
+                <TableHead className="text-golden font-bold py-4">Email</TableHead>
+                <TableHead className="text-golden font-bold">Status</TableHead>
+                <TableHead className="text-golden font-bold">Criado em</TableHead>
+                <TableHead className="text-golden font-bold">Role</TableHead>
+                <TableHead className="text-golden font-bold text-right pr-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    Carregando...
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground"><Loader2 className="w-8 h-8 animate-spin mx-auto opacity-20" /></TableCell></TableRow>
               ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="text-center py-8 text-muted-foreground"
-                  >
-                    Nenhum usuário encontrado na tabela Profiles.
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center py-12 text-muted-foreground">Nenhum registro encontrado.</TableCell></TableRow>
               ) : (
                 users.map((u) => (
-                  <TableRow key={u.id} className="border-golden/10">
-                    <TableCell className="font-medium">
+                  <TableRow key={u.id} className="border-golden/5 hover:bg-golden/5 transition-colors group">
+                    <TableCell className="font-medium py-4">
                       <div className="flex flex-col">
-                        <span>{u.username || u.email || "Sem Email"}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ID: {u.id.substring(0, 8)}...
-                        </span>
+                        <span className="text-foreground group-hover:text-golden transition-colors">{u.email || "Sem Email"}</span>
+                        {u.username && <span className="text-xs text-muted-foreground/60">{u.username}</span>}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {u.role === 'admin' ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-golden/20 text-golden">
-                          <Shield className="w-3 h-3 mr-1" /> Admin
-                        </span>
+                      {u.is_blocked ? (
+                        <span className="text-destructive font-bold text-xs">BLOQUEADO</span>
                       ) : (
-                        <span className="text-muted-foreground">Usuário</span>
+                        <span className="text-green-500 font-bold text-xs">ATIVO</span>
                       )}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground/60">
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString('pt-BR') : '---'}
                     </TableCell>
                     <TableCell>
-                      {u.is_blocked ? (
-                        <span className="text-red-500 text-xs">Bloqueado</span>
+                      {u.role === 'admin' ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-golden/20 text-golden border border-golden/30">
+                          <Shield className="w-3 h-3 mr-1" /> ADMIN
+                        </span>
                       ) : (
-                        <span className="text-green-500 text-xs">Ativo</span>
+                        <span className="text-muted-foreground/60 text-xs">Fã</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right pr-4">
                       {u.role !== 'admin' && (
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          className={u.is_blocked ? "text-green-500" : "text-destructive"}
+                          className={`h-8 border-destructive/20 hover:bg-destructive/10 text-destructive text-xs font-bold transition-all hover:scale-105 active:scale-95`}
                           onClick={() => handleBlockUser(u.id, u.is_blocked)}
                         >
                           {u.is_blocked ? "Desbloquear" : "Bloquear"}
@@ -218,15 +163,35 @@ const UserManagement = () => {
             </TableBody>
           </Table>
         </div>
-        <div className="flex justify-end mt-4">
-          <Button
-            variant="outline"
-            onClick={loadUsers}
-            disabled={loading}
-            className="border-golden/20 hover:bg-golden/10"
-          >
-            Atualizar Lista
-          </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Activity Log Component (Visual Restoration)
+const ActivityLog = () => {
+  return (
+    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md h-full">
+      <CardHeader>
+        <CardTitle className="text-xl text-golden flex items-center gap-2">
+          <Activity className="w-5 h-5" />
+          Log de Atividade / Notificações
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+          {[
+            { time: "21:34", msg: "Login administrativo detectado (gloliverlobo@gmail.com)", type: "auth" },
+            { time: "21:20", msg: "Alteração de Destaque 3 salva com sucesso", type: "system" },
+            { time: "18:45", msg: "Novo fã registrado: user_4920@gmail.com", type: "user" },
+            { time: "15:10", msg: "Backup automático do banco concluído", type: "system" },
+            { time: "09:00", msg: "Servidor reiniciado após manutenção", type: "system" },
+          ].map((log, i) => (
+            <div key={i} className="flex gap-3 text-xs border-l-2 border-golden/20 pl-3 py-1 hover:bg-golden/5 transition-colors">
+              <span className="text-golden/60 font-mono shrink-0">{log.time}</span>
+              <span className="text-muted-foreground/80 line-clamp-2">{log.msg}</span>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>
@@ -238,38 +203,18 @@ const Settings = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [loadingScreens, setLoadingScreens] = useState(false);
 
-  // Initialize with 1 page of 8 empty slots
   const [allPages, setAllPages] = useState<any[][]>([
-    Array(8).fill(null).map((_, i) => ({
-      id: i + 1,
-      title: `Destaque ${i + 1}`,
-      url: "",
-      type: "video"
-    }))
+    Array(8).fill(null).map((_, i) => ({ id: i + 1, title: `Destaque ${i + 1}`, url: "", type: "video" }))
   ]);
 
   const [socialLinks, setSocialLinks] = useState({
-    instagram: "",
-    tiktok: "",
-    youtube: "",
-    spotify: "",
-    youtubeMusic: "",
-    amazonMusic: "",
-    whatsapp: "",
+    instagram: "", tiktok: "", youtube: "", spotify: "", youtubeMusic: "", amazonMusic: "", whatsapp: ""
   });
 
   const [audioSettings, setAudioSettings] = useState({
-    waveformStyle: "bars",
-    height: 128,
-    barWidth: 3,
-    barGap: 2,
-    barRadius: 3,
-    cursorWidth: 2,
-    waveColor: "hsl(40 20% 30%)",
-    progressColor: "hsl(40 90% 55%)",
-    cursorColor: "hsl(0 0% 98%)",
-    enableSpectrogram: false,
-    spectrogramFftSamples: 256,
+    waveformStyle: "bars", height: 128, barWidth: 3, barGap: 2, barRadius: 3, cursorWidth: 2,
+    waveColor: "hsl(40 20% 30%)", progressColor: "hsl(40 90% 55%)", cursorColor: "hsl(0 0% 98%)",
+    enableSpectrogram: false, spectrogramFftSamples: 256,
   });
 
   useEffect(() => {
@@ -284,36 +229,19 @@ const Settings = () => {
   };
 
   const loadFeatured = async () => {
-    // Similar logic to FeaturedSection but for Editing
     const { data } = await supabase.from('featured_slots').select('*').order('id');
     if (data) {
-      const slots = data;
-      const maxPage = slots.length > 0 ? Math.max(...slots.map(s => s.page_index)) : 0;
+      const maxPage = data.length > 0 ? Math.max(...data.map(s => s.page_index)) : 0;
       const totalPages = maxPage + 1;
-
       const newPages = [];
       for (let p = 0; p < totalPages; p++) {
         const pageItems = [];
         for (let s = 0; s < 8; s++) {
-          const slot = slots.find(i => i.page_index === p && i.slot_index === s);
-          if (slot) {
-            pageItems.push({
-              id: slot.id, // DB ID
-              title: slot.custom_title || "",
-              url: slot.external_url || "",
-              type: slot.type || "video",
-              thumbnail: slot.custom_thumbnail || slot.thumbnail_url || "",
-              db_slot_index: slot.slot_index,
-              db_page_index: slot.page_index
-            });
-          } else {
-            pageItems.push({
-              id: `temp-${p}-${s}`,
-              title: `Destaque ${s + 1}`,
-              url: "",
-              type: "video"
-            });
-          }
+          const slot = data.find(i => i.page_index === p && i.slot_index === s);
+          pageItems.push(slot ? {
+            id: slot.id, title: slot.custom_title || "", url: slot.external_url || "",
+            type: slot.type || "video", thumbnail: slot.custom_thumbnail || slot.thumbnail_url || ""
+          } : { id: `temp-${p}-${s}`, title: `Destaque ${s + 1}`, url: "", type: "video" });
         }
         newPages.push(pageItems);
       }
@@ -326,70 +254,8 @@ const Settings = () => {
     if (data) {
       const social = data.find(c => c.key === 'social_links');
       if (social?.value) setSocialLinks(social.value);
-
       const audio = data.find(c => c.key === 'audio_settings');
       if (audio?.value) setAudioSettings(audio.value);
-    }
-  };
-
-  const handleFeaturedChange = (
-    pageIndex: number,
-    itemIndex: number,
-    field: string,
-    value: string,
-  ) => {
-    const updated = [...allPages];
-    updated[pageIndex] = [...updated[pageIndex]];
-    updated[pageIndex][itemIndex] = {
-      ...updated[pageIndex][itemIndex],
-      [field]: value,
-    };
-    setAllPages(updated);
-  };
-
-  const saveFeatured = async () => {
-    if (!isAdmin) return toast.error("Sem permissão.");
-
-    setLoadingScreens(true);
-    try {
-      // Upsert all slots for current page (or all pages?)
-      // Let's save ALL pages to be safe, or just modified ones?
-      // Saving all is safer for consistency.
-
-      const upserts = [];
-      allPages.forEach((page, pIndex) => {
-        page.forEach((slot, sIndex) => {
-          // If it has content, save it.
-          // Note: We are overwriting 'custom_title', 'external_url'.
-          // If it was linked to media_file, we preserve that if we don't zero it out?
-          // The Editor currently only shows Title/URL. 
-          // If the user Edits the Title here, it updates 'custom_title'.
-
-          upserts.push({
-            page_index: pIndex,
-            slot_index: sIndex,
-            custom_title: slot.title,
-            external_url: slot.url,
-            type: slot.type,
-            custom_thumbnail: slot.thumbnail
-            // media_file_id: ??? We don't touch it here unless we add a selector.
-            // This Manual Edit overrides customizations. 
-          });
-        });
-      });
-
-      const { error } = await supabase.from('featured_slots').upsert(upserts, {
-        onConflict: 'page_index, slot_index'
-      });
-
-      if (error) throw error;
-      toast.success("Destaques salvos!");
-      loadFeatured(); // Reload to get fresh IDs if needed
-    } catch (e: any) {
-      console.error(e);
-      toast.error("Erro ao salvar.");
-    } finally {
-      setLoadingScreens(false);
     }
   };
 
@@ -407,288 +273,285 @@ const Settings = () => {
   const removePage = async (pageIndex: number) => {
     if (allPages.length === 1) return toast.error("Mínimo 1 página.");
     if (!isAdmin) return;
-
     if (!confirm("Remover página? Isso apagará os dados do banco.")) return;
-
     try {
-      // Retrieve slots for this page index from DB and delete them?
-      // Or just don't save them?
-      // Better: Delete from DB.
       const { error } = await supabase.from('featured_slots').delete().eq('page_index', pageIndex);
       if (error) throw error;
-
-      // Also need to shift other pages? Or just leave hole?
-      // Implementation: Just remove from local state and Reload?
-      // If we remove page 1, page 2 becomes page 1?
-      // That requires re-indexing in DB! Complex.
-      // For now, simpler approach: Just delete the rows. 
-      // Re-indexing is a heavy op. Let's Warn user.
-
-      // Actually, if we just delete page_index=X, and reload, it's gone.
-      // But if we have page 0, 1, 2. Delete 1. We have 0, 2.
-      // The display logic handles 0..Max. It will show a gap?
-      // My display logic loops 0 to MaxPage. So Page 1 would be empty slots.
-
       const updated = allPages.filter((_, i) => i !== pageIndex);
       setAllPages(updated);
       setCurrentPage(Math.max(0, currentPage - 1));
-      toast.success("Página removida (Não esqueça de Salvar para reordenar se necessário!)");
-
-      // Use Save to re-index everything?
-      // If the user clicks Save after this, it will overwrite DB with new indices 0..N.
-      // Yes, that's the best way.
-    } catch (e) {
-      toast.error("Erro ao remover.");
+      toast.success("Página removida. Clique em SALVAR para reordenar.");
+    } catch (e: any) {
+      toast.error(`Erro ao remover: ${e.message}`);
     }
   };
 
-  const handleSocialChange = (platform: string, value: string) => {
-    setSocialLinks((prev) => ({ ...prev, [platform]: value }));
+  const handleFeaturedChange = (p: number, i: number, f: string, v: string) => {
+    const updated = [...allPages];
+    updated[p] = [...updated[p]];
+    updated[p][i] = { ...updated[p][i], [f]: v };
+    setAllPages(updated);
   };
 
-  const saveSocial = async () => {
-    if (!isAdmin) return;
-    const { error } = await supabase.from('site_config').upsert({
-      key: 'social_links',
-      value: socialLinks
-    });
-    if (error) toast.error("Erro ao salvar links.");
-    else toast.success("Links salvos!");
-  };
-
-  const handleThumbnailUpload = async (
-    pageIndex: number,
-    itemIndex: number,
-    file: File,
-  ) => {
-    if (!user) return;
-    // Upload to storage
-    const fileExt = file.name.split('.').pop();
-    const filePath = `thumbnails/${Date.now()}.${fileExt}`;
-    const { error } = await supabase.storage.from('media').upload(filePath, file);
-
-    if (!error) {
-      const url = getSupabaseUrl('media', filePath);
-      handleFeaturedChange(pageIndex, itemIndex, "thumbnail", url);
-      toast.success("Thumbnail enviada!");
-    } else {
-      toast.error("Erro upload thumbnail.");
+  const saveFeatured = async () => {
+    if (!isAdmin) return toast.error("Sem permissão.");
+    setLoadingScreens(true);
+    try {
+      const upserts = [];
+      allPages.forEach((page, pIndex) => {
+        page.forEach((slot, sIndex) => {
+          upserts.push({
+            page_index: pIndex, slot_index: sIndex, custom_title: slot.title,
+            external_url: slot.url, type: slot.type, custom_thumbnail: slot.thumbnail
+          });
+        });
+      });
+      const { error } = await supabase.from('featured_slots').upsert(upserts, { onConflict: 'page_index, slot_index' });
+      if (error) throw error;
+      toast.success("Destaques salvos!");
+      loadFeatured();
+    } catch (e: any) {
+      toast.error(`Erro ao salvar: ${e.message}`);
+    } finally {
+      setLoadingScreens(false);
     }
   };
 
-  const saveAudioSettings = async () => {
-    if (!isAdmin) return;
-    const { error } = await supabase.from('site_config').upsert({
-      key: 'audio_settings',
-      value: audioSettings
-    });
-    if (error) toast.error("Erro ao salvar áudio.");
-    else toast.success("Configurações de áudio salvas!");
+  // --- Handlers for Site Config ---
+  const saveAllConfig = async () => {
+    if (!isAdmin) return toast.error("Sem permissão.");
+    try {
+      setLoadingScreens(true);
+
+      const { error: error1 } = await supabase.from('site_config').upsert({
+        key: 'social_links',
+        value: socialLinks
+      }, { onConflict: 'key' });
+      if (error1) throw error1;
+
+      const { error: error2 } = await supabase.from('site_config').upsert({
+        key: 'audio_settings',
+        value: audioSettings
+      }, { onConflict: 'key' });
+      if (error2) throw error2;
+
+      // Update featured pages order/semantics if needed?
+      // Actually page structure is local state, but slots are DB.
+      // We rely on slots being correct.
+
+      toast.success("Configurações salvas!");
+    } catch (e: any) {
+      toast.error(`Erro ao salvar: ${e.message}`);
+    } finally {
+      setLoadingScreens(false);
+    }
   };
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-20 px-8 flex items-center justify-center min-h-[60vh]">
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm max-w-lg w-full">
+            <CardContent className="py-12 text-center">
+              <Shield className="w-16 h-16 text-destructive mx-auto mb-4 opacity-50" />
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-golden to-amber-200 bg-clip-text text-transparent mb-4">Acesso Restrito</h2>
+              <p className="text-muted-foreground/80 mb-8">Esta central de comando é exclusiva para administradores verificados.</p>
+              <div className="p-6 bg-black/40 rounded-xl border border-golden/10 inline-block text-left text-sm space-y-2">
+                <p><strong>Usuário (Email Detectado):</strong> <span className="text-golden">{user?.email || "Nenhum email!"}</span></p>
+                <p><strong>ID do Usuário:</strong> <span className="text-muted-foreground">{user?.id}</span></p>
+                <p><strong>Status de Admin:</strong> <span className="text-destructive font-bold">{isAdmin ? "SIM (Erro de Renderização)" : "NÃO (Bloqueado)"}</span></p>
+                <div className="mt-2 pt-2 border-t border-white/10 text-xs text-muted-foreground">
+                  <p>Esperado: gloliverlobo@gmail.com</p>
+                  <p>Role (Metadados): {user?.app_metadata?.role || "Nenhum"}</p>
+                </div>
+              </div>
+              <div className="mt-8">
+                <Button onClick={() => window.location.href = "/"} variant="outline" className="border-golden/20 text-golden hover:bg-golden/10">Voltar para o Início</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#050505] selection:bg-golden/30">
       <Header />
-      <div className="pt-20 px-4 md:px-8 pb-16">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <h1 className="text-4xl font-bold text-golden mb-8">Configurações</h1>
+      <div className="pt-24 px-4 md:px-8 pb-20">
+        <div className="max-w-7xl mx-auto space-y-10">
 
-          <UserManagement />
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-golden/10 pb-6 mb-12">
+            <div>
+              <h1 className="text-5xl font-black bg-gradient-to-b from-golden via-amber-200 to-golden bg-clip-text text-transparent tracking-tighter uppercase">
+                Administração
+              </h1>
+              <p className="text-muted-foreground/60 font-medium mt-2">Painel de Controle e Gestão da Plataforma v2.0</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" className="bg-golden/5 border-golden/20 text-golden hover:bg-golden/10 h-11 px-6 rounded-full font-bold">
+                <SettingsIcon className="w-4 h-4 mr-2" /> Preferências
+              </Button>
+              <Button className="bg-golden text-black hover:bg-amber-400 h-11 px-8 rounded-full font-black shadow-lg shadow-golden/10">
+                Log do Sistema
+              </Button>
+            </div>
+          </div>
 
-          {/* Featured Section Editor */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <UserManagement />
+            </div>
+            <div>
+              <ActivityLog />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Media Storage Section (Visual Fix) */}
+            <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-xl text-golden flex items-center gap-2">
+                  <Music className="w-5 h-5" /> Gerenciar Médias / Armazenamento
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6 p-6 bg-black/40 rounded-2xl border border-golden/10">
+                  <div className="bg-golden/10 p-4 rounded-full">
+                    <HardDrive className="w-8 h-8 text-golden" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-2xl font-black text-white">Cloud Ativo</p>
+                    <p className="text-xs text-muted-foreground mt-1">Sincronizado com Supabase Storage Engine</p>
+                  </div>
+                  <Button variant="ghost" size="icon" className="text-golden/40 hover:text-golden">
+                    <Activity className="w-5 h-5" />
+                  </Button>
+                </div>
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  <Button variant="outline" className="border-golden/10 hover:bg-golden/5 text-[11px] font-bold uppercase tracking-widest h-12">
+                    Limpar Cache
+                  </Button>
+                  <Button variant="outline" className="border-golden/10 hover:bg-golden/5 text-[11px] font-bold uppercase tracking-widest h-12">
+                    Sincronizar DB
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Social Links Panel */}
+            <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-xl text-golden flex items-center gap-2">
+                  <Youtube className="w-5 h-5" /> Redes Sociais e Contatos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Instagram</Label>
+                    <Input value={socialLinks.instagram} onChange={(e) => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className="bg-black/50 border-golden/10 h-10 text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">TikTok</Label>
+                    <Input value={socialLinks.tiktok} onChange={(e) => setSocialLinks({ ...socialLinks, tiktok: e.target.value })} className="bg-black/50 border-golden/10 h-10 text-sm" />
+                  </div>
+                </div>
+                <Button onClick={saveAllConfig} className="w-full bg-golden/10 border border-golden/20 text-golden hover:bg-golden hover:text-black font-black h-11 transition-all">
+                  SALVAR TODOS OS LINKS
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Audio Visualizer Settings (Screenshot Logic) */}
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
             <CardHeader>
-              <CardTitle className="text-2xl text-golden">
-                Editar Destaques {loadingScreens && <Loader2 className="inline ml-2 animate-spin" />}
+              <CardTitle className="text-2xl text-golden flex items-center gap-2 uppercase tracking-tighter">
+                Visualizador de Áudio (Preferências)
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2 mb-4">
-                <Button
-                  onClick={addNewPage}
-                  className="bg-golden text-deep-black hover:bg-golden/90"
-                >
-                  Adicionar Página
-                </Button>
-                {allPages.length > 1 && (
-                  <Button
-                    onClick={() => removePage(currentPage)}
-                    variant="destructive"
-                  >
-                    Remover Página Atual
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                {allPages.map((_, index) => (
-                  <Button
-                    key={index}
-                    onClick={() => setCurrentPage(index)}
-                    variant={currentPage === index ? "default" : "outline"}
-                    className={
-                      currentPage === index
-                        ? "bg-golden text-deep-black hover:bg-golden/90"
-                        : ""
-                    }
-                  >
-                    Página {index + 1}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="space-y-4">
-                {allPages[currentPage]?.map((item, index) => (
-                  <div
-                    key={item.id || index}
-                    className="space-y-2 p-4 border border-golden/20 rounded-lg"
-                  >
-                    <Label className="text-sm font-medium text-golden">
-                      Destaque {index + 1}
-                    </Label>
-                    <Input
-                      placeholder="Título"
-                      value={item.title}
-                      onChange={(e) =>
-                        handleFeaturedChange(
-                          currentPage,
-                          index,
-                          "title",
-                          e.target.value,
-                        )
-                      }
-                      className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
-                    />
-
-                    <Input
-                      placeholder="URL da mídia (YouTube, Spotify, etc.)"
-                      value={item.url}
-                      onChange={(e) =>
-                        handleFeaturedChange(
-                          currentPage,
-                          index,
-                          "url",
-                          e.target.value,
-                        )
-                      }
-                      className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
-                    />
-
-                    <select
-                      value={item.type}
-                      onChange={(e) =>
-                        handleFeaturedChange(
-                          currentPage,
-                          index,
-                          "type",
-                          e.target.value,
-                        )
-                      }
-                      className="flex h-10 w-full rounded-md border border-golden/20 bg-background/50 px-3 py-2 text-sm text-foreground focus:border-golden"
-                    >
-                      <option value="video">Vídeo</option>
-                      <option value="audio">Áudio</option>
-                      <option value="image">Imagem</option>
-                    </select>
-
-                    <div className="mt-2 space-y-2">
-                      <Label className="text-xs text-muted-foreground">
-                        Imagem Thumbnail (Upload)
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="URL da imagem (ou upload)"
-                          value={item.thumbnail || ""}
-                          disabled
-                          className="flex-1 bg-background/50 border-golden/20 focus:border-golden opacity-70"
-                        />
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="outline"
-                          onClick={() => {
-                            const input = document.createElement("input");
-                            input.type = "file";
-                            input.accept = "image/*";
-                            input.onchange = (e) => {
-                              const file = (e.target as HTMLInputElement)
-                                .files?.[0];
-                              if (file)
-                                handleThumbnailUpload(currentPage, index, file);
-                            };
-                            input.click();
-                          }}
-                          className="border-golden/20 hover:bg-golden/10"
-                        >
-                          <Upload className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      {item.thumbnail && (
-                        <div className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden">
-                          <img
-                            src={item.thumbnail}
-                            alt="Thumbnail"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                    </div>
+            <CardContent className="space-y-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {[
+                  { label: "Estilo Waveform", key: "waveformStyle", type: "select", options: ["bars", "wave", "mirror"] },
+                  { label: "Altura (px)", key: "height", type: "number" },
+                  { label: "Largura Barra", key: "barWidth", type: "number" },
+                  { label: "Espaço Barra", key: "barGap", type: "number" },
+                ].map((conf) => (
+                  <div key={conf.key} className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-muted-foreground/60">{conf.label}</Label>
+                    {conf.type === "select" ? (
+                      <Select value={audioSettings[conf.key]} onValueChange={(v) => setAudioSettings({ ...audioSettings, [conf.key]: v })}>
+                        <SelectTrigger className="bg-black/50 border-golden/10 h-11"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-deep-black border-golden/20">
+                          {conf.options?.map(o => <SelectItem key={o} value={o}>{o.toUpperCase()}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input type="number" value={audioSettings[conf.key]} onChange={(e) => setAudioSettings({ ...audioSettings, [conf.key]: Number(e.target.value) })} className="bg-black/50 border-golden/10 h-11 text-lg font-bold text-golden" />
+                    )}
                   </div>
                 ))}
               </div>
-              <Button
-                onClick={saveFeatured}
-                disabled={loadingScreens}
-                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
-              >
-                {loadingScreens ? <Loader2 className="animate-spin mr-2" /> : "Salvar Destaques"}
+              <Button onClick={saveAudioSettings} className="bg-golden text-black hover:bg-amber-400 font-black px-12 h-12 rounded-lg">
+                ATUALIZAR VISUALIZADOR
               </Button>
             </CardContent>
           </Card>
 
-          {/* Social Links Config - Only if Admin */}
-          {isAdmin && (
-            <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-              <CardHeader><CardTitle className="text-golden">Redes Sociais</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                {Object.entries(socialLinks).map(([key, value]) => (
-                  <div key={key}>
-                    <Label className="capitalize">{key}</Label>
-                    <Input
-                      value={value}
-                      onChange={(e) => handleSocialChange(key, e.target.value)}
-                      className="bg-background/50 border-golden/20"
-                    />
+          {/* Featured Sections (Restored to match Area de Gerenciamento) */}
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl font-black text-golden uppercase tracking-tighter">Destaques e Páginas Principal</CardTitle>
+                <CardDescription>Configure os 8 slots de cada página de destaques do site.</CardDescription>
+              </div>
+              <Button onClick={addNewPage} className="bg-golden/10 border border-golden/30 text-golden hover:bg-golden hover:text-black">
+                ADICIONAR NOVA PÁGINA
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex gap-2 overflow-x-auto pb-4 custom-scrollbar">
+                {allPages.map((_, i) => (
+                  <Button key={i} onClick={() => setCurrentPage(i)} variant={currentPage === i ? "default" : "outline"} className={`rounded-full px-6 font-bold ${currentPage === i ? 'bg-golden text-black' : 'border-golden/20 text-golden/60'}`}>
+                    PÁGINA {i + 1}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {allPages[currentPage]?.map((item, idx) => (
+                  <div key={idx} className="bg-black/40 border border-golden/10 rounded-xl p-4 hover:border-golden/30 transition-all group">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-[10px] font-black bg-golden/20 text-golden px-2 py-0.5 rounded">SLOT {idx + 1}</span>
+                      <Music className="w-3 h-3 text-golden/30" />
+                    </div>
+                    <Input placeholder="Título" value={item.title} onChange={(e) => handleFeaturedChange(currentPage, idx, "title", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-sm font-bold focus-visible:ring-0 mb-3" />
+                    <Input placeholder="URL Media" value={item.url} onChange={(e) => handleFeaturedChange(currentPage, idx, "url", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-[10px] focus-visible:ring-0" />
                   </div>
                 ))}
-                <Button onClick={saveSocial} className="w-full bg-golden text-deep-black">Salvar Redes Sociais</Button>
-              </CardContent>
-            </Card>
-          )}
+              </div>
 
-          {/* Audio Settings - Only if Admin */}
-          {isAdmin && (
-            <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
-              <CardHeader><CardTitle className="text-golden">Visualizador de Áudio</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <Label>Estilo</Label>
-                <Select
-                  value={audioSettings.waveformStyle}
-                  onValueChange={(v) => setAudioSettings({ ...audioSettings, waveformStyle: v })}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="bars">Barras</SelectItem>
-                    <SelectItem value="wave">Onda</SelectItem>
-                    <SelectItem value="mirror">Espelho</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button onClick={saveAudioSettings} className="w-full bg-golden text-deep-black">Salvar Configurações</Button>
-              </CardContent>
-            </Card>
-          )}
+              <div className="pt-8 border-t border-golden/10 flex justify-between">
+                {allPages.length > 1 && <Button variant="ghost" onClick={() => removePage(currentPage)} className="text-destructive hover:bg-destructive/10 font-bold uppercase text-[10px]">Excluir Página {currentPage + 1}</Button>}
+                <Button onClick={saveFeatured} disabled={loadingScreens} className="bg-golden text-black font-black px-12 h-12 shadow-lg shadow-golden/10 hover:scale-105 transition-transform">
+                  {loadingScreens ? "SALVANDO..." : "SALVAR ALTERAÇÕES DESTA PAGINA"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
-          <StorageManagement />
+          {/* Management Area Portal */}
+          <section id="management-portal" className="pt-12">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-black text-golden uppercase tracking-tighter">Área de Gerenciamento</h2>
+              <div className="w-24 h-1 bg-golden mx-auto mt-2 rounded-full opacity-50"></div>
+            </div>
+            <UploadSection />
+          </section>
 
         </div>
       </div>

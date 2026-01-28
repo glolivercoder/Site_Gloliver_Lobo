@@ -77,8 +77,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Admin check: Matches Email OR has Admin Role in DB
-  const isAdmin = (user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) || (dbRole === 'admin');
+  // Configured Admin Emails
+  const ADMIN_EMAILS = [
+    "glolivercoder@gmail.com",
+    "gloliverlobo@gmail.com",
+    "gloliverx@gmail.com"
+  ];
+
+  const userEmail = user?.email?.toLowerCase() || "";
+  const userRole = user?.app_metadata?.role;
+  const isEmailListed = ADMIN_EMAILS.includes(userEmail);
+
+  // DEBUG LOGGING
+  if (user) {
+    console.log("--- AUTH DEBUG ---");
+    console.log("Email:", userEmail);
+    console.log("Role (Metadata):", userRole);
+    console.log("Is In Admin List:", isEmailListed);
+    console.log("App Metadata:", user.app_metadata);
+  }
+
+  const isAdmin = user
+    ? (userRole === 'admin' || isEmailListed)
+    : false;
 
   const loginWithGoogle = async () => {
     setIsLoading(true);
