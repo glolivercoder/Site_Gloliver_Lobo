@@ -1,13 +1,7 @@
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { UploadSection } from "@/components/UploadSection";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Footer } from "@/components/Footer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -18,14 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
@@ -37,17 +23,11 @@ import {
   Image as ImageIcon,
   HardDrive,
   Trash2,
-  Users,
-  Shield,
-  Activity,
-  Settings as SettingsIcon,
-  Loader2,
 } from "lucide-react";
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
 
-// --- COMPONENTS FROM BACKUP (Storage) ---
+// Storage Management Component
 const StorageManagement = () => {
   const [storageInfo, setStorageInfo] = useState({
     totalSize: 0,
@@ -90,7 +70,7 @@ const StorageManagement = () => {
       <CardHeader>
         <CardTitle className="text-2xl text-golden flex items-center gap-2">
           <HardDrive className="w-6 h-6" />
-          Gerenciamento de Armazenamento Local
+          Gerenciamento de Armazenamento
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -112,7 +92,7 @@ const StorageManagement = () => {
         <div className="space-y-2">
           <Label className="text-foreground">Limpar arquivos antigos</Label>
           <p className="text-sm text-muted-foreground">
-            Remove cache local (músicas e mídias do IndexedDB).
+            Remove músicas e mídias que não são usadas há algum tempo.
           </p>
           <div className="flex flex-wrap gap-2 mt-2">
             <Button
@@ -133,251 +113,130 @@ const StorageManagement = () => {
               <Trash2 className="w-4 h-4 mr-2" />
               Mais de 14 dias
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleCleanup(7)}
+              disabled={isLoading}
+              className="border-golden/20 hover:bg-golden/10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Mais de 7 dias
+            </Button>
           </div>
         </div>
+
+        <p className="text-xs text-muted-foreground mt-4">
+          💡 Os arquivos de mídia são armazenados localmente no seu navegador
+          (IndexedDB). As configurações e links de destaques permanecem salvos
+          até você limpá-los manualmente.
+        </p>
       </CardContent>
     </Card>
   );
 };
 
-// --- NEW ACTION COMPONENTS (User Mgmt, Logs) ---
-const UserManagement = () => {
-  const { user, isAdmin } = useAuth();
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (isAdmin) {
-      loadUsers();
-    }
-  }, [isAdmin]);
-
-  const loadUsers = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setUsers(data || []);
-    } catch (e: any) {
-      console.error("Error loading users:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBlockUser = async (userId: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_blocked: !currentStatus })
-        .eq('id', userId);
-
-      if (error) throw error;
-      toast.success(`Usuário ${!currentStatus ? 'bloqueado' : 'desbloqueado'}.`);
-      loadUsers();
-    } catch (e) {
-      toast.error("Erro ao atualizar status.");
-    }
-  };
-
-  return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
-      <CardHeader>
-        <CardTitle className="text-2xl text-golden flex items-center gap-2">
-          <Users className="w-6 h-6" />
-          Gerenciamento de Usuários
-        </CardTitle>
-        <CardDescription className="text-muted-foreground/60">
-          Visualize e gerencie os perfis registrados.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border border-golden/10 overflow-hidden bg-black/40">
-          <Table>
-            <TableHeader className="bg-golden/5">
-              <TableRow className="border-golden/20 hover:bg-transparent">
-                <TableHead className="text-golden font-bold py-4">Email</TableHead>
-                <TableHead className="text-golden font-bold">Status</TableHead>
-                <TableHead className="text-golden font-bold">Role</TableHead>
-                <TableHead className="text-golden font-bold text-right pr-6">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-12"><Loader2 className="w-6 h-6 animate-spin mx-auto text-golden" /></TableCell></TableRow>
-              ) : users.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">Nenhum registro.</TableCell></TableRow>
-              ) : (
-                users.map((u) => (
-                  <TableRow key={u.id} className="border-golden/5 hover:bg-golden/5 transition-colors">
-                    <TableCell className="font-medium text-foreground">{u.email || "Sem Email"}</TableCell>
-                    <TableCell>
-                      {u.is_blocked ? (
-                        <span className="text-destructive font-bold text-xs">BLOQUEADO</span>
-                      ) : (
-                        <span className="text-green-500 font-bold text-xs">ATIVO</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {u.role === 'admin' ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-golden/20 text-golden border border-golden/30">ADMIN</span>
-                      ) : (
-                        <span className="text-muted-foreground/60 text-xs">Fã</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {u.role !== 'admin' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs border-destructive/20 text-destructive hover:bg-destructive/10"
-                          onClick={() => handleBlockUser(u.id, u.is_blocked)}
-                        >
-                          {u.is_blocked ? "Desbloquear" : "Bloquear"}
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-const ActivityLog = () => {
-  return (
-    <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md h-full">
-      <CardHeader>
-        <CardTitle className="text-xl text-golden flex items-center gap-2">
-          <Activity className="w-5 h-5" />
-          Log de Atividade
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3 h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-          {[
-            { time: "Agora", msg: "Sistema iniciado", type: "system" },
-          ].map((log, i) => (
-            <div key={i} className="flex gap-3 text-xs border-l-2 border-golden/20 pl-3 py-1 hover:bg-golden/5">
-              <span className="text-golden/60 font-mono shrink-0">{log.time}</span>
-              <span className="text-muted-foreground/80">{log.msg}</span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// --- MAIN COMPONENT ---
 const Settings = () => {
-  const { user, isAdmin } = useAuth();
   const [currentPage, setCurrentPage] = useState(0);
-  const [loadingScreens, setLoadingScreens] = useState(false);
-
-  // State: Featured Pages (Merged Logic)
   const [allPages, setAllPages] = useState<any[][]>([
-    Array(8).fill(null).map((_, i) => ({ id: i + 1, title: `Destaque ${i + 1}`, url: "", type: "video" }))
+    Array(8)
+      .fill(null)
+      .map((_, i) => ({
+        id: i + 1,
+        title: `Destaque ${i + 1}`,
+        url: "",
+        type: "video",
+      })),
   ]);
 
-  // State: Social (Detailed)
   const [socialLinks, setSocialLinks] = useState({
-    instagram: "", tiktok: "", youtube: "", spotify: "", youtubeMusic: "", amazonMusic: "", whatsapp: ""
+    instagram: "",
+    tiktok: "",
+    youtube: "",
+    spotify: "",
+    youtubeMusic: "",
+    amazonMusic: "",
+    whatsapp: "",
   });
 
-  // State: Audio (Detailed)
   const [audioSettings, setAudioSettings] = useState({
-    waveformStyle: "bars", height: 128, barWidth: 3, barGap: 2, barRadius: 3, cursorWidth: 2,
-    waveColor: "hsl(40 20% 30%)", progressColor: "hsl(40 90% 55%)", cursorColor: "hsl(0 0% 98%)",
-    enableSpectrogram: false, spectrogramFftSamples: 256,
-    liveAnalyzerFftSize: 256, liveAnalyzerSmoothing: 0.8,
-    liveHeight: 128, liveBarWidth: 2, liveBarColor: "hsl(var(--golden))"
+    waveformStyle: "bars",
+    height: 128,
+    barWidth: 3,
+    barGap: 2,
+    barRadius: 3,
+    cursorWidth: 2,
+    waveColor: "hsl(40 20% 30%)",
+    progressColor: "hsl(40 90% 55%)",
+    cursorColor: "hsl(0 0% 98%)",
+    enableSpectrogram: false,
+    spectrogramFftSamples: 256,
+    liveAnalyzerFftSize: 256,
+    liveAnalyzerSmoothing: 0.8,
+    liveBarColor: "hsl(var(--golden))",
+    liveHeight: 128,
+    liveBarWidth: 2,
   });
 
-  // Load Data
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
-    if (!user) return;
-    loadData();
-  }, [user]);
-
-  const loadData = async () => {
-    if (!isAdmin) return;
-    setLoadingScreens(true);
-    await Promise.all([loadFeatured(), loadConfig()]);
-    setLoadingScreens(false);
-  };
-
-  const loadFeatured = async () => {
-    // Try cloud first (DB), fallback to localStorage if needed
-    const { data } = await supabase.from('featured_slots').select('*').order('id');
-    if (data && data.length > 0) {
-      const maxPage = data.length > 0 ? Math.max(...data.map(s => s.page_index)) : 0;
-      const totalPages = maxPage + 1;
-      const newPages = [];
-      for (let p = 0; p < totalPages; p++) {
-        const pageItems = [];
-        for (let s = 0; s < 8; s++) {
-          const slot = data.find(i => i.page_index === p && i.slot_index === s);
-          pageItems.push(slot ? {
-            id: slot.id, title: slot.custom_title || "", url: slot.external_url || "",
-            type: slot.type || "video", thumbnail: slot.custom_thumbnail || slot.thumbnail_url || ""
-          } : { id: `temp-${p}-${s}`, title: `Destaque ${s + 1}`, url: "", type: "video" });
-        }
-        newPages.push(pageItems);
+    const storedPages = localStorage.getItem("featuredPages");
+    if (storedPages) {
+      try {
+        setAllPages(JSON.parse(storedPages));
+      } catch (e) {
+        console.error("Error loading featured pages:", e);
       }
-      setAllPages(newPages);
+    }
+
+    const storedSocial = localStorage.getItem("socialLinks");
+    const envWhatsapp = import.meta.env.VITE_WHATSAPP_URL || "";
+    if (storedSocial) {
+      try {
+        const parsed = JSON.parse(storedSocial);
+        setSocialLinks({
+          instagram: parsed.instagram || "",
+          tiktok: parsed.tiktok || "",
+          youtube: parsed.youtube || "",
+          spotify: parsed.spotify || "",
+          youtubeMusic: parsed.youtubeMusic || "",
+          amazonMusic: parsed.amazonMusic || "",
+          whatsapp: parsed.whatsapp ?? envWhatsapp,
+        });
+      } catch (e) {
+        console.error("Error loading social links:", e);
+        setSocialLinks((prev) => ({ ...prev, whatsapp: envWhatsapp }));
+      }
     } else {
-      // Fallback or empty init
+      // Sem dados salvos: inicializa WhatsApp com valor de ambiente
+      setSocialLinks((prev) => ({ ...prev, whatsapp: envWhatsapp }));
     }
-  };
 
-  const loadConfig = async () => {
-    const { data } = await supabase.from('site_config').select('*');
-    if (data) {
-      const social = data.find(c => c.key === 'social_links');
-      if (social?.value) setSocialLinks({ ...socialLinks, ...social.value });
-      const audio = data.find(c => c.key === 'audio_settings');
-      if (audio?.value) setAudioSettings({ ...audioSettings, ...audio.value });
+    const storedAudioSettings = localStorage.getItem("audioSettings");
+    if (storedAudioSettings) {
+      try {
+        setAudioSettings(JSON.parse(storedAudioSettings));
+      } catch (e) {
+        console.error("Error loading audio settings:", e);
+      }
     }
-  };
+  }, []);
 
-  // Actions
-  const addNewPage = () => {
-    const newPage = Array(8).fill(null).map((_, i) => ({
-      id: `new-${Date.now()}-${i}`, title: `Novo Destaque ${i + 1}`, url: "", type: "video"
-    }));
-    setAllPages([...allPages, newPage]);
-    setCurrentPage(allPages.length);
-  };
-
-  const removePage = async (pageIndex: number) => {
-    if (allPages.length === 1) return toast.error("Mínimo 1 página.");
-    if (!confirm("Remover página?")) return;
-    const { error } = await supabase.from('featured_slots').delete().eq('page_index', pageIndex);
-    if (!error) {
-      const updated = allPages.filter((_, i) => i !== pageIndex);
-      setAllPages(updated);
-      setCurrentPage(Math.max(0, currentPage - 1));
-      toast.success("Página removida.");
-    }
-  };
-
-  const handleFeaturedChange = (p: number, i: number, f: string, v: string) => {
+  const handleFeaturedChange = (
+    pageIndex: number,
+    itemIndex: number,
+    field: string,
+    value: string,
+  ) => {
     const updated = [...allPages];
-    updated[p] = [...updated[p]];
-    updated[p][i] = { ...updated[p][i], [f]: v };
+    updated[pageIndex] = [...updated[pageIndex]];
+    updated[pageIndex][itemIndex] = {
+      ...updated[pageIndex][itemIndex],
+      [field]: value,
+    };
     setAllPages(updated);
   };
 
-  // DIRECT UPLOAD HANDLER (The Key Request)
   const handleSlotUpload = async (e: React.ChangeEvent<HTMLInputElement>, pageIdx: number, slotIdx: number) => {
     if (!e.target.files || !e.target.files[0]) return;
     const file = e.target.files[0];
@@ -390,174 +249,705 @@ const Settings = () => {
 
       const publicUrl = getSupabaseUrl('media', fileName);
 
-      // Update State
       handleFeaturedChange(pageIdx, slotIdx, 'url', publicUrl);
-      if (!allPages[pageIdx][slotIdx].title) {
+      // Auto-set title if empty or default
+      const currentTitle = allPages[pageIdx][slotIdx].title;
+      if (!currentTitle || currentTitle.includes("Destaque")) {
         handleFeaturedChange(pageIdx, slotIdx, 'title', file.name.replace(/\.[^/.]+$/, ""));
       }
 
-      // Check file type
+      // Auto-detect type
       const type = file.type.startsWith("image/") ? "image" : file.type.startsWith("audio/") ? "audio" : "video";
       handleFeaturedChange(pageIdx, slotIdx, 'type', type);
 
-      toast.success("Upload concluído! Clique em SALVAR TODAS para persistir.");
+      toast.success("Upload concluído! URL preenchida.");
     } catch (e: any) {
       toast.error(`Erro: ${e.message}`);
     }
   };
 
-  const saveAll = async () => {
-    setLoadingScreens(true);
-    try {
-      // Save Slots
-      const upserts = [];
-      allPages.forEach((page, pIndex) => {
-        page.forEach((slot, sIndex) => {
-          upserts.push({
-            page_index: pIndex, slot_index: sIndex, custom_title: slot.title,
-            external_url: slot.url, type: slot.type, custom_thumbnail: slot.thumbnail
-          });
-        });
-      });
-      await supabase.from('featured_slots').upsert(upserts, { onConflict: 'page_index, slot_index' });
-
-      // Save Configs
-      await supabase.from('site_config').upsert({ key: 'social_links', value: socialLinks }, { onConflict: 'key' });
-      await supabase.from('site_config').upsert({ key: 'audio_settings', value: audioSettings }, { onConflict: 'key' });
-
-      toast.success("Tudo salvo com sucesso!");
-    } catch (e) {
-      toast.error("Erro ao salvar.");
-    } finally {
-      setLoadingScreens(false);
-    }
+  const saveFeatured = () => {
+    localStorage.setItem("featuredPages", JSON.stringify(allPages));
+    window.dispatchEvent(new Event("storage"));
+    toast.success("Destaques salvos com sucesso!");
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md bg-deep-black/50 border-destructive/20">
-          <CardContent className="p-8 text-center">
-            <Shield className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-golden">Acesso Restrito</h2>
-            <p className="text-muted-foreground mt-2">Área administrativa.</p>
-            <Button onClick={() => window.location.href = "/"} className="mt-6 bg-golden text-black">Voltar</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const addNewPage = () => {
+    const newPage = Array(8)
+      .fill(null)
+      .map((_, i) => ({
+        id: allPages.length * 8 + i + 1,
+        title: `Destaque ${allPages.length * 8 + i + 1}`,
+        url: "",
+        type: "video",
+      }));
+    setAllPages([...allPages, newPage]);
+    setCurrentPage(allPages.length);
+    toast.success("Nova página adicionada!");
+  };
+
+  const removePage = (pageIndex: number) => {
+    if (allPages.length === 1) {
+      toast.error("Não é possível remover a última página!");
+      return;
+    }
+    const updated = allPages.filter((_, i) => i !== pageIndex);
+    setAllPages(updated);
+    setCurrentPage(Math.max(0, currentPage - 1));
+    localStorage.setItem("featuredPages", JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
+    toast.success("Página removida!");
+  };
+
+  const handleSocialChange = (platform: string, value: string) => {
+    setSocialLinks((prev) => ({ ...prev, [platform]: value }));
+  };
+
+  const saveSocial = () => {
+    localStorage.setItem("socialLinks", JSON.stringify(socialLinks));
+    toast.success("Links das redes sociais atualizados com sucesso!");
+  };
+
+  const handleThumbnailUpload = (
+    pageIndex: number,
+    itemIndex: number,
+    file: File,
+  ) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      handleFeaturedChange(pageIndex, itemIndex, "thumbnail", base64String);
+      toast.success("Imagem do thumbnail carregada!");
+    };
+    reader.onerror = () => {
+      toast.error("Erro ao carregar imagem.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const saveAudioSettings = () => {
+    localStorage.setItem("audioSettings", JSON.stringify(audioSettings));
+    window.dispatchEvent(new Event("storage"));
+    toast.success("Configurações de áudio salvas!");
+  };
 
   return (
-    <div className="min-h-screen bg-[#050505] selection:bg-golden/30">
+    <div className="min-h-screen bg-background">
       <Header />
-      <div className="pt-24 px-4 md:px-8 pb-20">
-        <div className="max-w-7xl mx-auto space-y-10">
+      <div className="pt-20 px-4 md:px-8 pb-16">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <h1 className="text-4xl font-bold text-golden mb-8">Configurações</h1>
 
-          {/* HEADER */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-golden/10 pb-6">
-            <div>
-              <h1 className="text-5xl font-black bg-gradient-to-b from-golden via-amber-200 to-golden bg-clip-text text-transparent uppercase">
-                Administração
-              </h1>
-              <p className="text-muted-foreground/60 font-medium mt-2">Painel Global</p>
-            </div>
-          </div>
-
-          {/* ADMIN PANELS (New) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2"><UserManagement /></div>
-            <div><ActivityLog /></div>
-          </div>
-
-          <div className="flex justify-end sticky top-24 z-50">
-            <Button size="lg" onClick={saveAll} className="bg-golden text-black font-black shadow-lg shadow-golden/10 hover:scale-105 transition-transform">
-              {loadingScreens ? <Loader2 className="animate-spin mr-2" /> : "SALVAR TUDO AGORA"}
-            </Button>
-          </div>
-
-          {/* STORAGE (Old) */}
-          <StorageManagement />
-
-          {/* FEATURED EDITOR (Old + New Uploads) */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
-            <CardHeader className="flex flex-row justify-between">
-              <CardTitle className="text-2xl text-golden">Editar Destaques</CardTitle>
-              <Button onClick={addNewPage} variant="outline" className="border-golden/20 text-golden">Add Página</Button>
+          {/* Featured Section Editor */}
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl text-golden">
+                Editar Destaques
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Pagination */}
-              <div className="flex gap-2 overflow-x-auto pb-4 custom-scrollbar">
-                {allPages.map((_, i) => (
-                  <Button key={i} onClick={() => setCurrentPage(i)} variant={currentPage === i ? "default" : "outline"} className={currentPage === i ? 'bg-golden text-black font-bold' : 'border-golden/20 text-golden'}>
-                    Página {i + 1}
+            <CardContent className="space-y-4">
+              <div className="flex gap-2 mb-4">
+                <Button
+                  onClick={addNewPage}
+                  className="bg-golden text-deep-black hover:bg-golden/90"
+                >
+                  Adicionar Página
+                </Button>
+                {allPages.length > 1 && (
+                  <Button
+                    onClick={() => removePage(currentPage)}
+                    variant="destructive"
+                  >
+                    Remover Página Atual
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                {allPages.map((_, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => setCurrentPage(index)}
+                    variant={currentPage === index ? "default" : "outline"}
+                    className={
+                      currentPage === index
+                        ? "bg-golden text-deep-black hover:bg-golden/90"
+                        : ""
+                    }
+                  >
+                    Página {index + 1}
                   </Button>
                 ))}
               </div>
 
-              {/* Slots Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {allPages[currentPage]?.map((slot, idx) => (
-                  <div key={idx} className="bg-black/40 border border-golden/10 rounded-xl p-4 space-y-3">
-                    <span className="text-[10px] font-black bg-golden/20 text-golden px-2 py-0.5 rounded">SLOT {idx + 1}</span>
-                    <Input placeholder="Título" value={slot.title} onChange={(e) => handleFeaturedChange(currentPage, idx, "title", e.target.value)} className="bg-black/20 border-golden/10 h-8 text-sm font-bold" />
+              <div className="space-y-4">
+                {allPages[currentPage]?.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="space-y-2 p-4 border border-golden/20 rounded-lg"
+                  >
+                    <Label className="text-sm font-medium text-golden">
+                      Destaque {index + 1}
+                    </Label>
+                    <Input
+                      placeholder="Título"
+                      value={item.title}
+                      onChange={(e) =>
+                        handleFeaturedChange(
+                          currentPage,
+                          index,
+                          "title",
+                          e.target.value,
+                        )
+                      }
+                      className="mb-2 bg-background/50 border-golden/20 focus:border-golden"
+                    />
 
-                    {/* UPLOAD INTEGRATION */}
-                    <div className="flex gap-2">
-                      <Input placeholder="URL" value={slot.url} onChange={(e) => handleFeaturedChange(currentPage, idx, "url", e.target.value)} className="bg-black/20 border-golden/10 h-8 text-xs flex-1" />
-                      <div className="relative w-8 h-8">
-                        <Input type="file" onChange={(e) => handleSlotUpload(e, currentPage, idx)} className="absolute inset-0 opacity-0 cursor-pointer" title="Fazer Upload" />
-                        <div className="w-8 h-8 flex items-center justify-center bg-golden/10 rounded border border-golden/20 text-golden hover:bg-golden/20 pointer-events-none">
+
+
+                    <div className="flex gap-2 mb-2">
+                      <Input
+                        placeholder="URL da mídia (YouTube, Spotify, etc.)"
+                        value={item.url}
+                        onChange={(e) =>
+                          handleFeaturedChange(
+                            currentPage,
+                            index,
+                            "url",
+                            e.target.value,
+                          )
+                        }
+                        className="bg-background/50 border-golden/20 focus:border-golden flex-1"
+                      />
+                      <div className="relative w-10 h-10">
+                        <Input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          onChange={(e) => handleSlotUpload(e, currentPage, index)}
+                          accept="image/*,video/*,audio/*"
+                        />
+                        <Button variant="outline" size="icon" className="w-10 h-10 border-golden/20 text-golden hover:bg-golden/10">
                           <Upload className="w-4 h-4" />
-                        </div>
+                        </Button>
                       </div>
                     </div>
 
-                    <Select value={slot.type} onValueChange={(v) => handleFeaturedChange(currentPage, idx, "type", v)}>
-                      <SelectTrigger className="h-8 bg-black/20 border-golden/10 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-deep-black border-golden/20"><SelectItem value="video">Vídeo</SelectItem><SelectItem value="audio">Áudio</SelectItem><SelectItem value="image">Imagem</SelectItem></SelectContent>
+                    <select
+                      value={item.type}
+                      onChange={(e) =>
+                        handleFeaturedChange(
+                          currentPage,
+                          index,
+                          "type",
+                          e.target.value,
+                        )
+                      }
+                      className="flex h-10 w-full rounded-md border border-golden/20 bg-background/50 px-3 py-2 text-sm text-foreground focus:border-golden"
+                    >
+                      <option value="video">Vídeo</option>
+                      <option value="audio">Áudio</option>
+                      <option value="image">Imagem</option>
+                    </select>
+
+                    <div className="mt-2 space-y-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Imagem Thumbnail
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="URL da imagem thumbnail"
+                          value={item.thumbnail || ""}
+                          onChange={(e) =>
+                            handleFeaturedChange(
+                              currentPage,
+                              index,
+                              "thumbnail",
+                              e.target.value,
+                            )
+                          }
+                          className="flex-1 bg-background/50 border-golden/20 focus:border-golden"
+                        />
+
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="outline"
+                          onClick={() => {
+                            const input = document.createElement("input");
+                            input.type = "file";
+                            input.accept = "image/*";
+                            input.onchange = (e) => {
+                              const file = (e.target as HTMLInputElement)
+                                .files?.[0];
+                              if (file)
+                                handleThumbnailUpload(currentPage, index, file);
+                            };
+                            input.click();
+                          }}
+                          className="border-golden/20 hover:bg-golden/10"
+                        >
+                          <Upload className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {item.thumbnail && (
+                        <div className="relative w-20 h-20 rounded border border-golden/20 overflow-hidden">
+                          <img
+                            src={item.thumbnail}
+                            alt="Thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button
+                onClick={saveFeatured}
+                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
+              >
+                Salvar Destaques
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Audio Visualizer Settings */}
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl text-golden">
+                Configurações do Visualizador de Áudio
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="waveformStyle" className="text-foreground">
+                  Estilo do Waveform
+                </Label>
+                <Select
+                  value={audioSettings.waveformStyle}
+                  onValueChange={(value) =>
+                    setAudioSettings({ ...audioSettings, waveformStyle: value })
+                  }
+                >
+                  <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                    <SelectValue placeholder="Selecione o estilo" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-golden/20">
+                    <SelectItem value="bars">Barras (Padrão)</SelectItem>
+                    <SelectItem value="wave">Onda Contínua</SelectItem>
+                    <SelectItem value="mirror">Espelho</SelectItem>
+                    <SelectItem value="animatedBars">
+                      Barras Animadas (Ao Vivo)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground">Altura (px)</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.height}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        height: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Largura da Barra</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.barWidth}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        barWidth: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Espaço da Barra</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.barGap}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        barGap: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Raio da Barra</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.barRadius}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        barRadius: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cursor (px)</Label>
+                  <Input
+                    type="number"
+                    value={audioSettings.cursorWidth}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        cursorWidth: Number(e.target.value || 0),
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor da Onda</Label>
+                  <Input
+                    value={audioSettings.waveColor}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        waveColor: e.target.value,
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor do Progresso</Label>
+                  <Input
+                    value={audioSettings.progressColor}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        progressColor: e.target.value,
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-foreground">Cor do Cursor</Label>
+                  <Input
+                    value={audioSettings.cursorColor}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        cursorColor: e.target.value,
+                      })
+                    }
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Espectrograma</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={audioSettings.enableSpectrogram}
+                    onChange={(e) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        enableSpectrogram: e.target.checked,
+                      })
+                    }
+                  />
+
+                  <span className="text-sm text-muted-foreground">
+                    Ativar espectrograma (WaveSurfer)
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <Label className="text-foreground">FFT Samples</Label>
+                  <Select
+                    value={String(audioSettings.spectrogramFftSamples)}
+                    onValueChange={(value) =>
+                      setAudioSettings({
+                        ...audioSettings,
+                        spectrogramFftSamples: Number(value),
+                      })
+                    }
+                  >
+                    <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                      <SelectValue placeholder="FFT" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-golden/20">
+                      <SelectItem value="128">128</SelectItem>
+                      <SelectItem value="256">256</SelectItem>
+                      <SelectItem value="512">512</SelectItem>
+                      <SelectItem value="1024">1024</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Visualizador ao vivo</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-foreground">FFT Size</Label>
+                    <Select
+                      value={String(audioSettings.liveAnalyzerFftSize)}
+                      onValueChange={(value) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveAnalyzerFftSize: Number(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger className="bg-background/50 border-golden/20 focus:border-golden">
+                        <SelectValue placeholder="FFT" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-golden/20">
+                        <SelectItem value="64">64</SelectItem>
+                        <SelectItem value="128">128</SelectItem>
+                        <SelectItem value="256">256</SelectItem>
+                        <SelectItem value="512">512</SelectItem>
+                        <SelectItem value="1024">1024</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
-                ))}
-              </div>
-              {allPages.length > 1 && <Button onClick={() => removePage(currentPage)} variant="destructive" className="mt-4 w-full">Remover Esta Página</Button>}
-            </CardContent>
-          </Card>
-
-          {/* AUDIO SETTINGS (Detailed) */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
-            <CardHeader><CardTitle className="text-golden">Áudio Avançado</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-              {/* Simplified view of advanced settings for brevity, but functional */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(audioSettings).map(([key, val]) => (
-                  <div key={key} className="space-y-1">
-                    <Label className="text-[10px] uppercase text-muted-foreground">{key.replace(/([A-Z])/g, ' $1')}</Label>
-                    {typeof val === 'boolean' ? (
-                      <input type="checkbox" checked={val} onChange={(e) => setAudioSettings({ ...audioSettings, [key]: e.target.checked })} className="block" />
-                    ) : (
-                      <Input value={val} onChange={(e) => setAudioSettings({ ...audioSettings, [key]: isNaN(Number(e.target.value)) ? e.target.value : Number(e.target.value) })} className="h-8 bg-black/20 border-golden/10" />
-                    )}
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Suavização</Label>
+                    <Input
+                      type="number"
+                      step="0.05"
+                      min="0"
+                      max="0.99"
+                      value={audioSettings.liveAnalyzerSmoothing}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveAnalyzerSmoothing: Number(e.target.value || 0),
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
                   </div>
-                ))}
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Altura (px)</Label>
+                    <Input
+                      type="number"
+                      value={audioSettings.liveHeight}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveHeight: Number(e.target.value || 0),
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Largura da Barra</Label>
+                    <Input
+                      type="number"
+                      value={audioSettings.liveBarWidth}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveBarWidth: Number(e.target.value || 0),
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-foreground">Cor da Barra</Label>
+                    <Input
+                      value={audioSettings.liveBarColor}
+                      onChange={(e) =>
+                        setAudioSettings({
+                          ...audioSettings,
+                          liveBarColor: e.target.value,
+                        })
+                      }
+                      className="bg-background/50 border-golden/20 focus:border-golden"
+                    />
+                  </div>
+                </div>
               </div>
+              <Button
+                onClick={saveAudioSettings}
+                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
+              >
+                Salvar Configurações de Áudio
+              </Button>
             </CardContent>
           </Card>
 
-          {/* SOCIAL LINKS */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
-            <CardHeader><CardTitle className="text-golden">Redes Sociais</CardTitle></CardHeader>
-            <CardContent>
+          {/* Social Links Editor */}
+          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl text-golden">
+                Redes Sociais
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label>Instagram</Label><Input value={socialLinks.instagram} onChange={(e) => setSocialLinks({ ...socialLinks, instagram: e.target.value })} className="bg-black/20 border-golden/10" /></div>
-                <div className="space-y-2"><Label>WhatsApp</Label><Input value={socialLinks.whatsapp} onChange={(e) => setSocialLinks({ ...socialLinks, whatsapp: e.target.value })} className="bg-black/20 border-golden/10" /></div>
-                <div className="space-y-2"><Label>TikTok</Label><Input value={socialLinks.tiktok} onChange={(e) => setSocialLinks({ ...socialLinks, tiktok: e.target.value })} className="bg-black/20 border-golden/10" /></div>
-                <div className="space-y-2"><Label>YouTube</Label><Input value={socialLinks.youtube} onChange={(e) => setSocialLinks({ ...socialLinks, youtube: e.target.value })} className="bg-black/20 border-golden/10" /></div>
-                <div className="space-y-2"><Label>Spotify</Label><Input value={socialLinks.spotify} onChange={(e) => setSocialLinks({ ...socialLinks, spotify: e.target.value })} className="bg-black/20 border-golden/10" /></div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="whatsapp"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <img
+                      src="/favicon-whatsapp.svg"
+                      alt="WhatsApp"
+                      className="w-5 h-5"
+                    />{" "}
+                    WhatsApp
+                  </Label>
+                  <Input
+                    id="whatsapp"
+                    value={socialLinks.whatsapp}
+                    onChange={(e) =>
+                      handleSocialChange("whatsapp", e.target.value)
+                    }
+                    placeholder="https://wa.me/message/SEU_CODIGO"
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="instagram"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <Instagram className="w-4 h-4" /> Instagram
+                  </Label>
+                  <Input
+                    id="instagram"
+                    value={socialLinks.instagram}
+                    onChange={(e) =>
+                      handleSocialChange("instagram", e.target.value)
+                    }
+                    placeholder="https://instagram.com/seu_perfil"
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="tiktok"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <Music className="w-4 h-4" /> TikTok
+                  </Label>
+                  <Input
+                    id="tiktok"
+                    value={socialLinks.tiktok}
+                    onChange={(e) =>
+                      handleSocialChange("tiktok", e.target.value)
+                    }
+                    placeholder="https://tiktok.com/@seu_perfil"
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="youtube"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <Youtube className="w-4 h-4" /> YouTube
+                  </Label>
+                  <Input
+                    id="youtube"
+                    value={socialLinks.youtube}
+                    onChange={(e) =>
+                      handleSocialChange("youtube", e.target.value)
+                    }
+                    placeholder="https://youtube.com/@seu_canal"
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="spotify"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <Radio className="w-4 h-4" /> Spotify
+                  </Label>
+                  <Input
+                    id="spotify"
+                    value={socialLinks.spotify}
+                    onChange={(e) =>
+                      handleSocialChange("spotify", e.target.value)
+                    }
+                    placeholder="https://open.spotify.com/artist/..."
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="youtubeMusic"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <Music className="w-4 h-4" /> YouTube Music
+                  </Label>
+                  <Input
+                    id="youtubeMusic"
+                    value={socialLinks.youtubeMusic}
+                    onChange={(e) =>
+                      handleSocialChange("youtubeMusic", e.target.value)
+                    }
+                    placeholder="https://music.youtube.com/channel/..."
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="amazonMusic"
+                    className="text-foreground flex items-center gap-2"
+                  >
+                    <Radio className="w-4 h-4" /> Amazon Music
+                  </Label>
+                  <Input
+                    id="amazonMusic"
+                    value={socialLinks.amazonMusic}
+                    onChange={(e) =>
+                      handleSocialChange("amazonMusic", e.target.value)
+                    }
+                    placeholder="https://music.amazon.com/..."
+                    className="bg-background/50 border-golden/20 focus:border-golden"
+                  />
+                </div>
               </div>
+              <Button
+                onClick={saveSocial}
+                className="w-full md:w-auto bg-golden text-deep-black hover:bg-golden/90"
+              >
+                Salvar Redes Sociais
+              </Button>
             </CardContent>
           </Card>
 
+          {/* Storage Management Section */}
+          <StorageManagement />
+
+          {/* Upload Section */}
+          <UploadSection />
         </div>
       </div>
       <Footer />
