@@ -58,6 +58,7 @@ export const MusicManager = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [previewId, setPreviewId] = useState<string | null>(null);
     const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     // Delete State
     const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -71,6 +72,7 @@ export const MusicManager = () => {
 
     const loadMedia = async () => {
         setLoading(true);
+        setIsSyncing(true);
         try {
             const { data, error } = await supabase
                 .from('media_files')
@@ -79,11 +81,13 @@ export const MusicManager = () => {
 
             if (error) throw error;
             setMediaFiles(data || []);
+            // toast.success("Lista sincronizada!"); // Optional, too spammy
         } catch (e) {
             console.error("Erro ao carregar mídias:", e);
             toast.error("Erro ao carregar lista de mídias.");
         } finally {
             setLoading(false);
+            setTimeout(() => setIsSyncing(false), 500);
         }
     };
 
@@ -184,6 +188,20 @@ export const MusicManager = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9 bg-black/40 border-golden/20 focus:border-golden text-white"
                 />
+            </div>
+
+            {/* Sync Button */}
+            <div className="flex justify-end">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMedia}
+                    disabled={isSyncing}
+                    className="border-golden/20 text-golden hover:bg-golden/10 h-8 text-xs gap-2"
+                >
+                    <Loader2 className={`w-3 h-3 ${isSyncing ? "animate-spin" : ""}`} />
+                    {isSyncing ? "Sincronizando..." : "Sincronizar Lista"}
+                </Button>
             </div>
 
             {/* List */}
