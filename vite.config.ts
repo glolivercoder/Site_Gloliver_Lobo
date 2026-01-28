@@ -28,12 +28,15 @@ export default defineConfig(({ mode }) => ({
     ],
   },
   build: {
-    // Chunk splitting para melhor cache
+    chunkSizeWarningLimit: 1000, // Aumenta o limite do aviso para 1000kB (1MB)
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "react-router-dom"],
-          ui: ["lucide-react", "@radix-ui/react-dialog"],
+          ui: ["lucide-react", "sonner", "class-variance-authority", "clsx", "tailwind-merge"],
+          radix: ["@radix-ui/react-dialog", "@radix-ui/react-slot", "@radix-ui/react-label", "@radix-ui/react-select"],
+          audio: ["wavesurfer.js"], // Isola a lib de áudio pesada
+          database: ["@supabase/supabase-js"], // Isola o cliente do banco
         },
       },
     },
