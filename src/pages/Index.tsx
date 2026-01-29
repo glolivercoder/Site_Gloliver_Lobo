@@ -3,7 +3,6 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { FeaturedSection } from "@/components/FeaturedSection";
 import { GenreSection } from "@/components/GenreSection";
-import { Biography } from "@/components/Biography";
 import { Footer } from "@/components/Footer";
 // UploadSection removido da Home; permanece apenas nas Configurações
 
@@ -16,7 +15,6 @@ const Index = () => {
       <Hero />
       <FeaturedSection />
       <GenreSection />
-      <Biography />
 
       {/* Upload removido da Home. Use a aba Configurações para enviar mídia. */}
 

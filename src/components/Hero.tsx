@@ -1,4 +1,4 @@
-import wolfMoonBg from "@/assets/wolf-moon-bg.png";
+import wolfMoonBg from "@/assets/wolf-moon-bg.webp";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { toPng } from "html-to-image";
@@ -19,7 +19,7 @@ export const Hero = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch {}
+    } catch { }
   };
   return (
     <section

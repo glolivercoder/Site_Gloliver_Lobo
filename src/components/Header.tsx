@@ -35,7 +35,7 @@ export const Header = () => {
   const navLinks = [
     { href: "/#home", label: "Início" },
     { href: "/#genres", label: "Gêneros" },
-    { href: "/#biography", label: "Biografia" },
+    { href: "/biography", label: "Biografia" },
     { href: "/fanclub", label: "Fã Clube" },
   ];
 
@@ -95,15 +95,16 @@ export const Header = () => {
                     <Avatar className="h-8 w-8 border border-golden/20">
                       <AvatarImage
                         src={
-                          user.avatar
-                            ? `http://127.0.0.1:8090/api/files/users/${user.id}/${user.avatar}`
-                            : undefined
+                          user.user_metadata?.avatar_url ||
+                          (user.user_metadata?.avatar
+                            ? `http://127.0.0.1:8090/api/files/users/${user.id}/${user.user_metadata.avatar}`
+                            : undefined)
                         }
-                        alt={user.name}
+                        alt={user.user_metadata?.name || user.email}
                       />
 
                       <AvatarFallback className="bg-golden/10 text-golden">
-                        {user.name?.charAt(0) || "U"}
+                        {(user.user_metadata?.name || user.email)?.charAt(0).toUpperCase() || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -116,7 +117,7 @@ export const Header = () => {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none text-golden">
-                        {user.name || "Usuário"}
+                        {user.user_metadata?.name || "Usuário"}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
