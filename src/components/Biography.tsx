@@ -15,7 +15,7 @@ export const Biography = () => {
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50">
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col items-center text-center gap-4">
                 <div className="p-3 rounded-lg bg-primary/10">
                   <Music className="w-6 h-6 text-primary" />
                 </div>
@@ -32,7 +32,7 @@ export const Biography = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col items-center text-center gap-4">
                 <div className="p-3 rounded-lg bg-primary/10">
                   <Heart className="w-6 h-6 text-primary" />
                 </div>
@@ -53,7 +53,7 @@ export const Biography = () => {
 
           <Card className="p-8 bg-card/50 backdrop-blur-sm border-border/50">
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col items-center text-center gap-4">
                 <div className="p-3 rounded-lg bg-primary/10">
                   <Mic className="w-6 h-6 text-primary" />
                 </div>
@@ -70,7 +70,7 @@ export const Biography = () => {
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col items-center text-center gap-4">
                 <div className="p-3 rounded-lg bg-primary/10">
                   <Award className="w-6 h-6 text-primary" />
                 </div>
