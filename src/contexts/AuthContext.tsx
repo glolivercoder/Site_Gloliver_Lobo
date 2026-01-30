@@ -40,10 +40,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // 2. Listen for changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      checkUserStatus(session?.user ?? null);
-      setIsLoading(false);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔔 AUTH STATE CHANGE:", event, session?.user?.email);
+
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setDbRole(null);
+        setIsLoading(false);
+      } else if (session?.user) {
+        setUser(session.user);
+        checkUserStatus(session.user);
+        setIsLoading(false);
+      } else {
+        setIsLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -52,8 +62,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // inside AuthProvider
   const [dbRole, setDbRole] = useState<string | null>(null);
 
-  // ... useEffect ...
-
   const checkUserStatus = async (currentUser: User | null) => {
     if (!currentUser) {
       setIsBlocked(false);
@@ -61,19 +69,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Fetch profile to check role and block status
-    const { data } = await supabase
-      .from('profiles')
-      .select('is_blocked, role')
-      .eq('id', currentUser.id)
-      .single();
+    try {
+      // Fetch profile to check role and block status
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_blocked, role')
+        .eq('id', currentUser.id)
+        .single();
 
-    if (data) {
-      setIsBlocked(data.is_blocked || false);
-      setDbRole(data.role || 'user');
-    } else {
-      setIsBlocked(false);
-      setDbRole('user');
+      if (error) {
+        console.error("Error checking user status:", error);
+        // Fallback: don't block, just assume basic user
+        setDbRole('user');
+        return;
+      }
+
+      if (data) {
+        setIsBlocked(data.is_blocked || false);
+        setDbRole(data.role || 'user');
+        console.log("✅ User Status Loaded. Role:", data.role);
+      } else {
+        setDbRole('user');
+      }
+    } catch (err) {
+      console.error("Unexpected error in checkUserStatus:", err);
     }
   };
 
@@ -98,7 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const isAdmin = user
-    ? (userRole === 'admin' || isEmailListed)
+    ? (userRole === 'admin' || dbRole === 'admin' || isEmailListed)
     : false;
 
   const loginWithGoogle = async () => {
@@ -132,11 +151,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginWithEmail = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
       if (error) throw error;
+
+      if (data.user) {
+        setUser(data.user);
+        checkUserStatus(data.user);
+      }
+
     } catch (error) {
       console.error("Email login failed:", error);
       throw error;
