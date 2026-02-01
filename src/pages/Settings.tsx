@@ -41,7 +41,9 @@ import {
   Youtube,
   Instagram,
   Radio,
-  Music4
+  Music4,
+  Save,
+  Image as ImageIcon
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
@@ -348,7 +350,7 @@ const Settings = () => {
           pageItems.push(slot ? {
             id: slot.id, title: slot.custom_title || "", url: slot.external_url || "",
             type: slot.type || "video", thumbnail: slot.custom_thumbnail || slot.thumbnail_url || "",
-            mediaId: slot.media_id || null
+            mediaId: slot.media_file_id || null
           } : { id: `temp-${p}-${s}`, title: `Destaque ${s + 1}`, url: "", type: "video" });
         }
         newPages.push(pageItems);
@@ -422,11 +424,78 @@ const Settings = () => {
     }
   };
 
-  const handleFeaturedChange = (p: number, i: number, f: string, v: string) => {
-    const updated = [...allPages];
-    updated[p] = [...updated[p]];
-    updated[p][i] = { ...updated[p][i], [f]: v };
-    setAllPages(updated);
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, pageIdx: number, slotIdx: number) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+
+    // Check resolution warning (client-side)
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = async () => {
+      const isSquare = Math.abs(img.width - img.height) < 50; // tolerance
+      if (!isSquare) {
+        toast.warning("Recomendado: Formato 1:1 (Quadrado) para melhor visualização.", { duration: 5000 });
+      }
+
+      try {
+        toast.info("Otimizando e enviando imagem...");
+
+        // Optimize to WebP
+        const canvas = document.createElement('canvas');
+        // Max dimension 800px for optimization
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDim || height > maxDim) {
+          const ratio = Math.min(maxDim / width, maxDim / height);
+          width *= ratio;
+          height *= ratio;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error("Canvas context failed");
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) throw new Error("Falha na conversão WebP");
+
+          const fileName = `thumbnails/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`;
+          const { error: uploadError } = await supabase.storage.from('media').upload(fileName, blob, {
+            contentType: 'image/webp'
+          });
+
+          if (uploadError) throw uploadError;
+
+          const publicUrl = getSupabaseUrl('media', fileName);
+          handleFeaturedChange(pageIdx, slotIdx, 'thumbnail', publicUrl);
+
+          // Also set as URL if the type is 'image' and URL is empty
+          const currentSlot = allPages[pageIdx][slotIdx];
+          if (currentSlot.type === 'image' && !currentSlot.url) {
+            handleFeaturedChange(pageIdx, slotIdx, 'url', publicUrl);
+          }
+
+          toast.success("Imagem otimizada (WebP) e salva como capa!");
+        }, 'image/webp', 0.85);
+
+      } catch (error: any) {
+        console.error(error);
+        toast.error(`Erro: ${error.message}`);
+      }
+    };
+  };
+
+  const handleFeaturedChange = (p: number, i: number, f: string, v: any) => {
+    setAllPages(prev => {
+      const updated = [...prev];
+      updated[p] = [...updated[p]];
+      updated[p][i] = { ...updated[p][i], [f]: v };
+      return updated;
+    });
   };
 
   const saveFeatured = async () => {
@@ -439,7 +508,7 @@ const Settings = () => {
           upserts.push({
             page_index: pIndex, slot_index: sIndex, custom_title: slot.title,
             external_url: slot.url, type: slot.type, custom_thumbnail: slot.thumbnail,
-            media_id: slot.mediaId
+            media_file_id: slot.mediaId
           });
         });
       });
@@ -604,10 +673,24 @@ const Settings = () => {
                           type="file"
                           className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
                           onChange={(e) => handleSlotUpload(e, currentPage, index)}
-                          accept="image/*,video/*,audio/*"
+                          accept="video/*,audio/*"
+                          title="Upload Mídia (Vídeo/Áudio)"
                         />
                         <Button variant="outline" size="icon" className="w-8 h-8 border-golden/20 text-golden hover:bg-golden/10 p-0">
                           <Upload className="w-3 h-3" />
+                        </Button>
+                      </div>
+
+                      <div className="relative w-8 h-8 shrink-0">
+                        <Input
+                          type="file"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                          onChange={(e) => handleImageUpload(e, currentPage, index)}
+                          accept="image/*"
+                          title="Upload Capa/Foto (1:1 Recomendado)"
+                        />
+                        <Button variant="outline" size="icon" className="w-8 h-8 border-golden/20 text-golden hover:bg-golden/10 p-0">
+                          <ImageIcon className="w-3 h-3" />
                         </Button>
                       </div>
 

@@ -8,9 +8,9 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AudioVisualizer } from "@/components/AudioVisualizer";
+import { AudioVisualizer, AudioVisualizerHandle } from "@/components/AudioVisualizer";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
-import { Play, X, Heart } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
 import { LikeButton } from "./LikeButton";
 
 type GenreKey =
@@ -44,26 +44,26 @@ export const GenreLibraryDialog = ({
       url?: string;
     }>
   >([]);
-  const [selected, setSelected] = useState<{
-    id: string;
-    title: string;
-    url: string;
-  } | null>(null);
 
-  // Use refs to track back button presses for double-tap exit logic
-  const lastBackPressTime = useRef<number>(0);
+  // Track index instead of object to easily find next/prev
+  const [currentIndex, setCurrentIndex] = useState<number>(-1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const visualizerRef = useRef<AudioVisualizerHandle>(null);
+
+  // Derived selected item
+  const selected = currentIndex >= 0 && currentIndex < items.length ? items[currentIndex] : null;
 
   useEffect(() => {
     if (!open) {
-      setSelected(null);
+      setCurrentIndex(-1);
+      setIsPlaying(false);
       return;
     }
 
-    // Push a state so the back button closes the modal instead of the page
+    // Push state for back button handling
     window.history.pushState({ modalOpen: true }, "");
 
     const handlePopState = (event: PopStateEvent) => {
-      // If the modal is open and back is pressed, prevent default navigation and close modal
       event.preventDefault();
       onOpenChange(false);
     };
@@ -74,7 +74,6 @@ export const GenreLibraryDialog = ({
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      // Clean up history state if we are still in the modal state (e.g. closed via X button)
       // @ts-ignore
       if (window.history.state?.modalOpen) {
         window.history.back();
@@ -83,16 +82,6 @@ export const GenreLibraryDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, genreKey]);
 
-  /**
-   * Double back press logic for the entire app could be complex to scope just here,
-   * but we can try to intercept global back actions if the user is playing music.
-   * However, the request says: "se o usuario apetar o botão de return 2 vezes
-   * seguidas peegunte se ele quer encerrar a aplicação".
-   * This usually implies interception at the App/Root level.
-   *
-   * For THIS component, we ensure 'Back' closes the modal (returning to central page).
-   */
-
   const loadGenreItems = async () => {
     try {
       if (!genreKey) return;
@@ -100,7 +89,7 @@ export const GenreLibraryDialog = ({
       const { data, error } = await supabase
         .from("media_files")
         .select("*")
-        .eq("genre", genreKey) // Exact match on genre key (rock, gospel, etc)
+        .eq("genre", genreKey)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -110,6 +99,7 @@ export const GenreLibraryDialog = ({
         title: file.title || "Sem Título",
         source: "externo" as const,
         url: getSupabaseUrl("media", file.file_path),
+        fileId: file.id
       }));
 
       setItems(result);
@@ -120,23 +110,33 @@ export const GenreLibraryDialog = ({
     }
   };
 
-  const handlePlay = async (item: {
-    id: string;
-    title: string;
-    source: "local" | "externo";
-    fileId?: string;
-    url?: string;
-  }) => {
-    try {
-      // Logic simplified: All items from DB have a valid public URL
-      if (item.url) {
-        setSelected({ id: item.id, title: item.title, url: item.url });
+  const handlePlayIndex = (index: number) => {
+    if (index >= 0 && index < items.length) {
+      if (items[index].url) {
+        setCurrentIndex(index);
+        setIsPlaying(true); // Assume autoPlay will start it
       } else {
         toast.error("URL da mídia não encontrada");
       }
-    } catch (e) {
-      console.error("Erro ao preparar reprodução:", e);
-      toast.error("Falha ao abrir música");
+    }
+  };
+
+  const handleNext = () => {
+    if (items.length === 0) return;
+    const nextIndex = (currentIndex + 1) % items.length;
+    handlePlayIndex(nextIndex);
+  };
+
+  const handlePrev = () => {
+    if (items.length === 0) return;
+    const prevIndex = (currentIndex - 1 + items.length) % items.length;
+    handlePlayIndex(prevIndex);
+  };
+
+  const togglePlayPause = () => {
+    if (visualizerRef.current) {
+      visualizerRef.current.playPause();
+      // isPlaying state will be updated via onIsPlayingChange callback
     }
   };
 
@@ -149,52 +149,44 @@ export const GenreLibraryDialog = ({
               ? `Coleção: ${genreKey.charAt(0).toUpperCase() + genreKey.slice(1)}`
               : "Coleção por Gênero"}
           </DialogTitle>
-          {/* Close Button X */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-golden h-8 w-8"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          {/* Duplicate Close Button Removed (DialogContent has default one) */}
         </DialogHeader>
 
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 min-h-0">
-          {/* List of Songs - Scrollable */}
+          {/* List of Songs */}
           <div className="space-y-3 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-golden/20 scrollbar-track-transparent max-h-[50vh] md:max-h-[60vh]">
-            {items.map((item) => (
-              <Card
-                key={item.id}
-                className="p-3 bg-deep-black/50 border-golden/20 hover:border-golden/60 cursor-pointer transition-colors"
-                onClick={() => handlePlay(item)}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-foreground font-medium truncate text-sm sm:text-base">
-                      {item.title}
+            {items.map((item, idx) => {
+              const isCurrent = currentIndex === idx;
+              return (
+                <Card
+                  key={item.id}
+                  className={`p-3 border-golden/20 hover:border-golden/60 cursor-pointer transition-colors ${isCurrent ? "bg-golden/10 border-golden" : "bg-deep-black/50"
+                    }`}
+                  onClick={() => handlePlayIndex(idx)}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className={`font-medium truncate text-sm sm:text-base ${isCurrent ? "text-golden" : "text-foreground"}`}>
+                        {item.title}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {item.source === "local" ? "Local" : "Externo"}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {item.source === "local"
-                        ? "Local (IndexedDB)"
-                        : "Externo"}
+                    <div className="flex items-center gap-2">
+                      {item.fileId && <LikeButton mediaId={item.fileId} size="sm" />}
+                      <Button
+                        size="icon"
+                        className={`shrink-0 h-8 w-8 rounded-full ${isCurrent && isPlaying ? "bg-golden/80" : "bg-golden text-deep-black hover:bg-golden/90"}`}
+                        title={isCurrent && isPlaying ? "Pausar" : "Reproduzir"}
+                      >
+                        {isCurrent && isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current" />}
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {item.fileId && (
-                      <LikeButton mediaId={item.fileId} size="sm" />
-                    )}
-                    <Button
-                      size="icon"
-                      className="bg-golden text-deep-black hover:bg-golden/90 shrink-0 h-8 w-8 rounded-full"
-                      title="Reproduzir"
-                    >
-                      <Play className="h-4 w-4 fill-current" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
 
             {items.length === 0 && (
               <div className="text-sm text-muted-foreground py-8 text-center">
@@ -203,18 +195,44 @@ export const GenreLibraryDialog = ({
             )}
           </div>
 
-          {/* Player Section - Fixed/Sticky on mobile, right side on Desktop */}
+          {/* Player Section */}
           <div className="rounded-lg border border-golden/20 bg-deep-black/50 p-4 flex flex-col justify-center min-h-[150px]">
             {selected ? (
-              <div className="w-full">
-                <div className="text-sm text-muted-foreground mb-2 truncate">
-                  Reproduzindo: <span className="text-golden">{selected.title}</span>
+              <div className="w-full flex flex-col gap-4">
+                <div className="text-sm text-muted-foreground truncate text-center">
+                  Reproduzindo: <span className="text-golden font-bold">{selected.title}</span>
                 </div>
-                <AudioVisualizer
-                  url={selected.url}
-                  autoPlay
-                  waveformStyle="bars"
-                />
+
+                {/* Visualizer - Reduced Height */}
+                <div className="h-24">
+                  <AudioVisualizer
+                    ref={visualizerRef}
+                    url={selected.url!}
+                    autoPlay
+                    waveformStyle="bars"
+                    onFinish={handleNext} // Auto-play next
+                    onIsPlayingChange={setIsPlaying}
+                  />
+                </div>
+
+                {/* Player Controls */}
+                <div className="flex items-center justify-center gap-6 pt-2">
+                  <Button variant="ghost" size="icon" onClick={handlePrev} className="text-golden hover:bg-golden/10 w-12 h-12 rounded-full">
+                    <SkipBack className="w-6 h-6" />
+                  </Button>
+
+                  <Button
+                    onClick={togglePlayPause}
+                    className="bg-golden text-black hover:bg-golden/90 w-14 h-14 rounded-full shadow-lg shadow-golden/10"
+                  >
+                    {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
+                  </Button>
+
+                  <Button variant="ghost" size="icon" onClick={handleNext} className="text-golden hover:bg-golden/10 w-12 h-12 rounded-full">
+                    <SkipForward className="w-6 h-6" />
+                  </Button>
+                </div>
+
               </div>
             ) : (
               <div className="text-sm text-muted-foreground text-center">

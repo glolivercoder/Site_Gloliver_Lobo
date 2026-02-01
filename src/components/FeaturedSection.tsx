@@ -149,7 +149,7 @@ export const FeaturedSection = () => {
         .from('featured_slots')
         .select(`
             *,
-            media:media_files (
+            media:media_files!media_file_id (
                 id,
                 title,
                 file_path,
