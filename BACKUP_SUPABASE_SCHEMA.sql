@@ -1,0 +1,3 @@
+Dumping data from remote database...
+failed to inspect docker image: error during connect: Get "http://%2F%2F.%2Fpipe%2FdockerDesktopLinuxEngine/v1.51/images/public.ecr.aws/supabase/postgres:17.6.1.075/json": open //./pipe/dockerDesktopLinuxEngine: O sistema n├úo pode encontrar o arquivo especificado.
+Docker Desktop is a prerequisite for local development. Follow the official docs to install: https://docs.docker.com/desktop
