@@ -13,6 +13,7 @@ type GalleryItem = {
   type: "image" | "video";
   media_path?: string; // Supabase Path
   external_url?: string;
+  author_id?: string; // Owner of the post
   created_at: string;
 };
 
@@ -37,7 +38,7 @@ export const FanClub = () => {
     try {
       const { data, error } = await supabase
         .from("fan_club_posts")
-        .select("*")
+        .select("*, author_id")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -115,8 +116,8 @@ export const FanClub = () => {
     type: "image" | "video",
     title: string,
   ) => {
-    if (!isAdmin) {
-      toast.error("Apenas administradores podem postar.");
+    if (!user) {
+      toast.error("Faça login para postar.");
       return;
     }
 
@@ -160,8 +161,8 @@ export const FanClub = () => {
     type: "image" | "video",
     title: string,
   ) => {
-    if (!isAdmin) {
-      toast.error("Apenas administradores podem postar.");
+    if (!user) {
+      toast.error("Faça login para postar.");
       return;
     }
     if (!url) return;
@@ -213,7 +214,7 @@ export const FanClub = () => {
           )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent opacity-70 group-hover:opacity-80 transition-opacity" />
 
-          {isAdmin && (
+          {(isAdmin || user?.id === item.author_id) && (
             <div className="absolute top-2 right-2 flex gap-2">
               <button
                 className="p-2 rounded-lg bg-card/70 border border-golden/40 hover:border-golden text-foreground hover:text-golden"
@@ -290,7 +291,7 @@ export const FanClub = () => {
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-deep-black via-deep-black/40 to-transparent opacity-70 group-hover:opacity-80 transition-opacity" />
 
-          {isAdmin && (
+          {(isAdmin || user?.id === item.author_id) && (
             <div className="absolute top-2 right-2 flex gap-2">
               <button
                 className="p-2 rounded-lg bg-card/70 border border-golden/40 hover:border-golden text-foreground hover:text-golden"
@@ -362,7 +363,7 @@ export const FanClub = () => {
           <div className="p-6">
             <h3 className="text-2xl text-golden mb-6">Minhas Lobinhas</h3>
 
-            {isAdmin && (
+            {user && (
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center mb-4 ${dragPhoto ? "border-golden bg-golden/5" : "border-golden/20"}`}
                 onDragEnter={(e) => {
@@ -437,7 +438,7 @@ export const FanClub = () => {
           <div className="p-6">
             <h3 className="text-2xl text-golden mb-6">Vídeos</h3>
 
-            {isAdmin && (
+            {user && (
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center mb-4 ${dragVideo ? "border-golden bg-golden/5" : "border-golden/20"}`}
                 onDragEnter={(e) => {
