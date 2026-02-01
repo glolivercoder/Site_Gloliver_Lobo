@@ -161,9 +161,10 @@ export const AudioVisualizer = forwardRef<AudioVisualizerHandle, AudioVisualizer
         } else {
           await wavesurfer.load(url);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to load audio:", error);
         setLoadError(true);
+        toast.error(`Erro ao carregar áudio: ${error.message || "Erro desconhecido"}`);
       }
     };
 

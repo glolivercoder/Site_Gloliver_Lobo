@@ -11,7 +11,6 @@ import { Loader2 } from "lucide-react";
 // Lazy Load heavy pages (Code Splitting)
 const Settings = lazy(() => import("./pages/Settings"));
 const FanClubPage = lazy(() => import("./pages/FanClub"));
-const PostsPage = lazy(() => import("./pages/PostsPage"));
 const BiographyPage = lazy(() => import("./pages/Biography"));
 
 const queryClient = new QueryClient();
@@ -33,7 +32,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/fanclub" element={<FanClubPage />} />
-            <Route path="/posts" element={<PostsPage />} />
             <Route path="/biography" element={<BiographyPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

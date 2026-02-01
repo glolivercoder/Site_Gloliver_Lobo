@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      console.log("🔄 Checking user status for:", currentUser.email);
+      // console.log("🔄 Checking user status for:", currentUser.email);
 
       // Fetch profile to check role and block status
       const { data, error } = await supabase
@@ -61,10 +61,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (error) {
-        console.error("❌ Error checking user status:", error.message);
+        // console.error("❌ Error checking user status:", error.message);
         // If profile doesn't exist, check if email is admin
         if (isEmailAdmin(currentUser.email)) {
-          console.log("✅ Email is in admin list, granting admin role");
+          // console.log("✅ Email is in admin list, granting admin role");
           setDbRole('admin');
         } else {
           setDbRole('user');
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else if (data) {
         setIsBlocked(data.is_blocked || false);
         setDbRole(data.role || 'user');
-        console.log("✅ Profile loaded. Role:", data.role);
+        // console.log("✅ Profile loaded. Role:", data.role);
       } else {
         // No profile found, fallback to email check
         if (isEmailAdmin(currentUser.email)) {
@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     } catch (err) {
-      console.error("❌ Unexpected error in checkUserStatus:", err);
+      // console.error("❌ Unexpected error in checkUserStatus:", err);
       // Fallback to email check
       if (isEmailAdmin(currentUser.email)) {
         setDbRole('admin');
@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("🔓 Initial session:", session?.user?.email || "none");
+      // console.log("🔓 Initial session:", session?.user?.email || "none");
       setUser(session?.user ?? null);
       checkUserStatus(session?.user ?? null);
       setIsLoading(false);

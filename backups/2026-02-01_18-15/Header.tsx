@@ -37,7 +37,6 @@ export const Header = () => {
     { href: "/#genres", label: "Gêneros" },
     { href: "/biography", label: "Biografia" },
     { href: "/fanclub", label: "Fã Clube" },
-    { href: "/posts", label: "Postagens" },
   ];
 
   const handleNavClick = (href: string) => {
@@ -137,7 +136,7 @@ export const Header = () => {
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem
-                      onClick={() => navigate("/posts")}
+                      onClick={() => navigate("/fanclub")}
                       className="cursor-pointer hover:bg-golden/10 hover:text-golden"
                     >
                       <FileText className="mr-2 h-4 w-4" />
@@ -225,7 +224,7 @@ export const Header = () => {
                         <button
                           onClick={() => {
                             setIsOpen(false);
-                            navigate("/posts");
+                            navigate("/fanclub");
                           }}
                           className="text-left text-lg text-foreground/80 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-golden/10 flex items-center gap-2"
                         >

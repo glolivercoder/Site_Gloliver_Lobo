@@ -18,35 +18,35 @@ import { supabase } from "./lib/supabase";
   const hasCodeParam = search && search.includes('code=');
 
   if (hasHashTokens || hasCodeParam) {
-    console.log('🔓 OAuth callback detected!');
-    console.log('   Hash:', hash ? 'present' : 'empty');
-    console.log('   Query:', search ? search : 'empty');
+    // console.log('🔓 OAuth callback detected!');
+    // console.log('   Hash:', hash ? 'present' : 'empty');
+    // console.log('   Query:', search ? search : 'empty');
 
     try {
       // For PKCE flow, we need to exchange the code for session
       if (hasCodeParam) {
-        console.log('📤 Exchanging PKCE code for session...');
+        // console.log('📤 Exchanging PKCE code for session...');
         // Supabase automatically handles code exchange when we get session
         const { data, error } = await supabase.auth.exchangeCodeForSession(
           new URLSearchParams(search).get('code') || ''
         );
 
         if (error) {
-          console.error('❌ Error exchanging code:', error.message);
+          // console.error('❌ Error exchanging code:', error.message);
         } else if (data.session) {
-          console.log('✅ Session established:', data.session.user.email);
+          // console.log('✅ Session established:', data.session.user.email);
           // Clear URL params
           window.history.replaceState(null, '', window.location.pathname);
         }
       } else if (hasHashTokens) {
         // For implicit flow (older method)
-        console.log('📤 Processing hash tokens...');
+        // console.log('📤 Processing hash tokens...');
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('❌ Error processing hash:', error.message);
+          // console.error('❌ Error processing hash:', error.message);
         } else if (data.session) {
-          console.log('✅ Session established:', data.session.user.email);
+          // console.log('✅ Session established:', data.session.user.email);
           window.history.replaceState(null, '', window.location.pathname);
         }
       }
