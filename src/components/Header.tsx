@@ -1,4 +1,4 @@
-import { Music, Settings, Menu, LogIn, LogOut, User } from "lucide-react";
+import { Music, Settings, Menu, LogIn, LogOut, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -126,13 +126,23 @@ export const Header = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-golden/20" />
 
-                  <DropdownMenuItem
-                    onClick={() => navigate("/settings")}
-                    className="cursor-pointer hover:bg-golden/10 hover:text-golden"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Configurações</span>
-                  </DropdownMenuItem>
+                  {isAdmin ? (
+                    <DropdownMenuItem
+                      onClick={() => navigate("/settings")}
+                      className="cursor-pointer hover:bg-golden/10 hover:text-golden"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Configurações</span>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => navigate("/fanclub")}
+                      className="cursor-pointer hover:bg-golden/10 hover:text-golden"
+                    >
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Postagens</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer hover:bg-destructive/10 hover:text-destructive"
@@ -199,16 +209,29 @@ export const Header = () => {
                     </button>
                   ) : (
                     <>
-                      <button
-                        onClick={() => {
-                          setIsOpen(false);
-                          navigate("/settings");
-                        }}
-                        className="text-left text-lg text-foreground/80 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-golden/10 flex items-center gap-2"
-                      >
-                        <Settings className="w-4 h-4" />
-                        Configurações
-                      </button>
+                      {isAdmin ? (
+                        <button
+                          onClick={() => {
+                            setIsOpen(false);
+                            navigate("/settings");
+                          }}
+                          className="text-left text-lg text-foreground/80 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-golden/10 flex items-center gap-2"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Configurações
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setIsOpen(false);
+                            navigate("/fanclub");
+                          }}
+                          className="text-left text-lg text-foreground/80 hover:text-primary transition-colors py-2 px-4 rounded-lg hover:bg-golden/10 flex items-center gap-2"
+                        >
+                          <FileText className="w-4 h-4" />
+                          Postagens
+                        </button>
+                      )}
                       <button
                         onClick={() => {
                           setIsOpen(false);

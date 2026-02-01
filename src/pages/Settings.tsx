@@ -48,6 +48,7 @@ import { getStorageInfo, cleanupOldFilesByAge } from "@/utils/storage";
 import { MusicLibraryDialog } from "@/components/MusicLibraryDialog";
 import { MusicManager } from "@/components/MusicManager";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
+import { AnalyticsCard } from "@/components/AnalyticsCard";
 
 // --- Functional Storage Management (Rich Backup Version) ---
 const StorageManagement = () => {
@@ -302,9 +303,12 @@ const Settings = () => {
     setLibraryOpen(true);
   };
 
-  const handleLibrarySelect = (url: string, filename: string) => {
+  const handleLibrarySelect = (url: string, filename: string, mediaId?: string) => {
     if (activeSlot) {
       handleFeaturedChange(activeSlot.page, activeSlot.slot, 'url', url);
+      if (mediaId) {
+        handleFeaturedChange(activeSlot.page, activeSlot.slot, 'mediaId', mediaId);
+      }
       // Auto-set title if empty or generic
       const currentTitle = allPages[activeSlot.page][activeSlot.slot].title;
       if (!currentTitle || currentTitle.includes("Destaque")) {
@@ -343,7 +347,8 @@ const Settings = () => {
           const slot = data.find(i => i.page_index === p && i.slot_index === s);
           pageItems.push(slot ? {
             id: slot.id, title: slot.custom_title || "", url: slot.external_url || "",
-            type: slot.type || "video", thumbnail: slot.custom_thumbnail || slot.thumbnail_url || ""
+            type: slot.type || "video", thumbnail: slot.custom_thumbnail || slot.thumbnail_url || "",
+            mediaId: slot.media_id || null
           } : { id: `temp-${p}-${s}`, title: `Destaque ${s + 1}`, url: "", type: "video" });
         }
         newPages.push(pageItems);
@@ -433,7 +438,8 @@ const Settings = () => {
         page.forEach((slot, sIndex) => {
           upserts.push({
             page_index: pIndex, slot_index: sIndex, custom_title: slot.title,
-            external_url: slot.url, type: slot.type, custom_thumbnail: slot.thumbnail
+            external_url: slot.url, type: slot.type, custom_thumbnail: slot.thumbnail,
+            media_id: slot.mediaId
           });
         });
       });
@@ -535,7 +541,8 @@ const Settings = () => {
             <div className="lg:col-span-2">
               <UserManagement />
             </div>
-            <div>
+            <div className="space-y-6">
+              <AnalyticsCard />
               <ActivityLog />
             </div>
           </div>
@@ -784,67 +791,8 @@ const Settings = () => {
             </CardContent>
           </Card>
 
-          {/* Featured Sections (Restored to match Area de Gerenciamento) */}
-          <Card className="bg-deep-black/50 border-golden/20 backdrop-blur-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-3xl font-black text-golden uppercase tracking-tighter">Destaques e Páginas Principal</CardTitle>
-                <CardDescription>Configure os 8 slots de cada página de destaques do site.</CardDescription>
-              </div>
-              <Button onClick={addNewPage} className="bg-golden/10 border border-golden/30 text-golden hover:bg-golden hover:text-black">
-                ADICIONAR NOVA PÁGINA
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex gap-2 overflow-x-auto pb-4 custom-scrollbar">
-                {allPages.map((_, i) => (
-                  <Button key={i} onClick={() => setCurrentPage(i)} variant={currentPage === i ? "default" : "outline"} className={`rounded-full px-6 font-bold ${currentPage === i ? 'bg-golden text-black' : 'border-golden/20 text-golden/60'}`}>
-                    PÁGINA {i + 1}
-                  </Button>
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {allPages[currentPage]?.map((item, idx) => (
-                  <div key={idx} className="bg-black/40 border border-golden/10 rounded-xl p-4 hover:border-golden/30 transition-all group">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-[10px] font-black bg-golden/20 text-golden px-2 py-0.5 rounded">SLOT {idx + 1}</span>
-                      <Music className="w-3 h-3 text-golden/30" />
-                    </div>
-                    <Input placeholder="Título" value={item.title} onChange={(e) => handleFeaturedChange(currentPage, idx, "title", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-sm font-bold focus-visible:ring-0 mb-3" />
-                    <div className="flex gap-2">
-                      <Input placeholder="URL Media" value={item.url} onChange={(e) => handleFeaturedChange(currentPage, idx, "url", e.target.value)} className="bg-transparent border-b border-t-0 border-l-0 border-r-0 border-golden/20 rounded-none h-8 p-0 text-[10px] focus-visible:ring-0 flex-1" />
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                          onChange={(e) => handleSlotUpload(e, currentPage, idx)}
-                          accept="audio/*,video/*,image/*"
-                        />
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-golden hover:bg-golden/10 hover:text-golden">
-                          <Upload className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-8 border-t border-golden/10 flex justify-between">
-                {allPages.length > 1 && <Button variant="ghost" onClick={() => removePage(currentPage)} className="text-destructive hover:bg-destructive/10 font-bold uppercase text-[10px]">Excluir Página {currentPage + 1}</Button>}
-                <Button onClick={saveFeatured} disabled={loadingScreens} className="bg-golden text-black font-black px-12 h-12 shadow-lg shadow-golden/10 hover:scale-105 transition-transform">
-                  {loadingScreens ? "SALVANDO..." : "SALVAR ALTERAÇÕES DESTA PAGINA"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Management Area Portal */}
           <section id="management-portal" className="pt-12">
-            <div className="text-center mb-8">
-              <h2 className="text-4xl font-black text-golden uppercase tracking-tighter">Área de Gerenciamento</h2>
-              <div className="w-24 h-1 bg-golden mx-auto mt-2 rounded-full opacity-50"></div>
-            </div>
             <UploadSection />
           </section>
 

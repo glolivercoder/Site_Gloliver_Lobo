@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Pencil, X, Loader2, Upload } from "lucide-react"; // Added Upload icon import
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
+import { CommentsSection } from "./CommentsSection";
 
 type GalleryItem = {
   id: string;
@@ -256,6 +257,7 @@ export const FanClub = () => {
             )}
           </div>
         </div>
+        <CommentsSection postId={item.id} />
       </Card>
     );
   };
@@ -333,6 +335,8 @@ export const FanClub = () => {
             )}
           </div>
         </div>
+        {/* Comments Section */}
+        <CommentsSection postId={item.id} />
       </Card>
     );
   };

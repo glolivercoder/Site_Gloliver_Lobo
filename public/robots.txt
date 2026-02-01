@@ -1,14 +1,11 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# Robots.txt for Gloliver Lobo Website
+# https://sitegloliverlobo.pages.dev
 
 User-agent: *
 Allow: /
+
+# Sitemap location
+Sitemap: https://sitegloliverlobo.pages.dev/sitemap.xml
+
+# Disallow admin settings page from indexing
+Disallow: /settings

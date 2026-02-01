@@ -1,4 +1,4 @@
-import { Play, Loader2 } from "lucide-react";
+import { Play, Loader2, Heart } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { AudioVisualizer } from "./AudioVisualizer";
 import { toast } from "sonner";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
+import { LikeButton } from "./LikeButton";
 
 import featured1 from "@/assets/featured-1.jpg";
 import featured2 from "@/assets/featured-2.jpg";
@@ -187,6 +188,7 @@ export const FeaturedSection = () => {
 
             pageItems.push({
               id: slot.id,
+              mediaId: slot.media?.id || null, // For likes
               title: finalTitle,
               image: finalImage,
               url: finalUrl,
@@ -269,10 +271,13 @@ export const FeaturedSection = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="text-sm md:text-base font-semibold text-foreground truncate">
+                      <div className="p-4 flex items-center justify-between">
+                        <h3 className="text-sm md:text-base font-semibold text-foreground truncate flex-1">
                           {item.title}
                         </h3>
+                        {item.mediaId && (
+                          <LikeButton mediaId={item.mediaId} size="sm" />
+                        )}
                       </div>
                     </Card>
                   ))}

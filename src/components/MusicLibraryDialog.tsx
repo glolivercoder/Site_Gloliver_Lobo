@@ -10,7 +10,7 @@ import { supabase, getSupabaseUrl } from "@/lib/supabase";
 interface MusicLibraryDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSelect: (url: string, filename: string) => void;
+    onSelect: (url: string, filename: string, mediaId?: string) => void;
 }
 
 export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibraryDialogProps) => {
@@ -74,7 +74,7 @@ export const MusicLibraryDialog = ({ open, onOpenChange, onSelect }: MusicLibrar
         const url = getSupabaseUrl('media', file.file_path);
         // Use the pretty title from DB, or fallback to filename if title is missing
         const displayTitle = file.title || file.file_path.split('/').pop();
-        onSelect(url, displayTitle);
+        onSelect(url, displayTitle, file.id);
         onOpenChange(false);
     };
 

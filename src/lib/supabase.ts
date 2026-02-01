@@ -11,6 +11,9 @@ export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
     auth: {
         persistSession: true,
         autoRefreshToken: true,
+        detectSessionInUrl: true, // CRITICAL: Detects OAuth tokens in URL after redirect
+        flowType: 'pkce', // Use PKCE flow for better security
+        storageKey: 'gloliverlobo-auth', // Explicit storage key
     }
 });
 

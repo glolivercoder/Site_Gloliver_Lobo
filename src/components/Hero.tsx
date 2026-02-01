@@ -2,7 +2,9 @@ import wolfMoonBg from "@/assets/wolf-moon-bg.webp";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { toPng } from "html-to-image";
+import { useNavigate } from "react-router-dom";
 export const Hero = () => {
+  const navigate = useNavigate();
   const spanRef = useRef<HTMLSpanElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const exportNode = async (node: HTMLElement | null, filename: string) => {
@@ -40,23 +42,7 @@ export const Hero = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80 z-20" />
 
       <div className="relative z-30 container mx-auto px-6 text-center pt-32">
-        <div className="absolute top-0 right-0 hidden md:flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            className="bg-background/60"
-            onClick={() => exportNode(spanRef.current, "IMAGENS_span.png")}
-          >
-            Exportar Span
-          </Button>
-          <Button
-            size="sm"
-            className="bg-golden text-deep-black hover:bg-golden/90"
-            onClick={() => exportNode(containerRef.current, "IMAGENS_div.png")}
-          >
-            Exportar Div
-          </Button>
-        </div>
+
         <div
           className="max-w-4xl mx-4 md:mx-auto px-2 md:px-4 my-0 py-2 mt-24 sm:mt-32 md:mt-64 lg:mt-80"
           ref={containerRef}
@@ -78,12 +64,12 @@ export const Hero = () => {
             >
               Explorar Música
             </a>
-            <a
-              href="#biography"
+            <button
+              onClick={() => navigate("/biography")}
               className="glass-button-outline px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-medium hover:scale-105 transition-transform"
             >
               Sobre o Artista
-            </a>
+            </button>
           </div>
         </div>
       </div>

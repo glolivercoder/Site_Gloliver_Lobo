@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { AudioVisualizer } from "@/components/AudioVisualizer";
 import { supabase, getSupabaseUrl } from "@/lib/supabase";
-import { Play, X } from "lucide-react";
+import { Play, X, Heart } from "lucide-react";
+import { LikeButton } from "./LikeButton";
 
 type GenreKey =
   | "rock"
@@ -179,13 +180,18 @@ export const GenreLibraryDialog = ({
                         : "Externo"}
                     </div>
                   </div>
-                  <Button
-                    size="icon"
-                    className="bg-golden text-deep-black hover:bg-golden/90 shrink-0 h-8 w-8 rounded-full"
-                    title="Reproduzir"
-                  >
-                    <Play className="h-4 w-4 fill-current" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {item.fileId && (
+                      <LikeButton mediaId={item.fileId} size="sm" />
+                    )}
+                    <Button
+                      size="icon"
+                      className="bg-golden text-deep-black hover:bg-golden/90 shrink-0 h-8 w-8 rounded-full"
+                      title="Reproduzir"
+                    >
+                      <Play className="h-4 w-4 fill-current" />
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}
